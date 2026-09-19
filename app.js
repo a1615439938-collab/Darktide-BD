@@ -10,7 +10,7 @@
 const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
-const STORE="darktide-bilingual-editor-gl7";
+const STORE="darktide-bilingual-editor-gl10";
 const TREE_TOP=174;
 
 const CAT={
@@ -143,6 +143,7 @@ const GEAR_GUIDE={
 };
 
 let state={
+  patch:"future",
   classKey:"veteran",
   selected:{},
   loadouts:{},
@@ -160,6 +161,8 @@ let nodeEls={};
 let edgeEls=[];
 let exclusiveGroups={};
 let hotSlug=null;
+let actionHistory=[];
+let toastTimer=null;
 
 const $=q=>document.querySelector(q);
 
@@ -218,8 +221,19 @@ function persist(){
   captureLoadout();
   try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}
 }
+function treeList(){
+  if(state.patch==="live"&&Array.isArray(DATA.liveClasses)&&DATA.liveClasses.length)return DATA.liveClasses;
+  return DATA.classes;
+}
 function classByKey(k){
-  return DATA.classes.find(c=>c.key===k)||DATA.classes[0];
+  const list=treeList();
+  return list.find(c=>c.key===k)||list[0];
+}
+function selectionKey(k=state.classKey){
+  return state.patch+":"+k;
+}
+function patchLabel(){
+  return state.patch==="live"?(DATA.liveVersion||"Live patch"):(DATA.version||"Future update");
 }
 function radius(n){
   if(n.cat==="keystone")return 42;
@@ -317,10 +331,14 @@ function points(){
   return Math.max(0,active.size-1);
 }
 function saveSelection(){
-  if(CUR) state.selected[CUR.key]=[...active].filter(s=>s!==ROOT);
+  if(CUR) state.selected[selectionKey(CUR.key)]=[...active].filter(s=>s!==ROOT);
 }
 function restoreSelection(){
-  const wanted=new Set(state.selected[CUR.key]||[]);
+  const key=selectionKey(CUR.key);
+  if(state.patch==="future"&&!state.selected[key]&&state.selected[CUR.key]){
+    state.selected[key]=state.selected[CUR.key];
+  }
+  const wanted=new Set(state.selected[key]||[]);
   active=new Set([ROOT]);
   let progressed=true;
   while(progressed){
@@ -339,7 +357,7 @@ function renderClassbar(){
   const bar=$("#classbar");
   bar.innerHTML="";
   const selectedBase=baseClassKey();
-  for(const c of DATA.classes.filter(x=>!x.parent)){
+  for(const c of treeList().filter(x=>!x.parent)){
     const b=document.createElement("button");
     b.type="button";
     b.className=c.key===selectedBase?"on":"";
@@ -351,10 +369,33 @@ function renderClassbar(){
       persist();
       state.classKey=c.key;
       hotSlug=null;
+      clearHistory();
       renderAll(true);
     };
     bar.appendChild(b);
   }
+}
+function renderPatchControls(){
+  const future=$("#futurePatchBtn"),live=$("#livePatchBtn");
+  if(future)future.classList.toggle("active",state.patch==="future");
+  if(live)live.classList.toggle("active",state.patch==="live");
+  const note=document.querySelector(".patch-note");
+  if(note)note.textContent=state.patch==="live"
+    ?"当前使用正式服天赋树；切换版本不会覆盖另一版本的加点。 / Live tree selected; each patch keeps its own build."
+    :"当前使用未来更新天赋树；切换版本不会覆盖正式服加点。 / Future tree selected; each patch keeps its own build.";
+}
+function switchPatch(next){
+  if(next===state.patch)return;
+  saveSelection();
+  persist();
+  const oldKey=state.classKey;
+  state.patch=next;
+  const list=treeList();
+  state.classKey=list.some(c=>c.key===oldKey)?oldKey:(list.find(c=>!c.parent)?.key||list[0].key);
+  hotSlug=null;
+  clearHistory();
+  renderAll(true);
+  persist();
 }
 function renderSubtreeBar(){
   const host=$("#subtreeStrip");
@@ -366,8 +407,8 @@ function renderSubtreeBar(){
     return;
   }
   const choices=[
-    DATA.classes.find(c=>c.key==="hivescum"),
-    DATA.classes.find(c=>c.key==="hivescum-stimm")
+    treeList().find(c=>c.key==="hivescum"),
+    treeList().find(c=>c.key==="hivescum-stimm")
   ].filter(Boolean);
   host.className="subtree-strip show";
   host.innerHTML="";
@@ -473,8 +514,31 @@ function buildTree(){
   applyZoom();
   redraw();
 
-  const first=nodeMap[hotSlug]||nodeMap[ROOT];
-  showInfo(first,false);
+  hideInfo(false);
+}
+function pushUndo(){
+  actionHistory.push([...active].filter(s=>s!==ROOT));
+  if(actionHistory.length>40)actionHistory.shift();
+  updateUndoButton();
+}
+function clearHistory(){
+  actionHistory=[];
+  updateUndoButton();
+}
+function updateUndoButton(){
+  const b=$("#undoBtn");
+  if(b)b.disabled=actionHistory.length===0;
+}
+function undoLast(){
+  if(!actionHistory.length)return;
+  const prev=actionHistory.pop();
+  state.selected[selectionKey(CUR.key)]=prev;
+  restoreSelection();
+  persist();
+  redraw();
+  hideInfo(false);
+  updateUndoButton();
+  notify("已撤销上一步 / Undone");
 }
 function toggleNode(n){
   if(n.s===ROOT) return;
@@ -496,24 +560,26 @@ function toggleNode(n){
     }
 
     if([...trial].some(s=>s!==ROOT&&!seen.has(s))){
-      setStatus("不能移除：后续天赋仍通过此节点连接。 / Cannot remove: downstream talents route through this node.","err");
+      notify("不能移除：后续天赋仍依赖这个节点 / Downstream talents still depend on it");
       return;
     }
+    pushUndo();
     active.delete(n.s);
   }else{
     if(!isAvail(n.s)){
-      setStatus("该节点尚未连接到已选择路径。 / This node is not connected to your selected path.","err");
+      notify("该节点尚未连接到已选择路径 / This node is not connected yet");
       return;
     }
     if(points()>=CUR.budget){
-      setStatus("30 点已用完。 / All 30 talent points are spent.","err");
+      notify("30 点已用完 / All 30 talent points are spent");
       return;
     }
     const conflict=currentGroupConflict(n);
     if(conflict){
-      setStatus(`同一选择组只能点一个：${conflict.cn||conflict.en} / Only one choice is allowed in this group.`,"err");
+      notify(`同一组只能选一个：${conflict.cn||conflict.en} / Only one choice in this group`);
       return;
     }
+    pushUndo();
     active.add(n.s);
   }
 
@@ -536,10 +602,15 @@ function redraw(){
   }
 
   $("#pts").textContent=`${points()} / ${CUR.budget}`;
-  setStatus(`${CUR.cn} · ${CUR.name} — ${DATA.version} — ${CUR.nodes.length} nodes`,"ok");
+  setStatus(`${CUR.cn} · ${CUR.name} — ${patchLabel()} — ${CUR.nodes.length} nodes`,"ok");
 }
 function showInfo(n,focus=false){
   if(!n)return;
+  const pop=$("#nodePopover");
+  if(pop){
+    pop.classList.remove("hidden");
+    pop.setAttribute("aria-hidden","false");
+  }
   const cat=CAT[n.cat]||CAT.passive;
   $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
   $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:(n.en||"");
@@ -605,6 +676,25 @@ function placePopover(n,focus=false){
     }
   });
 }
+function hideInfo(redrawTree=true){
+  const pop=$("#nodePopover");
+  if(pop){
+    pop.classList.add("hidden");
+    pop.setAttribute("aria-hidden","true");
+  }
+  if(hotSlug!==null){
+    hotSlug=null;
+    if(redrawTree&&CUR)redraw();
+  }
+}
+function notify(message){
+  const toast=$("#toast");
+  if(!toast)return;
+  toast.textContent=message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),1700);
+}
 function setStatus(msg,type=""){
   const el=$("#status");
   el.textContent=msg;
@@ -621,14 +711,15 @@ function applyZoom(){
   canvas.style.setProperty("--tree-top",TREE_TOP+"px");
   svg.style.width=width+"px";
   svg.style.height=height+"px";
-  const n=nodeMap[hotSlug]||nodeMap[ROOT];
-  if(n)placePopover(n,false);
+  const n=hotSlug?nodeMap[hotSlug]:null;
+  if(n&&!$("#nodePopover").classList.contains("hidden"))placePopover(n,false);
 }
 function centerTree(){
   const vp=$("#treeViewport"),canvas=$("#treeCanvas");
   vp.scrollLeft=Math.max(0,(canvas.clientWidth-vp.clientWidth)/2);
 }
 function renderAll(center=false){
+  renderPatchControls();
   renderClassbar();
   renderSubtreeBar();
   $("#buildName").value=state.name||"";
@@ -644,7 +735,7 @@ function buildPayload(){
   persist();
   return {
     format:"DTB3",
-    patch:DATA.version,
+    patch:state.patch,
     classKey:state.classKey,
     selected:state.selected,
     name:state.name,
@@ -689,6 +780,7 @@ function importData(txt){
   if(!["DTB3","Darktide-Future-Tree-BD-1","Darktide-Future-Tree-BD-2"].includes(x.format)){
     throw new Error("不是本规划器的 BD 数据 / Unsupported build format");
   }
+  state.patch=(x.patch==="live"||x.patch==="future")?x.patch:"future";
   state.classKey=x.classKey||state.classKey;
   state.selected=x.selected||{};
   state.name=x.name||"";
@@ -698,14 +790,19 @@ function importData(txt){
   renderAll(true);
 }
 function bind(){
+  $("#undoBtn").onclick=undoLast;
   $("#resetBtn").onclick=()=>{
     if(confirm("重置当前职业的天赋？ / Reset this class tree?")){
-      state.selected[state.classKey]=[];
+      pushUndo();
+      state.selected[selectionKey(state.classKey)]=[];
       hotSlug=null;
       persist();
       renderAll(false);
+      notify("已重置当前天赋树 / Current tree reset");
     }
   };
+  $("#futurePatchBtn").onclick=()=>switchPatch("future");
+  $("#livePatchBtn").onclick=()=>switchPatch("live");
   $("#saveBtn").onclick=()=>{
     saveSelection();
     persist();
@@ -776,6 +873,20 @@ function bind(){
     }
   };
 
+  const pop=$("#nodePopover");
+  if(pop)pop.addEventListener("pointerdown",e=>e.stopPropagation());
+  document.addEventListener("pointerdown",e=>{
+    const card=$("#nodePopover");
+    if(!card||card.classList.contains("hidden"))return;
+    const target=e.target;
+    if(card.contains(target))return;
+    if(target instanceof Element&&target.closest(".node"))return;
+    hideInfo();
+  },{passive:true});
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape")hideInfo();
+  });
+
   addEventListener("resize",()=>{applyZoom();requestAnimationFrame(centerTree);});
   addEventListener("hashchange",()=>{
     const raw=location.hash.startsWith("#b=")?location.hash.slice(3):"";
@@ -787,6 +898,7 @@ function bind(){
 function selfCheck(){
   if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.filter(c=>!c.parent).length<7) throw new Error("all seven class trees are not loaded");
   if(!DATA.classes.find(c=>c.key==="hivescum-stimm")) throw new Error("Hive Scum Stimm Lab is not loaded");
+  if(!Array.isArray(DATA.liveClasses)||DATA.liveClasses.filter(c=>!c.parent).length<7) throw new Error("live patch trees are not loaded");
   if(!DATA.icons||Object.keys(DATA.icons).length<50) throw new Error("talent icons are missing");
   if(!CUR||CUR.nodes.length<40) throw new Error("talent tree data is incomplete");
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
@@ -848,7 +960,7 @@ try{
   selfCheck();
   runAutomatedSelfTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl9").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl10").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
