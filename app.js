@@ -10,7 +10,8 @@
 const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
-const STORE="darktide-bilingual-editor-gl3";
+const STORE="darktide-bilingual-editor-gl4";
+const TREE_TOP=174;
 
 const CAT={
   passive:{color:"#79b9c6",cn:"普通天赋",en:"Passive"},
@@ -63,10 +64,13 @@ function classByKey(k){
   return DATA.classes.find(c=>c.key===k)||DATA.classes[0];
 }
 function radius(n){
-  if(n.cat==="keystone") return 34;
-  if(["ability","blitz","aura","root"].includes(n.cat)) return 31;
-  if(n.cat==="stat") return 12;
-  return 24;
+  if(n.cat==="keystone")return 35;
+  if(n.cat==="ability")return 34;
+  if(n.cat==="blitz"||n.cat==="aura")return 31;
+  if(n.cat==="root")return 32;
+  if(n.cat==="stat")return 12;
+  if(n.cat==="keymod"||n.cat==="abilmod")return 25;
+  return 27;
 }
 function createSvg(tag,attrs={}){
   const el=document.createElementNS(NS,tag);
@@ -194,6 +198,11 @@ function renderNode(svg,defs,n){
   const r=radius(n);
   const g=createSvg("g",{class:"node"+(n.cat==="stat"?" stat":""),"data-s":n.s});
   g.appendChild(nodeShape(n,r));
+  if(n.cat!=="stat"){
+    const inner=nodeShape(n,Math.max(7,r-4));
+    inner.setAttribute("class","inner-frame");
+    g.appendChild(inner);
+  }
 
   const src=iconFor(n);
   if(src&&n.cat!=="stat"){
@@ -201,10 +210,10 @@ function renderNode(svg,defs,n){
     defs.appendChild(clipShape(n,r,id));
     const im=createSvg("image",{
       href:src,
-      x:n.x-r+4,
-      y:n.y-r+4,
-      width:(r-4)*2,
-      height:(r-4)*2,
+      x:n.x-r+5,
+      y:n.y-r+5,
+      width:(r-5)*2,
+      height:(r-5)*2,
       preserveAspectRatio:"xMidYMid slice",
       "clip-path":"url(#"+id+")",
       class:"art"
