@@ -133,7 +133,7 @@ button{touch-action:manipulation}
 
 .node-popover{
   --arrow-left:50%;
-  position:absolute;z-index:12;width:min(330px,82vw);
+  position:fixed;z-index:70;width:min(330px,calc(100vw - 20px));
   padding:12px 13px 13px;
   background:
     linear-gradient(180deg,rgba(70,94,55,.96),rgba(30,48,32,.97)),
@@ -148,6 +148,7 @@ button{touch-action:manipulation}
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
 }
 .node-popover.hidden{opacity:0;transform:scale(.96) translateY(4px);pointer-events:none}
 .node-popover:not(.hidden){opacity:1;transform:scale(1) translateY(0)}
@@ -170,9 +171,17 @@ button{touch-action:manipulation}
 }
 .vocab .v b{color:#fff;font-weight:700}
 .popover-arrow{
-  position:absolute;left:var(--arrow-left);bottom:-9px;width:16px;height:16px;
-  background:#253b29;border-right:1px solid #5b7656;border-bottom:1px solid #5b7656;
+  position:absolute;left:var(--arrow-left);width:16px;height:16px;
+  background:#253b29;
   transform:translateX(-50%) rotate(45deg)
+}
+.node-popover[data-side="above"] .popover-arrow{
+  bottom:-9px;top:auto;border-right:1px solid #5b7656;border-bottom:1px solid #5b7656;
+  border-left:0;border-top:0
+}
+.node-popover[data-side="below"] .popover-arrow{
+  top:-9px;bottom:auto;border-left:1px solid #5b7656;border-top:1px solid #5b7656;
+  border-right:0;border-bottom:0
 }
 
 .tree-tools{
