@@ -69,6 +69,8 @@ jobs:
 
       - name: Check open-popover geometry
         run: |
+          grep -q 'data-visual-test-started="true"' /tmp/popover-dom.html
+          grep -q 'data-visual-test-done="true"' /tmp/popover-dom.html
           grep -q 'data-popover-inside-x="true"' /tmp/popover-dom.html
           grep -q 'data-popover-inside-y="true"' /tmp/popover-dom.html
           grep -q 'data-popover-relation="true"' /tmp/popover-dom.html
