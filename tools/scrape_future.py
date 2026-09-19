@@ -161,6 +161,41 @@ def nearest(nodes, x, y):
             best = n
     return best if bd <= 1800 else None
 
+def build_tree(meta, svg, patch, parent=None, sub_label=None, sub_label_cn=None, rootkey=None):
+    rootkey = rootkey or ('root-' + meta['ig'])
+    nodes, raw_edges, icons = extract_svg(svg, meta['ig'], rootkey)
+    edges = []
+    for x1, y1, x2, y2 in raw_edges:
+        a = nearest(nodes, x1, y1)
+        b = nearest(nodes, x2, y2)
+        if a and b and a['s'] != b['s']:
+            pair = [a['s'], b['s']]
+            if pair not in edges and pair[::-1] not in edges:
+                edges.append(pair)
+
+    if not nodes:
+        raise RuntimeError('No nodes for ' + meta['name'] + ' ' + patch)
+
+    xs = [n['x'] for n in nodes]
+    ys = [n['y'] for n in nodes]
+    pad = 70
+
+    tree = {
+        **meta,
+        'patch': patch,
+        'budget': 30,
+        'viewbox': [min(xs)-pad, min(ys)-pad, max(xs)-min(xs)+2*pad, max(ys)-min(ys)+2*pad],
+        'nodes': nodes,
+        'edges': edges,
+    }
+    if parent:
+        tree['parent'] = parent
+    if sub_label:
+        tree['subLabel'] = sub_label
+    if sub_label_cn:
+        tree['subLabelCn'] = sub_label_cn
+    return tree, icons
+
 TYPE_RE = re.compile(r'text-\[#707d67\][^>]*>\s*<div>([^<]+)</div>')
 NAME_RE = re.compile(r'text-\[#d7e4ce\][^"]*text-lg[^"]*">([^<]+)<')
 DESC_RE = re.compile(r'text-\[#a7be97\][^"]*leading-5[^"]*">(.*?)</div>', re.S)
@@ -197,93 +232,70 @@ def translation_map():
         pass
     return out
 
-classes = []
+future_classes = []
+live_classes = []
 all_slugs = set()
 all_icon_urls = {}
 
-for cl in CLASSES:
-    page = get(BASE + '/classes/' + cl['page'])
+hive_svgs = None
+for meta in CLASSES:
+    page = get(BASE + '/classes/' + meta['page'])
     if not page:
-        raise SystemExit('Could not fetch ' + cl['page'])
-
+        raise SystemExit('Could not fetch ' + meta['page'])
     svgs = pick_tree_svgs(page)
-    print(cl['name'], 'candidate trees', len(svgs))
+    print(meta['name'], 'candidate trees', len(svgs))
     if not svgs:
-        raise SystemExit('No talent tree SVGs for ' + cl['name'])
+        raise SystemExit('No talent tree SVGs for ' + meta['name'])
 
-    # Games Lantern renders live + future. Hive Scum also has a Stimm Lab for each patch:
-    # [live talent, live stimm, future talent, future stimm].
-    if cl['key'] == 'hivescum' and len(svgs) >= 4:
-        idx = 2
+    if meta['key'] == 'hivescum':
+        hive_svgs = svgs
+        live_idx = 0
+        future_idx = 2 if len(svgs) >= 4 else min(1, len(svgs)-1)
     else:
-        idx = 1 if len(svgs) > 1 else 0
-    nodes, raw_edges, icon_urls = extract_svg(svgs[idx], cl['ig'], 'root-' + cl['ig'])
+        live_idx = 0
+        future_idx = 1 if len(svgs) > 1 else 0
 
-    for n in nodes:
-        if n['slug']:
-            all_slugs.add(n['slug'].split('/')[-1])
+    live_tree, live_icons = build_tree(meta, svgs[live_idx], 'live')
+    future_tree, future_icons = build_tree(meta, svgs[future_idx], 'future')
+    live_classes.append(live_tree)
+    future_classes.append(future_tree)
+    all_icon_urls.update(live_icons)
+    all_icon_urls.update(future_icons)
 
-    edges = []
-    for x1, y1, x2, y2 in raw_edges:
-        a = nearest(nodes, x1, y1)
-        b = nearest(nodes, x2, y2)
-        if a and b and a['s'] != b['s']:
-            pair = [a['s'], b['s']]
-            if pair not in edges and pair[::-1] not in edges:
-                edges.append(pair)
-
-    xs = [n['x'] for n in nodes]
-    ys = [n['y'] for n in nodes]
-    pad = 70
-
-    print(cl['name'], 'selected future tree', len(nodes), 'nodes', len(edges), 'edges')
-    classes.append({
-        **cl,
-        'budget': 30,
-        'viewbox': [min(xs)-pad, min(ys)-pad, max(xs)-min(xs)+2*pad, max(ys)-min(ys)+2*pad],
-        'nodes': nodes,
-        'edges': edges,
-    })
-    all_icon_urls.update(icon_urls)
-
-# Hive Scum has a second future-patch tree: the Stimm Lab.
-hive_page = get(BASE + '/classes/hive-scum')
-hive_svgs = pick_tree_svgs(hive_page) if hive_page else []
-if len(hive_svgs) >= 4:
-    stimm_nodes, stimm_raw_edges, stimm_icons = extract_svg(
-        hive_svgs[3], 'broker', 'root-brokerstimm'
-    )
-    stimm_edges = []
-    for x1, y1, x2, y2 in stimm_raw_edges:
-        a = nearest(stimm_nodes, x1, y1)
-        b = nearest(stimm_nodes, x2, y2)
-        if a and b and a['s'] != b['s']:
-            pair = [a['s'], b['s']]
-            if pair not in stimm_edges and pair[::-1] not in stimm_edges:
-                stimm_edges.append(pair)
-    if stimm_nodes:
-        xs = [n['x'] for n in stimm_nodes]
-        ys = [n['y'] for n in stimm_nodes]
-        pad = 70
-        for n in stimm_nodes:
+    for tree in (live_tree, future_tree):
+        for n in tree['nodes']:
             if n['slug']:
                 all_slugs.add(n['slug'].split('/')[-1])
-        classes.append({
-            'key':'hivescum-stimm',
-            'name':'Hive Scum — Stimm Lab',
-            'cn':'巢都渣滓 — 兴奋剂实验室',
-            'ig':'broker',
-            'page':'hive-scum',
-            'parent':'hivescum',
-            'subLabel':'Stimm Lab',
-            'subLabelCn':'兴奋剂实验室',
-            'budget':30,
-            'viewbox':[min(xs)-pad,min(ys)-pad,max(xs)-min(xs)+2*pad,max(ys)-min(ys)+2*pad],
-            'nodes':stimm_nodes,
-            'edges':stimm_edges,
-        })
-        all_icon_urls.update(stimm_icons)
-        print('Hive Scum Stimm Lab selected future tree', len(stimm_nodes), 'nodes', len(stimm_edges), 'edges')
+
+    print(meta['name'], 'live', len(live_tree['nodes']), 'nodes;', 'future', len(future_tree['nodes']), 'nodes')
+
+if hive_svgs and len(hive_svgs) >= 4:
+    base_meta = {
+        'key':'hivescum-stimm',
+        'name':'Hive Scum — Stimm Lab',
+        'cn':'巢都渣滓 — 兴奋剂实验室',
+        'ig':'broker',
+        'page':'hive-scum',
+    }
+    live_stimm, live_icons = build_tree(
+        base_meta, hive_svgs[1], 'live',
+        parent='hivescum', sub_label='Stimm Lab', sub_label_cn='兴奋剂实验室',
+        rootkey='root-brokerstimm'
+    )
+    future_stimm, future_icons = build_tree(
+        base_meta, hive_svgs[3], 'future',
+        parent='hivescum', sub_label='Stimm Lab', sub_label_cn='兴奋剂实验室',
+        rootkey='root-brokerstimm'
+    )
+    live_classes.append(live_stimm)
+    future_classes.append(future_stimm)
+    all_icon_urls.update(live_icons)
+    all_icon_urls.update(future_icons)
+    for tree in (live_stimm, future_stimm):
+        for n in tree['nodes']:
+            if n['slug']:
+                all_slugs.add(n['slug'].split('/')[-1])
+    print('Hive Scum Stimm Lab live', len(live_stimm['nodes']), 'nodes;', 'future', len(future_stimm['nodes']), 'nodes')
 
 DESC = {}
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
@@ -307,28 +319,34 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
 
 print('icons downloaded', len(ICONS), 'of', len(all_icon_urls))
 
-for cl in classes:
-    for n in cl['nodes']:
-        if n['cat'] == 'root':
-            n['en'] = cl['name']
-            n['cn'] = cl['cn']
-            n['type'] = 'Class'
-            n['desc'] = ''
-        else:
-            canonical = n['slug'].split('/')[-1]
-            info = DESC.get(canonical, {})
-            en = info.get('n') or canonical.replace('-',' ').title()
-            n['en'] = en
-            n['cn'] = TR.get(en, en)
-            n['type'] = info.get('t','')
-            n['desc'] = info.get('d','')
-        n.pop('slug', None)
+def attach_info(trees):
+    for cl in trees:
+        for n in cl['nodes']:
+            if n['cat'] == 'root':
+                n['en'] = cl['name']
+                n['cn'] = cl['cn']
+                n['type'] = 'Class'
+                n['desc'] = ''
+            else:
+                canonical = n['slug'].split('/')[-1]
+                info = DESC.get(canonical, {})
+                en = info.get('n') or canonical.replace('-',' ').title()
+                n['en'] = en
+                n['cn'] = TR.get(en, en)
+                n['type'] = info.get('t','')
+                n['desc'] = info.get('d','')
+            n.pop('slug', None)
+
+attach_info(future_classes)
+attach_info(live_classes)
 
 out = {
     'version': 'Depths of the Damned Future update',
+    'liveVersion': 'Skitarii Class Live',
     'source': 'Games Lantern',
     'generated_by': 'tools/scrape_future.py',
-    'classes': classes,
+    'classes': future_classes,
+    'liveClasses': live_classes,
     'icons': ICONS,
 }
 Path('tree-data.js').write_text(
