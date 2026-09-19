@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=gl9">
+  <link rel="stylesheet" href="./styles.css?v=gl10">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -32,15 +32,15 @@
   </section>
 
   <section class="patch-grid">
-    <button class="patch active" type="button">
+    <button class="patch active" id="futurePatchBtn" data-patch="future" type="button">
       <span>诅咒深渊</span>
       <strong>Depths of the Damned</strong>
       <em>未来更新 · FUTURE UPDATE</em>
     </button>
-    <button class="patch disabled" type="button" disabled>
+    <button class="patch" id="livePatchBtn" data-patch="live" type="button">
       <span>当前正式服</span>
       <strong>Live patch</strong>
-      <em>稍后加入 · COMING LATER</em>
+      <em>正式服 · LIVE</em>
     </button>
   </section>
 
@@ -56,7 +56,7 @@
     <div class="tree-canvas" id="treeCanvas">
       <svg id="treeSvg" role="img" aria-label="Darktide talent tree"></svg>
 
-      <div class="node-popover" id="nodePopover">
+      <div class="node-popover hidden" id="nodePopover" aria-hidden="true">
         <div class="popover-type" id="infoType">职业节点 / Class node</div>
         <div class="popover-head">
           <div>
@@ -76,6 +76,7 @@
   </section>
 
   <section class="tree-tools">
+    <button id="undoBtn" type="button" disabled>撤销 <small>Undo</small></button>
     <button id="resetBtn" type="button">重置 <small>Reset</small></button>
     <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
     <button id="zoomFit" type="button">适配 <small>Fit</small></button>
@@ -169,6 +170,8 @@
   </footer>
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <dialog id="codeDialog">
   <form method="dialog" class="dialog-card">
     <h2>BD 数据 <small>/ Build Data</small></h2>
@@ -183,7 +186,7 @@
   </form>
 </dialog>
 
-<script src="./tree-data.js?v=gl9"></script>
-<script src="./app.js?v=gl9"></script>
+<script src="./tree-data.js?v=gl10"></script>
+<script src="./app.js?v=gl10"></script>
 </body>
 </html>
