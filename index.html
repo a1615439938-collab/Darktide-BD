@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=gl4">
+  <link rel="stylesheet" href="./styles.css?v=gl5">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -87,21 +87,77 @@
     <span><i class="keystone"></i>关键 / Keystone</span>
   </section>
 
-  <details class="build-panel">
-    <summary>BD 名称、装备、分享 / Build details & sharing</summary>
+  <section class="section-title loadout-title">
+    <span>完整配装</span><b>Loadout</b>
+  </section>
+
+  <section class="loadout-grid">
+    <article class="gear-card">
+      <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
+      <input id="meleeWeapon" list="meleeSuggestions" placeholder="选择或输入武器 / Choose or type">
+      <div class="two-col">
+        <input id="meleeBlessing1" placeholder="祝福 1 / Blessing 1">
+        <input id="meleeBlessing2" placeholder="祝福 2 / Blessing 2">
+      </div>
+      <div class="two-col">
+        <input id="meleePerk1" placeholder="词条 1 / Perk 1">
+        <input id="meleePerk2" placeholder="词条 2 / Perk 2">
+      </div>
+    </article>
+
+    <article class="gear-card">
+      <div class="gear-head"><span>远程武器</span><b>Ranged Weapon</b></div>
+      <input id="rangedWeapon" list="rangedSuggestions" placeholder="选择或输入武器 / Choose or type">
+      <div class="two-col">
+        <input id="rangedBlessing1" placeholder="祝福 1 / Blessing 1">
+        <input id="rangedBlessing2" placeholder="祝福 2 / Blessing 2">
+      </div>
+      <div class="two-col">
+        <input id="rangedPerk1" placeholder="词条 1 / Perk 1">
+        <input id="rangedPerk2" placeholder="词条 2 / Perk 2">
+      </div>
+    </article>
+  </section>
+
+  <datalist id="meleeSuggestions"></datalist>
+  <datalist id="rangedSuggestions"></datalist>
+
+  <section class="curio-section">
+    <div class="gear-head"><span>珍品</span><b>Curios</b></div>
+    <div class="curio-grid">
+      <article class="curio-card">
+        <strong>珍品 1 / Curio 1</strong>
+        <input id="curio1Main" placeholder="主属性 / Main stat">
+        <input id="curio1Perks" placeholder="词条 / Perks">
+      </article>
+      <article class="curio-card">
+        <strong>珍品 2 / Curio 2</strong>
+        <input id="curio2Main" placeholder="主属性 / Main stat">
+        <input id="curio2Perks" placeholder="词条 / Perks">
+      </article>
+      <article class="curio-card">
+        <strong>珍品 3 / Curio 3</strong>
+        <input id="curio3Main" placeholder="主属性 / Main stat">
+        <input id="curio3Perks" placeholder="词条 / Perks">
+      </article>
+    </div>
+    <div class="meta-hint" id="curioHint"></div>
+  </section>
+
+  <section class="build-panel open-panel">
     <div class="panel-body">
       <label>BD 名称 <small>/ Build name</small></label>
       <input id="buildName" placeholder="例如：新版发号施令老兵 / New VoC Veteran">
 
-      <label>装备与备注 <small>/ Gear & notes</small></label>
-      <textarea id="notes" placeholder="武器、祝福、词条、珍品、打法… / Weapons, blessings, perks, curios, notes…"></textarea>
+      <label>打法与备注 <small>/ Playstyle & notes</small></label>
+      <textarea id="notes" placeholder="记录打法、替代武器、断点、适用难度等… / Playstyle, alternatives, breakpoints, difficulty…"></textarea>
 
       <div class="share-row">
-        <button id="exportBtn" type="button">导出 / Export</button>
+        <button id="exportBtn" type="button">导出 BD / Export</button>
         <button id="importBtn" type="button">导入 / Import</button>
       </div>
     </div>
-  </details>
+  </section>
 
   <footer>
     <p>非官方玩家工具 / Unofficial fan tool.</p>
@@ -122,7 +178,7 @@
   </form>
 </dialog>
 
-<script src="./tree-data.js?v=gl4"></script>
-<script src="./app.js?v=gl4"></script>
+<script src="./tree-data.js?v=gl5"></script>
+<script src="./app.js?v=gl5"></script>
 </body>
 </html>
