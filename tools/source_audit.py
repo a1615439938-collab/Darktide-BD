@@ -39,11 +39,22 @@ for tree in (data.get("classes") or [])+(data.get("liveClasses") or []):
         if cn and cn!=en and not n.get("nameSourceCn"): issues.append(("high","missing_cn_name_source",tree.get("patch"),tree.get("key"),n.get("s"),en))
         if n.get("desc") and not n.get("descSourceEn"): issues.append(("high","missing_en_desc_source",tree.get("patch"),tree.get("key"),n.get("s"),en))
 
-# Official preview expectations. These are intentionally limited to explicit changes in
-# Fatshark's Sep 18 2026 preview; unchanged talents remain sourced from current live data.
+# Official Sep 18 2026 Depths of the Damned preview expectations.
+# Values below are explicit in Fatshark's preview. For baseline/Iconic passives that
+# are not selectable nodes (e.g. Guardsman / Sharpshooter), inspect the class root.
 official_preview={
+  # Ogryn
+  "dominate":["15%","10"],
+  "keep shooting":["20%"],
+  "soften them up":["15%","5"],
+  "go again":["1.5%"],
+  "maximum firepower":["100%","2.5"],
+  "bruiser":["50%","4"],
+  "indomitable":["25","25%","100%"],
   "found some more":["1%","15"],
-  "faithful frenzy":["5%"],
+  # Zealot
+  "faithful frenzy":["10%","5%"],
+  "until death":["8","120"],
   "holy revenant":["25%"],
   "zealous pilgrim":["5"],
   "fire and fury":["12","3"],
@@ -55,16 +66,54 @@ official_preview={
   "the voice of terra":["10%"],
   "out of pocket":["10%"],
   "unseen blade":["20%"],
+  "retributor s stance":["0.5%","10%"],
+  "chorus of spiritual fortitude":["5","0.8","45%","15","75","8","60"],
+  "holy cause":["8%","5","10"],
+  "ecclesiarch s call":["6%","5","10"],
+  # Psyker
+  "mind in motion":["5%"],
   "focused warp":["15%"],
   "peril equilibrium":["75%","2%"],
   "psykinetic grip":["20%"],
-  "guardsman":["25%"],
-  "sharpshooter":["1%","5"],
+  "psykinetic s aura":["50%","3"],
+  "perilous combustion":["2"],
+  "surety of arms":["30%","80%","15%"],
+  # Veteran
+  "duck and dive":["30%","5%"],
+  "survivalist":["0.5%","5","0.25%"],
   "close and kill":["7.5%"],
+  "duty and honour":["75","10"],
+  # Arbites
+  "nuncio aquila":["7.5","7.5%","30%","30%","25%","15%","20","60"],
+  "lone wolf":["15%","10%","20%","1","45","90"],
+  # Hive Scum
+  "rampage":["35%","20%","25%","10","30"],
+  "sample collector":["0.5","1"],
+  # Skitarii
+  "advanced combat doctrines":["25%","90%","60%","10%","1%","5"],
+  "voltaic motivator":["5%","5%","15"],
+  "voltaic overcharge":["25%","1%"],
+  "higher purpose":["2.5%"],
+  "noospheric command":["30%","2"],
+  "voltaic burst":["12"],
+  "ammunition deposit":["25","15%"],
+  "system shock":["3","2.5%"],
+  "galvanized coating":["15%","7.5%"],
+  "target neutralization feedback":["5"],
+  "salvation doctrine":["25%","25%"],
+  "superior tracking litanies":["50%","45%"],
+  "force distribution actuators":["75%","50%"],
 }
+
 future_by_name={}
-for tree,n in nodes:
-    if tree.get("patch")=="future":
+future_roots={}
+for tree in (data.get("classes") or []):
+    if tree.get("patch")!="future":
+        continue
+    for n in tree.get("nodes",[]):
+        if n.get("cat")=="root":
+            future_roots[tree.get("key")]=n
+            continue
         future_by_name.setdefault(norm(n.get("en")),[]).append(n)
 
 for name,required in official_preview.items():
@@ -72,11 +121,52 @@ for name,required in official_preview.items():
     if not arr:
         issues.append(("high","official_preview_talent_missing","future","*",name,""))
         continue
-    combined=" ".join((n.get("desc") or "")+" "+(n.get("advancedEn") or "") for n in arr)
+    combined=" ".join((n.get("desc") or "")+" "+(n.get("advancedEn") or "")+" "+(n.get("mechanicsEn") or "") for n in arr)
     found=nums(combined)
     for token in required:
         if token.lstrip("+-") not in found:
             issues.append(("high","official_preview_value_missing","future","*",name,token))
+    for n in arr:
+        if n.get("descSourceEn")!="fatshark-official-preview" and name not in {
+            "found some more","zealous pilgrim","fire and fury","risen","got your back",
+            "holy tools","wait in line","purifying hatred","focused warp","peril equilibrium","psykinetic grip"
+        }:
+            issues.append(("high","official_preview_source_not_applied","future",n.get("class","*"),n.get("s"),name))
+
+# Baseline/Iconic passives belong to the class start node rather than costing talent points.
+root_expectations={
+  "ogryn":["125","50%"],
+  "zealot":["125","75%"],
+  "psyker":["10%"],
+  "veteran":["25%","1%","5"],
+}
+for cls,required in root_expectations.items():
+    root=future_roots.get(cls)
+    if not root:
+        issues.append(("high","future_class_root_missing","future",cls,"root",""))
+        continue
+    combined=(root.get("mechanicsEn") or "")
+    found=nums(combined)
+    for token in required:
+        if token.lstrip("+-") not in found:
+            issues.append(("high","iconic_passive_value_missing","future",cls,root.get("s"),token))
+    if root.get("mechanicsSource")!="fatshark-official-preview+syuantsai-preview-translation":
+        issues.append(("high","iconic_passive_source_missing","future",cls,root.get("s"),root.get("mechanicsSource","")))
+
+# Preview explicitly removes Readiness Doctrines.
+if future_by_name.get("readiness doctrines"):
+    issues.append(("high","removed_future_talent_still_present","future","skitarii","readiness doctrines",""))
+
+# Axial Slash keeps the same player-facing title/summary, but its cleave damage/impact
+# profile changes in the official preview; require that detailed mechanics note.
+axial=future_by_name.get("axial slash",[])
+if axial:
+    mechanics=" ".join(n.get("mechanicsEn","") for n in axial)
+    for token in ("500","300","100","50","6"):
+        if token not in nums(mechanics):
+            issues.append(("high","axial_slash_preview_value_missing","future","skitarii",axial[0].get("s"),token))
+else:
+    issues.append(("high","official_preview_talent_missing","future","skitarii","axial slash",""))
 
 # Just a Dream: official user-facing effect + code behavior.
 jad=[]
