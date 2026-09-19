@@ -39,7 +39,7 @@ jobs:
           python tools/scrape_future.py
           python tools/split_tree_data.py
           mkdir -p /tmp/darktide-generated
-          cp tree-data.js tree-core.js tree-icons.js /tmp/darktide-generated/
+          cp tree-data.js tree-core.js tree-icons.js tree-icons-*.js /tmp/darktide-generated/
 
       - name: Commit refreshed tree data without re-scraping
         run: |
@@ -54,7 +54,8 @@ jobs:
             cp /tmp/darktide-generated/tree-data.js .
             cp /tmp/darktide-generated/tree-core.js .
             cp /tmp/darktide-generated/tree-icons.js .
-            git add tree-data.js tree-core.js tree-icons.js
+            cp /tmp/darktide-generated/tree-icons-*.js .
+            git add tree-data.js tree-core.js tree-icons.js tree-icons-*.js
 
             if git diff --cached --quiet; then
               echo "Latest main already contains the generated talent data"
