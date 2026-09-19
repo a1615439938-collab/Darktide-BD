@@ -2,6 +2,10 @@ name: Refresh future talent trees
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "tools/scrape_future.py"
+      - ".github/workflows/refresh-trees.yml"
   schedule:
     - cron: "15 3 * * *"
 
