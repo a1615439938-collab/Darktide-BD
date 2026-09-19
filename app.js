@@ -232,9 +232,9 @@ function renderNode(svg,defs,n){
   g.addEventListener("click",e=>{
     e.stopPropagation();
     hotSlug=n.s;
-    showInfo(n);
     toggleNode(n);
     redraw();
+    showInfo(n,true);
   });
 
   svg.appendChild(g);
@@ -281,8 +281,8 @@ function buildTree(){
   applyZoom();
   redraw();
 
-  const first=nodeMap[hotSlug]&&nodeMap[hotSlug]||nodeMap[ROOT];
-  showInfo(first,true);
+  const first=nodeMap[hotSlug]||nodeMap[ROOT];
+  showInfo(first,false);
 }
 function toggleNode(n){
   if(n.s===ROOT) return;
@@ -346,32 +346,57 @@ function redraw(){
   $("#pts").textContent=`${points()} / ${CUR.budget}`;
   setStatus(`${CUR.cn} · ${CUR.name} — ${DATA.version} — ${CUR.nodes.length} nodes`,"ok");
 }
-function showInfo(n,boot=false){
-  if(!n) return;
+function showInfo(n,focus=false){
+  if(!n)return;
   const cat=CAT[n.cat]||CAT.passive;
-
   $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
   $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:(n.en||"");
   $("#infoEn").textContent=n.en||"";
 
   let stateText="已选择 / Selected";
-  if(n.s===ROOT) stateText="职业起点 / Root";
-  else if(!active.has(n.s)) stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
+  if(n.s===ROOT)stateText="职业起点 / Root";
+  else if(!active.has(n.s))stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
   $("#infoState").textContent=stateText;
 
   if(n.desc){
-    $("#infoCnDesc").textContent="效果数值以英文原文为准；中文天赋名用于对照学习。";
+    $("#infoCnDesc").textContent="效果 / Effect";
     $("#infoDesc").textContent=n.desc;
   }else{
-    $("#infoCnDesc").textContent="该预览节点暂时没有可靠的效果说明。";
+    $("#infoCnDesc").textContent="暂无可靠的预览效果说明";
     $("#infoDesc").textContent="No reliable preview effect text is available for this node yet.";
   }
+  placePopover(n,focus);
+}
+function placePopover(n,focus=false){
+  const pop=$("#nodePopover"),canvas=$("#treeCanvas"),svg=$("#treeSvg"),vp=$("#treeViewport");
+  if(!pop||!canvas||!svg||!CUR)return;
+  requestAnimationFrame(()=>{
+    const [vx,vy,vw]=CUR.viewbox;
+    const scale=svg.clientWidth/vw;
+    const px=(n.x-vx)*scale;
+    const py=TREE_TOP+(n.y-vy)*scale;
+    const pr=radius(n)*scale;
+    const pw=pop.offsetWidth,ph=pop.offsetHeight,cw=canvas.clientWidth;
+    const left=Math.max(8,Math.min(cw-pw-8,px-pw/2));
+    const top=Math.max(8,py-pr-13-ph);
+    const arrow=Math.max(18,Math.min(pw-18,px-left));
+    pop.style.left=left+"px";
+    pop.style.top=top+"px";
+    pop.style.setProperty("--arrow-left",arrow+"px");
 
-  if(!boot){
-    const card=$("#talentCard");
-    const top=card.getBoundingClientRect().top+window.scrollY-85;
-    if(Math.abs(window.scrollY-top)>500) window.scrollTo({top,behavior:"smooth"});
-  }
+    if(focus){
+      vp.scrollTo({left:Math.max(0,px-vp.clientWidth/2),behavior:"smooth"});
+      requestAnimationFrame(()=>{
+        const prc=pop.getBoundingClientRect();
+        const nrc=nodeEls[n.s]?.getBoundingClientRect();
+        const hb=document.querySelector(".site-head").getBoundingClientRect().bottom;
+        let dy=0;
+        if(prc.top<hb+8)dy=prc.top-(hb+8);
+        else if(nrc&&nrc.bottom>innerHeight-18)dy=nrc.bottom-(innerHeight-18);
+        if(Math.abs(dy)>2)scrollBy({top:dy,behavior:"smooth"});
+      });
+    }
+  });
 }
 function setStatus(msg,type=""){
   const el=$("#status");
@@ -379,22 +404,30 @@ function setStatus(msg,type=""){
   el.className="status"+(type?" "+type:"");
 }
 function applyZoom(){
-  if(!CUR) return;
-  const svg=$("#treeSvg");
-  const wrap=document.querySelector(".tree-wrap");
+  if(!CUR)return;
+  const vp=$("#treeViewport"),canvas=$("#treeCanvas"),svg=$("#treeSvg");
   const vw=CUR.viewbox[2],vh=CUR.viewbox[3];
-  const base=Math.max(320,Math.min(720,wrap.clientWidth-4));
-  const width=base*state.zoom;
+  const base=Math.max(455,Math.min(700,vp.clientWidth*1.13));
+  const width=base*state.zoom,height=width*vh/vw;
+  canvas.style.width=width+"px";
+  canvas.style.height=(TREE_TOP+height+28)+"px";
+  canvas.style.setProperty("--tree-top",TREE_TOP+"px");
   svg.style.width=width+"px";
-  svg.style.height=(width*vh/vw)+"px";
+  svg.style.height=height+"px";
+  const n=nodeMap[hotSlug]||nodeMap[ROOT];
+  if(n)placePopover(n,false);
 }
-function renderAll(resetScroll=false){
+function centerTree(){
+  const vp=$("#treeViewport"),canvas=$("#treeCanvas");
+  vp.scrollLeft=Math.max(0,(canvas.clientWidth-vp.clientWidth)/2);
+}
+function renderAll(center=false){
   renderClassbar();
   $("#buildName").value=state.name||"";
   $("#notes").value=state.notes||"";
   hotSlug=null;
   buildTree();
-  if(resetScroll) window.scrollTo({top:0,behavior:"smooth"});
+  if(center)requestAnimationFrame(centerTree);
 }
 function exportData(){
   saveSelection();
@@ -450,7 +483,7 @@ function bind(){
     state.zoom=1;
     applyZoom();
     persist();
-    document.querySelector(".tree-wrap").scrollLeft=0;
+    requestAnimationFrame(centerTree);
   };
   $("#buildName").oninput=()=>{state.name=$("#buildName").value;persist();};
   $("#notes").oninput=()=>{state.notes=$("#notes").value;persist();};
@@ -486,7 +519,7 @@ function bind(){
     }
   };
 
-  addEventListener("resize",applyZoom);
+  addEventListener("resize",()=>{applyZoom();requestAnimationFrame(centerTree);});
 }
 function selfCheck(){
   if(!DATA||!Array.isArray(DATA.classes)||!DATA.classes.length) throw new Error("tree-data.js not loaded");
@@ -494,6 +527,7 @@ function selfCheck(){
   if(!CUR||CUR.nodes.length<40) throw new Error("talent tree data is incomplete");
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
+  if(!$("#nodePopover")) throw new Error("node popover is missing");
 }
 
 try{
@@ -502,7 +536,7 @@ try{
   renderAll(false);
   selfCheck();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl3").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl4").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
