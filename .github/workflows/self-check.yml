@@ -65,11 +65,18 @@ jobs:
       - name: Check open-popover geometry
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --dump-dom 'http://127.0.0.1:8000/?visual=popover' > /tmp/popover-dom.html
-          grep -q 'data-popover-above="true"' /tmp/popover-dom.html
+          grep -q 'data-popover-inside="true"' /tmp/popover-dom.html
+          grep -q 'data-popover-relation="true"' /tmp/popover-dom.html
           ERR=$(grep -o 'data-popover-x-error="[0-9]*"' /tmp/popover-dom.html | head -1 | grep -o '[0-9]*')
+          SHIFT=$(grep -o 'data-tree-shift="[0-9]*"' /tmp/popover-dom.html | head -1 | grep -o '[0-9]*')
+          SIDE=$(grep -o 'data-popover-side="[^"]*"' /tmp/popover-dom.html | head -1)
           echo "Popover arrow alignment error: ${ERR}px"
+          echo "Tree movement after opening popover: ${SHIFT}px"
+          echo "${SIDE}"
           test -n "$ERR"
+          test -n "$SHIFT"
           test "$ERR" -le 8
+          test "$SHIFT" -le 1
 
       - name: Capture open-popover screenshot
         run: |
