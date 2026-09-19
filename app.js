@@ -293,6 +293,7 @@ function bind(){
   addEventListener("resize",()=>applyZoom());
 }
 try{
+  if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
   if(!DATA||!Array.isArray(DATA.classes)||!DATA.classes.length)throw new Error("tree-data.js 未载入 / tree-data.js not loaded");
   load();bind();renderAll(true);
 }catch(e){
