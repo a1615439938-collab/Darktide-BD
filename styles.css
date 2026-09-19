@@ -97,12 +97,12 @@ button{touch-action:manipulation}
 .edge{stroke:#6f5d43;stroke-width:2.35;opacity:.5}
 .edge.on{stroke:#6bc8d4;stroke-width:3.4;opacity:1;filter:drop-shadow(0 0 3px rgba(89,199,211,.5))}
 .node{cursor:pointer}
-.node .shape{fill:#0b1318;stroke-width:2.8}
-.node .inner-frame{fill:none;stroke:rgba(219,210,178,.38);stroke-width:1;pointer-events:none}
+.node .shape{fill:#0b1318;stroke-width:3.2}
+.node .inner-frame{fill:none;stroke:rgba(224,214,177,.52);stroke-width:1.35;pointer-events:none}
 .node .art{pointer-events:none}
 .node .fallback{font-size:11px;font-weight:800;fill:#dce4e6;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
-.node.locked{opacity:.18;filter:grayscale(.88)}
-.node.avail{opacity:.68}
+.node.locked{opacity:.28;filter:grayscale(.82)}
+.node.avail{opacity:.86}
 .node.active{opacity:1}
 .node.active .shape{stroke-width:4.5;filter:drop-shadow(0 0 6px rgba(112,208,220,.62))}
 .node.hot .shape{stroke:#f3f7f5!important;stroke-width:4.7;filter:drop-shadow(0 0 8px rgba(255,255,255,.45))}
@@ -118,7 +118,7 @@ button{touch-action:manipulation}
   border:1px solid #5b7656;
   box-shadow:0 12px 30px rgba(0,0,0,.34),inset 0 0 34px rgba(76,112,56,.11);
   border-radius:2px;
-  transition:left .14s ease,top .14s ease,opacity .12s ease;
+  transition:left .14s ease,top .14s ease,opacity .12s ease;pointer-events:none;
 }
 .node-popover.hidden{opacity:0;pointer-events:none}
 .popover-type{font-size:10px;color:#a7b39e;margin-bottom:4px}
