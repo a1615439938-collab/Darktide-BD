@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Audit version: 14
+# Audit version: 15
 import json, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -78,6 +78,11 @@ def audit_text_field(tree, n, label, txt, chinese=False):
     if chinese and cjk_count(txt) == 0 and latin_count(txt) >= 12:
         issue("chinese_field_untranslated_" + label, "high", tree, n)
 
+def numeric_subset(required, candidate):
+    req = nums(required)
+    got = nums(candidate)
+    return not bool(req - got)
+
 def audit_numeric_pair(tree, n, label, en, cn):
     if not en or not cn:
         return
@@ -127,6 +132,10 @@ for tree in trees:
         elif cn and cjk_count(cn) == 0 and latin_count(cn) >= 3:
             issue("cn_name_has_no_chinese", "medium", tree, n)
 
+        name_source = (n.get("nameSourceCn") or "").strip()
+        if name_source == "source-name-untranslated" and tree.get("key") != "hivescum-stimm":
+            issue("untranslated_name_without_trusted_source", "medium", tree, n)
+
         audit_text_field(tree, n, "base_en_desc", ed, chinese=False)
         audit_text_field(tree, n, "base_cn_desc", cd, chinese=True)
         audit_text_field(tree, n, "advanced_en_desc", ae, chinese=False)
@@ -153,6 +162,9 @@ for tree in trees:
             audit_numeric_pair(tree, n, "base_pair", ed, cd)
         if has_advanced_pair:
             audit_numeric_pair(tree, n, "advanced_pair", ae, ac)
+            if ed and not numeric_subset(ed, ae):
+                missing = list((nums(ed) - nums(ae)).elements())
+                issue("stale_advanced_vs_base", "high", tree, n, "missing_base_numbers=" + ",".join(missing[:10]))
 
         if source == "community-aligned" and not has_base_pair:
             issue("source_metadata_inconsistent", "fatal", tree, n, source)
