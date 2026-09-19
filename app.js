@@ -1,179 +1,301 @@
 (()=>{
 "use strict";
-const DATA=window.DARKTIDE_DATA;
-const STORE="darktide-cn-bd-v4";
-let state={
-  cls:"veteran",name:"",selected:{},
-  melee:"",meleeInfo:"",ranged:"",rangedInfo:"",
-  curios:[{value:""},{value:""},{value:""}],notes:""
+const DATA=window.TREE_DATA;
+const NS="http://www.w3.org/2000/svg";
+const STORE="darktide-real-tree-v1";
+const CAT={
+  passive:{color:"#3fb0bd",cn:"普通天赋",en:"Passive"},
+  stat:{color:"#7a8089",cn:"属性节点",en:"Stat"},
+  blitz:{color:"#d98a3d",cn:"闪击",en:"Blitz"},
+  aura:{color:"#5fb06a",cn:"光环",en:"Aura"},
+  ability:{color:"#a583d6",cn:"主动技能",en:"Ability"},
+  abilmod:{color:"#7d6bb0",cn:"技能强化",en:"Ability modifier"},
+  keystone:{color:"#e0b23c",cn:"关键节点",en:"Keystone"},
+  keymod:{color:"#b89a52",cn:"关键强化",en:"Keystone modifier"},
+  root:{color:"#c9ccd1",cn:"职业节点",en:"Class node"}
 };
+const EXCLUSIVE=new Set(["blitz","aura","ability","keystone"]);
+let state={classKey:"veteran",selected:{},name:"",notes:"",zoom:1.28};
+let CUR=null,ROOT=null,active=new Set(),adj={},nodeMap={},nodeEls={},edgeEls=[],exclusiveGroups={};
+
 const $=q=>document.querySelector(q);
-const $$=q=>Array.from(document.querySelectorAll(q));
-const key=t=>t[2]||t[1];
-const isMajor=t=>["闪击","光环","主动技能","关键节点"].includes(t[0]);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
-function readInputs(){
-  state.name=$("#name").value;
-  for(const id of ["melee","meleeInfo","ranged","rangedInfo","notes"]) state[id]=$("#"+id).value;
-}
-function writeInputs(){
-  $("#name").value=state.name||"";
-  for(const id of ["melee","meleeInfo","ranged","rangedInfo","notes"]) $("#"+id).value=state[id]||"";
-}
-function renderClasses(){
-  const host=$("#classes"); host.innerHTML="";
-  Object.entries(DATA.classes).forEach(([id,names])=>{
-    const b=document.createElement("button");
-    b.type="button";
-    b.className=state.cls===id?"on":"";
-    b.textContent=names[0]+" · "+names[1];
-    b.onclick=()=>{readInputs();state.cls=id;renderAll();};
-    host.appendChild(b);
-  });
-}
-function renderTalents(){
-  const host=$("#talents");
-  const query=$("#search").value.trim().toLowerCase();
-  host.innerHTML="";
-  (DATA.talents[state.cls]||[])
-    .filter(t=>!query||t.join(" ").toLowerCase().includes(query))
-    .forEach(t=>{
-      const k=key(t);
-      const selected=!!(state.selected[state.cls]||{})[k];
-      const b=document.createElement("button");
-      b.type="button";
-      b.className="talent"+(selected?" selected":"");
-      b.innerHTML='<div class="tag">'+esc(t[0])+'</div><div class="cn">'+esc(t[1])+'</div><div class="en">'+esc(t[2])+'</div>';
-      b.onclick=()=>toggleTalent(t);
-      host.appendChild(b);
-    });
-}
-function toggleTalent(t){
-  state.selected[state.cls]=state.selected[state.cls]||{};
-  const bucket=state.selected[state.cls],k=key(t);
-  if(bucket[k]){
-    delete bucket[k];
-  }else{
-    if(Object.keys(bucket).length>=30){alert("已经达到 30 点上限 / 30-point limit reached.");return;}
-    if(isMajor(t)){
-      (DATA.talents[state.cls]||[]).filter(x=>x[0]===t[0]).forEach(x=>delete bucket[key(x)]);
-    }
-    bucket[k]=t;
-  }
-  renderTalents();renderStats();renderSummary();
-}
-function renderStats(){
-  const chosen=Object.values(state.selected[state.cls]||{});
-  $("#pts").textContent=chosen.length;
-  $("#major").textContent=chosen.filter(isMajor).length;
-}
-function renderCurios(){
-  const host=$("#curios");host.innerHTML="";
-  state.curios.forEach((c,i)=>{
-    const wrap=document.createElement("div");
-    wrap.className="curio";
-    wrap.innerHTML='<b>珍品 '+(i+1)+' / Curio '+(i+1)+'</b><input data-i="'+i+'" value="'+esc(c.value||"")+'" placeholder="主属性、词条 / Main stat, perks">';
-    host.appendChild(wrap);
-  });
-  host.querySelectorAll("input").forEach(el=>{
-    el.oninput=()=>{state.curios[Number(el.dataset.i)].value=el.value;renderSummary();};
-  });
-}
-function renderSummary(){
-  readInputs();
-  const chosen=Object.values(state.selected[state.cls]||{});
-  const names=DATA.classes[state.cls];
-  $("#summary").innerHTML=
-    '<h2 class="summary-title">'+esc(state.name||"未命名 BD / Untitled Build")+'</h2>'+
-    '<div class="summary-line"><b>'+esc(names[0])+' · '+esc(names[1])+'</b></div>'+
-    '<div class="summary-line"><b>天赋 / Talents:</b> '+chosen.length+'/30<div class="chips">'+
-    (chosen.length?chosen.map(t=>'<span class="chip">'+esc(t[1])+'<small>'+esc(t[2])+'</small></span>').join(""):'<span class="chip">尚未选择 / None selected</span>')+
-    '</div></div>'+
-    '<div class="summary-line"><b>近战 / Melee:</b> '+esc(state.melee||"—")+'<br><small>'+esc(state.meleeInfo||"")+'</small></div>'+
-    '<div class="summary-line"><b>远程 / Ranged:</b> '+esc(state.ranged||"—")+'<br><small>'+esc(state.rangedInfo||"")+'</small></div>'+
-    '<div class="summary-line"><b>珍品 / Curios:</b><br>'+state.curios.map((c,i)=>"#"+(i+1)+" "+esc(c.value||"—")).join("<br>")+'</div>';
-}
-function renderAll(){
-  renderClasses();writeInputs();renderTalents();renderStats();renderCurios();renderSummary();
-}
-function save(){
-  readInputs();
-  try{
-    localStorage.setItem(STORE,JSON.stringify(state));
-    const b=$("#save"),old=b.innerHTML;
-    b.innerHTML="已保存 ✓<small>Saved</small>";
-    setTimeout(()=>b.innerHTML=old,1000);
-  }catch(e){alert("当前浏览器无法本地保存 / Local storage is unavailable.");}
-}
 function load(){
-  try{const raw=localStorage.getItem(STORE);if(raw) state={...state,...JSON.parse(raw)};}catch(e){}
+  try{const raw=localStorage.getItem(STORE);if(raw)state={...state,...JSON.parse(raw)};}catch(e){}
 }
-function exportText(){
-  readInputs();
-  return JSON.stringify({format:"Darktide-CN-BD-4",...state},null,2);
+function persist(){
+  state.name=$("#buildName").value||"";
+  state.notes=$("#notes").value||"";
+  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
 }
-function importText(text){
-  const obj=JSON.parse(text);
-  if(obj.format!=="Darktide-CN-BD-4") throw new Error("格式不匹配 / Unsupported build format");
-  delete obj.format;
-  state={...state,...obj};
-  renderAll();save();
+function classByKey(k){return DATA.classes.find(c=>c.key===k)||DATA.classes[0];}
+function radius(n){return n.cat==="keystone"?34:(["ability","blitz","aura","root"].includes(n.cat)?29:(n.cat==="stat"?13:23));}
+function initials(n){
+  const s=(n.en||n.cn||"?").replace(/[^A-Za-z0-9 ]/g," ").trim().split(/\s+/).filter(Boolean);
+  if(!s.length)return "?";
+  return (s.length===1?s[0].slice(0,2):s.slice(0,2).map(x=>x[0]).join("")).toUpperCase();
 }
-function openShare(){
-  const d=$("#shareDialog");
-  $("#shareBox").value=exportText();
-  $("#shareStatus").textContent="";
-  if(typeof d.showModal==="function") d.showModal();
-  else{
-    const text=prompt("复制导出内容；或粘贴导出的 JSON 进行导入。\nCopy export text, or paste exported JSON to import:",exportText());
-    if(text&&text.trim().startsWith("{")) try{importText(text);}catch(e){alert(e.message);}
+function createSvg(tag,attrs={}){
+  const el=document.createElementNS(NS,tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+function shapeFor(n,r){
+  const color=(CAT[n.cat]||CAT.passive).color;
+  let sh;
+  if(n.shape==="s"){
+    sh=createSvg("rect",{x:n.x-r,y:n.y-r,width:r*2,height:r*2,rx:7});
+  }else if(n.shape==="d"){
+    sh=createSvg("polygon",{points:`${n.x},${n.y-r} ${n.x+r},${n.y} ${n.x},${n.y+r} ${n.x-r},${n.y}`});
+  }else if(n.shape==="h"){
+    const pts=[];
+    for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;pts.push(`${n.x+r*Math.cos(a)},${n.y+r*Math.sin(a)}`);}
+    sh=createSvg("polygon",{points:pts.join(" ")});
+  }else{
+    sh=createSvg("circle",{cx:n.x,cy:n.y,r});
   }
+  sh.setAttribute("class","shape");
+  sh.setAttribute("stroke",color);
+  return sh;
+}
+function splitLabel(s,max=13){
+  const words=String(s||"").split(/\s+/).filter(Boolean);
+  if(words.length<=1)return [String(s||"")];
+  const out=[];let cur="";
+  words.forEach(w=>{
+    const next=(cur+" "+w).trim();
+    if(next.length>max&&cur){out.push(cur);cur=w;}else cur=next;
+  });
+  if(cur)out.push(cur);
+  return out.slice(0,2);
+}
+function addTextLines(g,n,r){
+  if(n.cat==="stat"||n.cat==="root")return;
+  const cn=(n.cn&&n.cn!==n.en)?n.cn:"";
+  const en=n.en||"";
+  let y=n.y+r+17;
+  if(cn){
+    const t=createSvg("text",{x:n.x,y,class:"label-cn"});
+    splitLabel(cn,9).forEach((line,i)=>{const sp=createSvg("tspan",{x:n.x,dy:i?17:0});sp.textContent=line;t.appendChild(sp);});
+    g.appendChild(t);
+    y+=splitLabel(cn,9).length*17+2;
+  }
+  const t2=createSvg("text",{x:n.x,y,class:"label-en"});
+  splitLabel(en,14).forEach((line,i)=>{const sp=createSvg("tspan",{x:n.x,dy:i?14:0});sp.textContent=line;t2.appendChild(sp);});
+  g.appendChild(t2);
+}
+function buildExclusiveGroups(){
+  exclusiveGroups={};
+  for(const cat of EXCLUSIVE){
+    const arr=CUR.nodes.filter(n=>n.cat===cat).slice().sort((a,b)=>a.y-b.y);
+    let gi=0,last=-99999;
+    arr.forEach(n=>{if(n.y-last>90)gi++;last=n.y;n._grp=cat+"#"+gi;exclusiveGroups[n.s]=n._grp;});
+  }
+}
+function currentGroupConflict(n){
+  if(!EXCLUSIVE.has(n.cat))return null;
+  const grp=exclusiveGroups[n.s];
+  for(const s of active){
+    const other=nodeMap[s];
+    if(other&&other.s!==n.s&&exclusiveGroups[other.s]===grp)return other;
+  }
+  return null;
+}
+function isAvail(s){
+  if(active.has(s))return false;
+  return [...(adj[s]||[])].some(x=>active.has(x));
+}
+function countPoints(){return Math.max(0,active.size-1);}
+function renderClassbar(){
+  const bar=$("#classbar");bar.innerHTML="";
+  DATA.classes.forEach(c=>{
+    const b=document.createElement("button");
+    b.type="button";b.className=c.key===state.classKey?"on":"";
+    b.textContent=`${c.cn} · ${c.name}`;
+    b.onclick=()=>{saveSelection();state.classKey=c.key;persist();renderAll(true);};
+    bar.appendChild(b);
+  });
+}
+function saveSelection(){
+  if(!CUR)return;
+  state.selected[CUR.key]=[...active].filter(x=>x!==ROOT);
+}
+function restoreSelection(){
+  const wanted=new Set(state.selected[CUR.key]||[]);
+  active=new Set([ROOT]);
+  // Restore only connected nodes, iterating until no progress.
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(const s of [...wanted]){
+      if(nodeMap[s]&&isAvail(s)&&countPoints()<CUR.budget){
+        const conflict=currentGroupConflict(nodeMap[s]);
+        if(!conflict){active.add(s);wanted.delete(s);changed=true;}
+      }
+    }
+  }
+}
+function buildTree(){
+  CUR=classByKey(state.classKey);
+  state.classKey=CUR.key;
+  const svg=$("#treeSvg");svg.innerHTML="";
+  nodeMap={};adj={};nodeEls={};edgeEls=[];
+  CUR.nodes.forEach(n=>{nodeMap[n.s]=n;adj[n.s]=new Set();});
+  ROOT=(CUR.nodes.find(n=>n.cat==="root")||CUR.nodes.slice().sort((a,b)=>a.y-b.y)[0]).s;
+  CUR.edges.forEach(([a,b])=>{
+    if(!nodeMap[a]||!nodeMap[b])return;
+    adj[a].add(b);adj[b].add(a);
+    const na=nodeMap[a],nb=nodeMap[b];
+    const line=createSvg("line",{x1:na.x,y1:na.y,x2:nb.x,y2:nb.y,class:"edge"});
+    svg.appendChild(line);edgeEls.push({el:line,a,b});
+  });
+  buildExclusiveGroups();
+  restoreSelection();
+  CUR.nodes.forEach(n=>{
+    const r=radius(n);
+    const g=createSvg("g",{class:"node","data-s":n.s});
+    g.appendChild(shapeFor(n,r));
+    const tx=createSvg("text",{x:n.x,y:n.y,class:"mini"});
+    tx.textContent=n.cat==="stat"?"+" : initials(n);
+    g.appendChild(tx);
+    addTextLines(g,n,r);
+    g.addEventListener("click",e=>{e.stopPropagation();showInfo(n);toggleNode(n);});
+    svg.appendChild(g);nodeEls[n.s]=g;
+  });
+  const [x,y,w,h]=CUR.viewbox;
+  svg.setAttribute("viewBox",`${x} ${y} ${w} ${h}`);
+  applyZoom();
+  redraw();
+  showInfo(nodeMap[ROOT],true);
+}
+function toggleNode(n){
+  if(n.s===ROOT)return;
+  if(active.has(n.s)){
+    const trial=new Set(active);trial.delete(n.s);
+    const seen=new Set([ROOT]),q=[ROOT];
+    while(q.length){
+      const cur=q.pop();
+      for(const nb of adj[cur]||[]){if(trial.has(nb)&&!seen.has(nb)){seen.add(nb);q.push(nb);}}
+    }
+    if([...trial].some(s=>s!==ROOT&&!seen.has(s))){
+      setStatus("不能移除：后续天赋仍依赖这个节点。 / Cannot remove: downstream talents depend on it.","err");
+      return;
+    }
+    active.delete(n.s);
+  }else{
+    if(!isAvail(n.s)){
+      setStatus("该节点尚未与已选择路径相连。 / This node is not connected to your selected path.","err");
+      return;
+    }
+    if(countPoints()>=CUR.budget){
+      setStatus("已经用完 30 点。 / All 30 points are spent.","err");return;
+    }
+    const conflict=currentGroupConflict(n);
+    if(conflict){
+      setStatus(`同一组只能选择一个：${conflict.cn||conflict.en} / Only one choice in this group.`,"err");return;
+    }
+    active.add(n.s);
+  }
+  saveSelection();persist();redraw();showInfo(n);
+}
+function redraw(){
+  CUR.nodes.forEach(n=>{
+    const g=nodeEls[n.s];if(!g)return;
+    g.classList.remove("active","avail","locked");
+    if(active.has(n.s))g.classList.add("active");
+    else if(isAvail(n.s))g.classList.add("avail");
+    else g.classList.add("locked");
+  });
+  edgeEls.forEach(e=>e.el.classList.toggle("on",active.has(e.a)&&active.has(e.b)));
+  $("#pts").textContent=`${countPoints()} / ${CUR.budget}`;
+  setStatus(`${CUR.cn} · ${CUR.name} — ${DATA.version} — ${CUR.nodes.length} 个节点 / nodes`,"ok");
+}
+function showInfo(n,boot=false){
+  if(!n)return;
+  const cat=CAT[n.cat]||CAT.passive;
+  $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
+  $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:"中文译名待补";
+  $("#infoEn").textContent=n.en||"";
+  let st="已选择 / Selected";
+  if(n.s===ROOT)st="职业起点 / Root";
+  else if(!active.has(n.s))st=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
+  $("#infoState").textContent=st;
+  const desc=n.desc||"暂无可靠的预览版效果文本；节点名称和连线路径来自 Future update 树。\nNo reliable preview effect text is available here yet; the node name and path come from the Future update tree.";
+  $("#infoDesc").textContent=desc;
+  if(!boot)document.querySelector(".info-card").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function setStatus(msg,type=""){
+  const s=$("#status");s.textContent=msg;s.className="status"+(type?" "+type:"");
+}
+function applyZoom(){
+  if(!CUR)return;
+  const svg=$("#treeSvg"),scroll=$("#treeScroll");
+  const vw=CUR.viewbox[2],vh=CUR.viewbox[3];
+  const fit=Math.max(340,scroll.clientWidth-2);
+  const width=fit*state.zoom;
+  svg.style.width=width+"px";
+  svg.style.height=(width*vh/vw)+"px";
+}
+function renderAll(resetScroll=false){
+  renderClassbar();
+  $("#buildName").value=state.name||"";
+  $("#notes").value=state.notes||"";
+  buildTree();
+  if(resetScroll){$("#treeScroll").scrollTop=0;$("#treeScroll").scrollLeft=0;}
+}
+function exportData(){
+  saveSelection();persist();
+  return JSON.stringify({format:"Darktide-Future-Tree-BD-1",classKey:state.classKey,selected:state.selected,name:state.name,notes:state.notes},null,2);
+}
+function importData(txt){
+  const x=JSON.parse(txt);
+  if(x.format!=="Darktide-Future-Tree-BD-1")throw new Error("不是本规划器的 BD 数据 / Unsupported format");
+  state.classKey=x.classKey||state.classKey;
+  state.selected=x.selected||{};
+  state.name=x.name||"";
+  state.notes=x.notes||"";
+  persist();renderAll(true);
 }
 function bind(){
-  $$(".tabs button").forEach(b=>b.onclick=()=>{
-    $$(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
-    $$("main section").forEach(s=>s.classList.toggle("on",s.id===b.dataset.tab));
-    if(b.dataset.tab==="sum")renderSummary();
-  });
-  $("#search").oninput=renderTalents;
-  $("#save").onclick=save;
-  $("#reset").onclick=()=>{if(confirm("重置当前 BD？ / Reset this build?")){try{localStorage.removeItem(STORE);}catch(e){} location.reload();}};
-  $("#share").onclick=openShare;
-  $("#copyShare").onclick=async()=>{
-    const text=$("#shareBox").value;
-    try{await navigator.clipboard.writeText(text);$("#shareStatus").textContent="已复制 / Copied ✓";}
-    catch(e){$("#shareBox").select();document.execCommand("copy");$("#shareStatus").textContent="已复制 / Copied ✓";}
+  $("#resetBtn").onclick=()=>{
+    if(confirm("重置当前职业的天赋？ / Reset this class tree?")){
+      state.selected[state.classKey]=[];persist();renderAll(true);
+    }
   };
-  $("#importShare").onclick=()=>{
-    try{importText($("#shareBox").value);$("#shareStatus").textContent="导入成功 / Imported ✓";setTimeout(()=>$("#shareDialog").close(),600);}
-    catch(e){$("#shareStatus").textContent=e.message;}
+  $("#saveBtn").onclick=()=>{
+    saveSelection();persist();
+    const b=$("#saveBtn"),old=b.innerHTML;b.innerHTML="已保存 ✓<br><small>Saved</small>";
+    setTimeout(()=>b.innerHTML=old,900);
   };
-  for(const id of ["name","melee","meleeInfo","ranged","rangedInfo","notes"]){
-    $("#"+id).addEventListener("input",()=>{readInputs();if(id==="name")renderSummary();});
-  }
+  $("#zoomIn").onclick=()=>{state.zoom=Math.min(2.4,state.zoom*1.18);applyZoom();persist();};
+  $("#zoomOut").onclick=()=>{state.zoom=Math.max(.72,state.zoom/1.18);applyZoom();persist();};
+  $("#zoomFit").onclick=()=>{state.zoom=1;applyZoom();persist();$("#treeScroll").scrollLeft=0;};
+  $("#buildName").oninput=()=>{state.name=$("#buildName").value;persist();};
+  $("#notes").oninput=()=>{state.notes=$("#notes").value;persist();};
+  $("#exportBtn").onclick=()=>{
+    $("#codeBox").value=exportData();$("#dialogMsg").textContent="";
+    if(typeof $("#codeDialog").showModal==="function")$("#codeDialog").showModal();
+  };
+  $("#importBtn").onclick=()=>{
+    $("#codeBox").value="";$("#dialogMsg").textContent="粘贴 BD 数据后点击“载入” / Paste build data, then tap Load.";
+    if(typeof $("#codeDialog").showModal==="function")$("#codeDialog").showModal();
+  };
+  $("#copyBtn").onclick=async()=>{
+    const t=$("#codeBox").value;
+    try{await navigator.clipboard.writeText(t);$("#dialogMsg").textContent="已复制 / Copied ✓";}
+    catch(e){$("#codeBox").select();document.execCommand("copy");$("#dialogMsg").textContent="已复制 / Copied ✓";}
+  };
+  $("#loadBtn").onclick=()=>{
+    try{importData($("#codeBox").value);$("#dialogMsg").textContent="载入成功 / Loaded ✓";setTimeout(()=>$("#codeDialog").close(),500);}
+    catch(e){$("#dialogMsg").textContent=e.message;}
+  };
+  addEventListener("resize",()=>applyZoom());
 }
-function selfCheck(){
-  const checks=[
-    DATA&&Object.keys(DATA.classes||{}).length===7,
-    (DATA.talents.veteran||[]).length>0,
-    $("#classes").children.length===7,
-    $("#talents").children.length>0
-  ];
-  if(checks.every(Boolean)) $("#runtimeWarning").classList.add("ok");
-  else throw new Error("UI self-check failed");
-}
-window.addEventListener("error",e=>{
-  const w=$("#runtimeWarning");
-  if(w){w.classList.remove("ok");w.querySelector("b").textContent="网页脚本出错 / Script error";w.querySelector("span").textContent=String(e.message||"Unknown error");}
-});
 try{
-  load();bind();renderAll();selfCheck();
-  if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  if(!DATA||!Array.isArray(DATA.classes)||!DATA.classes.length)throw new Error("tree-data.js 未载入 / tree-data.js not loaded");
+  load();bind();renderAll(true);
 }catch(e){
-  const w=$("#runtimeWarning");
-  w.classList.remove("ok");
-  w.querySelector("b").textContent="交互功能启动失败 / Interactive mode failed";
-  w.querySelector("span").textContent=String(e.message||e);
+  setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
 }
 })();
