@@ -32,7 +32,7 @@ jobs:
 
       - name: Run mobile interaction test in headless Chrome
         run: |
-          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,932             --virtual-time-budget=9000             --dump-dom 'http://127.0.0.1:8000/?selftest=1' > /tmp/dom.html
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,932 --virtual-time-budget=9000 --dump-dom 'http://127.0.0.1:8000/?selftest=1' > /tmp/dom.html
 
       - name: Assert editor behavior
         run: |
@@ -60,7 +60,20 @@ jobs:
 
       - name: Capture normal mobile screenshot
         run: |
-          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,1800             --virtual-time-budget=7000             --screenshot=/tmp/darktide-mobile.png             'http://127.0.0.1:8000/'
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-mobile.png 'http://127.0.0.1:8000/'
+
+      - name: Check open-popover geometry
+        run: |
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --dump-dom 'http://127.0.0.1:8000/?visual=popover' > /tmp/popover-dom.html
+          grep -q 'data-popover-above="true"' /tmp/popover-dom.html
+          ERR=$(grep -o 'data-popover-x-error="[0-9]*"' /tmp/popover-dom.html | head -1 | grep -o '[0-9]*')
+          echo "Popover arrow alignment error: ${ERR}px"
+          test -n "$ERR"
+          test "$ERR" -le 8
+
+      - name: Capture open-popover screenshot
+        run: |
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-popover.png 'http://127.0.0.1:8000/?visual=popover'
 
       - uses: actions/upload-artifact@v4
         if: always()
