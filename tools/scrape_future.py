@@ -158,9 +158,12 @@ for cl in classes:
         if n['cat']=='root':
             n['en']=cl['name'];n['cn']=cl['cn'];n['type']='Class';n['desc']=''
         else:
-            canonical=n['slug'].split('/')[-1]\n            info=DESC.get(canonical,{})
+            canonical=n['slug'].split('/')[-1]
+            info=DESC.get(canonical,{})
             en=info.get('n') or n['slug'].replace('-',' ').title()
-            if en.startswith('Depths Of The Damned/'):\n                en=en.split('/')[-1]\n            n['en']=en;n['cn']=TR.get(en,en);n['type']=info.get('t','');n['desc']=info.get('d','')
+            if en.startswith('Depths Of The Damned/'):
+                en=en.split('/')[-1]
+            n['en']=en;n['cn']=TR.get(en,en);n['type']=info.get('t','');n['desc']=info.get('d','')
         n.pop('slug',None)
 
 out={'version':'Depths of the Damned Future update','source':'Games Lantern','generated_by':'tools/scrape_future.py','classes':classes}
