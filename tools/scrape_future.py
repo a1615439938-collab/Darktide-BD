@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import json
+import hashlib
 import base64
 import html as htmllib
 import urllib.request
@@ -9,6 +10,17 @@ import os
 import sys
 from pathlib import Path
 from enhanced_zh import load_chinese_descriptions, load_bilingual_descriptions, normalize_name
+
+MANUAL_ZH_PATH = Path(__file__).with_name('manual_zh.json')
+try:
+    MANUAL_ZH = json.loads(MANUAL_ZH_PATH.read_text(encoding='utf-8'))
+except Exception:
+    MANUAL_ZH = {}
+
+def manual_desc_key(en, desc):
+    raw = ((en or '') + '\0' + (desc or '')).encode('utf-8')
+    return hashlib.sha1(raw).hexdigest()[:16]
+
 
 UA = {'User-Agent':'Mozilla/5.0 (Darktide-BD bilingual planner)'}
 BASE = 'https://darktide.gameslantern.com'
@@ -449,12 +461,16 @@ def attach_info(trees):
                 pair_en = pair.get('en','')
                 pair_cn = pair.get('cn','')
                 preview_cn = FUTURE_PREVIEW_CN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
+                reviewed_cn = MANUAL_ZH.get(manual_desc_key(en, n['desc']), '')
                 if preview_cn and numeric_multiset(n['desc']) == numeric_multiset(preview_cn):
                     n['descCn'] = preview_cn
                     n['descSource'] = 'fatshark-preview-zh'
                 elif pair_cn and compatible_base_translation(n['desc'], pair_en):
                     n['descCn'] = pair_cn
                     n['descSource'] = 'community-aligned'
+                elif reviewed_cn:
+                    n['descCn'] = reviewed_cn
+                    n['descSource'] = 'manual-reviewed'
                 else:
                     n['descCn'] = ''
                     n['descSource'] = 'base-english-only'
@@ -471,6 +487,8 @@ zh_hits=sum(1 for n in all_nodes if n.get('descCn'))
 advanced_hits=sum(1 for n in all_nodes if n.get('advancedEn') and n.get('advancedCn'))
 print('base-aligned zh-cn coverage', zh_hits, 'of', len(all_nodes))
 print('paired advanced-mechanics coverage', advanced_hits, 'of', len(all_nodes))
+reviewed_hits=sum(1 for n in all_nodes if n.get('descSource') == 'manual-reviewed')
+print('manual-reviewed base coverage', reviewed_hits, 'of', len(all_nodes))
 
 out = {
     'version': 'Depths of the Damned Future update',
