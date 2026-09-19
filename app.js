@@ -9,6 +9,7 @@
 
 const DATA=window.TREE_DATA;
 let ICONS=(DATA&&DATA.icons)||window.TREE_ICONS||{};
+const loadedIconPacks=new Set();
 let iconsLoaded=Object.keys(ICONS).length>0;
 const NS="http://www.w3.org/2000/svg";
 const STORE="darktide-bilingual-editor-gl10";
@@ -446,24 +447,45 @@ function initials(n){
 function iconFor(n){
   return ICONS[n.s]||null;
 }
-function loadTalentIcons(){
-  if(iconsLoaded||document.querySelector('script[data-tree-icons]'))return;
+function loadTalentIconsForClass(base=baseClassKey()){
+  if(!base)return;
+  if(loadedIconPacks.has(base))return;
+  const attr=CSS.escape(base);
+  if(document.querySelector('script[data-tree-icon-pack="'+attr+'"]'))return;
   const s=document.createElement("script");
-  s.src="./tree-icons.js?v=gl28";
+  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl29";
   s.async=true;
-  s.dataset.treeIcons="1";
+  s.dataset.treeIconPack=base;
   s.onload=()=>{
-    ICONS=window.TREE_ICONS||{};
+    ICONS=window.TREE_ICONS||ICONS||{};
+    loadedIconPacks.add(base);
     iconsLoaded=Object.keys(ICONS).length>0;
-    if(iconsLoaded&&CUR){
-      const keepLeft=$("#treeViewport")?.scrollLeft||0;
-      buildTree();
-      requestAnimationFrame(()=>{const vp=$("#treeViewport");if(vp)vp.scrollLeft=keepLeft;});
-    }
     document.body.dataset.iconsLoaded=String(iconsLoaded);
+    document.body.dataset.iconPack=base;
+    renderClassbar();
+    if(CUR&&baseClassKey()===base){
+      const vp=$("#treeViewport");
+      const keepLeft=vp?.scrollLeft||0;
+      buildTree();
+      requestAnimationFrame(()=>{
+        const current=$("#treeViewport");
+        if(current)current.scrollLeft=keepLeft;
+      });
+    }
   };
-  s.onerror=()=>{document.body.dataset.iconsLoaded="false";};
+  s.onerror=()=>{
+    document.body.dataset.iconsLoaded="false";
+    document.body.dataset.iconPackError=base;
+  };
   document.head.appendChild(s);
+}
+
+function queueCurrentIconPack(){
+  const base=baseClassKey();
+  if(!base||loadedIconPacks.has(base))return;
+  const go=()=>loadTalentIconsForClass(base);
+  if("requestIdleCallback" in window)requestIdleCallback(go,{timeout:500});
+  else setTimeout(go,80);
 }
 
 function buildExclusiveGroups(){
@@ -538,6 +560,7 @@ function renderClassbar(){
       hotSlug=null;
       clearHistory();
       renderAll(true);
+      queueCurrentIconPack();
     };
     bar.appendChild(b);
   }
@@ -562,6 +585,7 @@ function switchPatch(next){
   hotSlug=null;
   clearHistory();
   renderAll(true);
+  queueCurrentIconPack();
   persist();
 }
 function renderSubtreeBar(){
@@ -591,6 +615,7 @@ function renderSubtreeBar(){
       hotSlug=null;
       clearHistory();
       renderAll(true);
+      queueCurrentIconPack();
     };
     host.appendChild(b);
   }
@@ -1578,11 +1603,10 @@ try{
   runAutomatedSelfTest();
   runDesktopSelfTest();
   runVisualPopoverTest();
-  // Render the tree from the light core payload first; icon art follows after interaction is ready.
-  if("requestIdleCallback" in window)requestIdleCallback(()=>loadTalentIcons(),{timeout:1200});
-  else setTimeout(loadTalentIcons,250);
+  // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
+  queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl28").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl29").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
