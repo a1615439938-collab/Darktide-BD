@@ -225,11 +225,19 @@ def name_key(s):
     s = re.sub(r'[!?.…]+$', '', s)
     return normalize_name(s)
 
+def dedupe_display_name(name, canonical):
+    name = clean_display_name(name)
+    m = re.search(r'-(\d+)$', canonical or '')
+    if m and name.endswith(' ' + m.group(1)):
+        name = name[:-(len(m.group(1)) + 1)].rstrip()
+    return name
+
 def translation_map():
     urls = [
         'https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/Referneces/Translation.md',
         'https://raw.githubusercontent.com/xsSplater/Darktide_Enhanced_Descriptions_BETA/xss0/AI%20Document/Translation%20Table%20-%20zh-tw.md',
     ]
+    announcement_url = 'https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/%E5%85%AC%E5%91%8A/%E8%A9%9B%E5%92%92%E6%B7%B1%E6%B7%B5%E5%B9%B3%E8%A1%A1%E6%80%A7%E6%9B%B4%E6%96%B0_%E7%B9%81%E4%B8%AD%E7%BF%BB%E8%AD%AF.md'
     raw = {}
     for url in urls:
         text = get(url) or ''
@@ -241,6 +249,224 @@ def translation_map():
             zh = m.group(2).strip().strip('*_ ')
             if en and zh:
                 raw.setdefault(name_key(en), zh)
+    announcement = get(announcement_url) or ''
+    for line in announcement.splitlines():
+        # Future preview uses Chinese title followed by the English name in full-width parentheses.
+        m = re.search(r'^\s*[-*]\s+([^（(]+?)\s*[（(]([^()（）]+)[)）]', line)
+        if not m:
+            continue
+        zh = re.sub(r'[－—-]\s*\*.*
+
+    curated = {
+        'cleave boost':'顺劈提升',
+        'impact boost':'冲击提升',
+        'critical chance boost':'暴击率提升',
+        'ranged damage boost':'远程伤害提升',
+        'melee damage boost':'近战伤害提升',
+        'toughness boost':'韧性提升',
+        'health boost':'生命提升',
+        'stamina boost':'耐力提升',
+        'damage boost':'伤害提升',
+        'just getting started':'热身完毕',
+        'vulture s mark':'兀鹫印记',
+        'potent tox':'强效毒素',
+        'kinetic energy distributors':'动能分配器',
+    }
+    for en, zh in curated.items():
+        raw.setdefault(en, zh)
+    return raw
+
+def numeric_multiset(s):
+    vals = re.findall(r'[-+]?\d+(?:\.\d+)?%?', s or '')
+    return sorted(v.lstrip('+') for v in vals)
+
+def word_set(s):
+    stop={'the','a','an','and','or','of','to','for','in','on','your','you','is','are','with','by','from','this','that'}
+    return {w for w in re.findall(r"[a-z0-9']+", (s or '').lower()) if w not in stop}
+
+def compatible_base_translation(base_en, enhanced_en):
+    if not base_en or not enhanced_en:
+        return False
+    if numeric_multiset(base_en) != numeric_multiset(enhanced_en):
+        return False
+    bw, ew = word_set(base_en), word_set(enhanced_en)
+    if not bw:
+        return False
+    coverage = len(bw & ew) / max(1, len(bw))
+    ratio = len(enhanced_en) / max(1, len(base_en))
+    return coverage >= 0.72 and 0.60 <= ratio <= 1.55
+
+FUTURE_PREVIEW_CN = {
+    name_key('Found Some More'):'每15秒补充1%弹药。',
+    name_key('Zealous Pilgrim'):'使用战斗技能后，获得持续5秒的不会死亡效果。隐秘领域：离开隐身时开始；不屈灵魂合唱：收起圣物时开始；惩戒邪恶/忠诚之怒：使用技能时开始。',
+    name_key('Fire and Fury'):'在不会死亡效果持续期间，武器攻击会对敌人施加燃烧（最多12层），近战攻击每次施加3层。',
+    name_key('Risen'):'在不会死亡效果持续期间，每秒获得+5最大韧性，最多叠加8次，加成持续5秒。',
+    name_key('Got Your Back'):'以近战攻击击杀正在锁定队友的敌人时，为该队友恢复7.5%韧性，并额外为自己恢复5%韧性。',
+    name_key('Holy Tools'):'使用武器特殊动作后5秒内，下一次近战攻击的伤害+20%。',
+    name_key('Wait in Line'):'受到的远程攻击伤害-20%。',
+    name_key('Purifying Hatred'):'对燃烧或遭电击的敌人造成的伤害+15%。',
+    name_key('Focused Warp'):'亚空间伤害+15%。',
+    name_key('Peril Equilibrium'):'非亚空间的近战或远程攻击命中时，每次产生2%反噬；通过此效果最多累积至75%。',
+    name_key('Psykinetic Grip'):'颅脑崩裂、惩戒与灵能攻击的伤害+20%。',
+}
+
+future_classes = []
+live_classes = []
+all_slugs = set()
+all_icon_urls = {}
+
+hive_svgs = None
+for meta in CLASSES:
+    page = get(BASE + '/classes/' + meta['page'])
+    if not page:
+        raise SystemExit('Could not fetch ' + meta['page'])
+    svgs = pick_tree_svgs(page)
+    print(meta['name'], 'candidate trees', len(svgs))
+    if not svgs:
+        raise SystemExit('No talent tree SVGs for ' + meta['name'])
+
+    if meta['key'] == 'hivescum':
+        hive_svgs = svgs
+        live_idx = 0
+        future_idx = 2 if len(svgs) >= 4 else min(1, len(svgs)-1)
+    else:
+        live_idx = 0
+        future_idx = 1 if len(svgs) > 1 else 0
+
+    live_tree, live_icons = build_tree(meta, svgs[live_idx], 'live')
+    future_tree, future_icons = build_tree(meta, svgs[future_idx], 'future')
+    live_classes.append(live_tree)
+    future_classes.append(future_tree)
+    all_icon_urls.update(live_icons)
+    all_icon_urls.update(future_icons)
+
+    for tree in (live_tree, future_tree):
+        for n in tree['nodes']:
+            if n['slug']:
+                all_slugs.add(n['slug'].split('/')[-1])
+
+    print(meta['name'], 'live', len(live_tree['nodes']), 'nodes;', 'future', len(future_tree['nodes']), 'nodes')
+
+if hive_svgs and len(hive_svgs) >= 4:
+    base_meta = {
+        'key':'hivescum-stimm',
+        'name':'Hive Scum — Stimm Lab',
+        'cn':'巢都渣滓 — 兴奋剂实验室',
+        'ig':'broker',
+        'page':'hive-scum',
+    }
+    live_stimm, live_icons = build_tree(
+        base_meta, hive_svgs[1], 'live',
+        parent='hivescum', sub_label='Stimm Lab', sub_label_cn='兴奋剂实验室',
+        rootkey='root-brokerstimm'
+    )
+    future_stimm, future_icons = build_tree(
+        base_meta, hive_svgs[3], 'future',
+        parent='hivescum', sub_label='Stimm Lab', sub_label_cn='兴奋剂实验室',
+        rootkey='root-brokerstimm'
+    )
+    live_classes.append(live_stimm)
+    future_classes.append(future_stimm)
+    all_icon_urls.update(live_icons)
+    all_icon_urls.update(future_icons)
+    for tree in (live_stimm, future_stimm):
+        for n in tree['nodes']:
+            if n['slug']:
+                all_slugs.add(n['slug'].split('/')[-1])
+    print('Hive Scum Stimm Lab live', len(live_stimm['nodes']), 'nodes;', 'future', len(future_stimm['nodes']), 'nodes')
+
+DESC = {}
+with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
+    for slug, info in ex.map(fetch_desc, sorted(all_slugs)):
+        DESC[slug] = info
+
+TR = translation_map()
+ZH_DESC, ZH_DESC_META = load_chinese_descriptions()
+BI_DESC, BI_DESC_META = load_bilingual_descriptions()
+print('name translations', len(TR))
+print('community zh-cn descriptions', len(ZH_DESC))
+print('safe bilingual enhanced pairs', sum(1 for v in BI_DESC.values() if v.get('en') and v.get('cn')))
+
+def dl_icon(item):
+    key, url = item
+    b = get(url, binary=True)
+    if not b:
+        return key, None
+    return key, 'data:image/webp;base64,' + base64.b64encode(b).decode()
+
+ICONS = {}
+with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
+    for key, uri in ex.map(dl_icon, all_icon_urls.items()):
+        if uri:
+            ICONS[key] = uri
+
+print('icons downloaded', len(ICONS), 'of', len(all_icon_urls))
+
+def attach_info(trees):
+    for cl in trees:
+        for n in cl['nodes']:
+            if n['cat'] == 'root':
+                n['en'] = cl['name']
+                n['cn'] = cl['cn']
+                n['type'] = 'Class'
+                n['desc'] = ''
+                n['descCn'] = ''
+                n['advancedEn'] = ''
+                n['advancedCn'] = ''
+                n['descSource'] = 'class'
+            else:
+                canonical = n['slug'].split('/')[-1]
+                info = DESC.get(canonical, {})
+                en = dedupe_display_name(info.get('n') or canonical.replace('-',' ').title(), canonical)
+                n['en'] = en
+                n['cn'] = TR.get(name_key(en), en)
+                n['type'] = info.get('t','')
+                n['desc'] = info.get('d','')
+                pair = BI_DESC.get(normalize_name(en), {})
+                pair_en = pair.get('en','')
+                pair_cn = pair.get('cn','')
+                preview_cn = FUTURE_PREVIEW_CN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
+                if preview_cn and numeric_multiset(n['desc']) == numeric_multiset(preview_cn):
+                    n['descCn'] = preview_cn
+                    n['descSource'] = 'fatshark-preview-zh'
+                elif pair_cn and compatible_base_translation(n['desc'], pair_en):
+                    n['descCn'] = pair_cn
+                    n['descSource'] = 'community-aligned'
+                else:
+                    n['descCn'] = ''
+                    n['descSource'] = 'base-english-only'
+                n['advancedEn'] = pair_en if pair_en and pair_cn else ''
+                n['advancedCn'] = pair_cn if pair_en and pair_cn else ''
+            n.pop('slug', None)
+
+attach_info(future_classes)
+attach_info(live_classes)
+
+all_nodes=[n for tree in (future_classes+live_classes) for n in tree['nodes'] if n.get('cat')!='root']
+zh_hits=sum(1 for n in all_nodes if n.get('descCn'))
+advanced_hits=sum(1 for n in all_nodes if n.get('advancedEn') and n.get('advancedCn'))
+print('base-aligned zh-cn coverage', zh_hits, 'of', len(all_nodes))
+print('paired advanced-mechanics coverage', advanced_hits, 'of', len(all_nodes))
+
+out = {
+    'version': 'Depths of the Damned Future update',
+    'liveVersion': 'Skitarii Class Live',
+    'source': 'Games Lantern',
+    'generated_by': 'tools/scrape_future.py',
+    'classes': future_classes,
+    'liveClasses': live_classes,
+    'icons': ICONS,
+}
+Path('tree-data.js').write_text(
+    'window.TREE_DATA=' + json.dumps(out, ensure_ascii=False, separators=(',',':')) + ';\n',
+    encoding='utf-8'
+)
+print('WROTE tree-data.js size(MB):', round(os.path.getsize('tree-data.js') / 1e6, 2))
+, '', m.group(1)).strip().strip('*_ ')
+        en = m.group(2).strip()
+        if en and zh:
+            raw.setdefault(name_key(en), zh)
+
     try:
         from opencc import OpenCC
         cc = OpenCC('t2s')
