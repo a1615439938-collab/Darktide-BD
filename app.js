@@ -41,6 +41,28 @@ const VOCAB=[
   ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
 ];
 
+function formatChineseDescription(text){
+  if(!text)return "";
+  const lines=String(text)
+    .replace(/\r/g,"")
+    .split(/\n+/)
+    .map(x=>x.replace(/^\s*[•·▪●◦\-*]+\s*/,"").trim())
+    .filter(Boolean);
+  return lines
+    .map(x=>x.replace(/\s+/g," ").trim())
+    .join(" ")
+    .replace(/\s+([，。；：！？])/g,"$1")
+    .replace(/([，。；：！？])\s+/g,"$1 ")
+    .trim();
+}
+function formatEnglishDescription(text){
+  return String(text||"")
+    .replace(/\r/g,"")
+    .replace(/\s*\n+\s*/g," ")
+    .replace(/\s{2,}/g," ")
+    .trim();
+}
+
 function translateEffectFallback(text){
   if(!text)return "暂无可靠的简中预览效果说明。";
   let s=String(text);
@@ -472,10 +494,12 @@ function renderNode(svg,defs,n){
   }
   g.addEventListener("click",e=>{
     e.stopPropagation();
-    hotSlug=n.s;
-    if(n.s!==ROOT&&!active.has(n.s)&&isAvail(n.s)){
-      toggleNode(n);
+    const pop=$("#nodePopover");
+    if(hotSlug===n.s&&pop&&!pop.classList.contains("hidden")){
+      hideInfo();
+      return;
     }
+    hotSlug=n.s;
     redraw();
     showInfo(n,true);
   });
@@ -633,13 +657,13 @@ function showInfo(n,focus=false){
   $("#infoState").textContent=stateText;
 
   if(n.descCn){
-    $("#infoCnDesc").textContent=n.descCn;
+    $("#infoCnDesc").textContent=formatChineseDescription(n.descCn);
   }else if(n.desc){
-    $("#infoCnDesc").textContent=translateEffectFallback(n.desc);
+    $("#infoCnDesc").textContent=formatChineseDescription(translateEffectFallback(n.desc));
   }else{
     $("#infoCnDesc").textContent="暂无可靠的简中预览效果说明。";
   }
-  $("#infoDesc").textContent=n.desc||"No reliable preview effect text is available for this node yet.";
+  $("#infoDesc").textContent=formatEnglishDescription(n.desc||"No reliable preview effect text is available for this node yet.");
   const vocab=$("#infoVocab");
   if(vocab){
     const text=n.desc||"";
@@ -716,7 +740,18 @@ function placePopover(n,focus=false,allowAdjust=true){
     pop.style.setProperty("--arrow-left",arrow+"px");
 
     if(focus){
-      vp.scrollTo({left:Math.max(0,px-vp.clientWidth/2),behavior:"smooth"});
+      const vr=vp.getBoundingClientRect();
+      const nr=nodeEl.getBoundingClientRect();
+      const margin=28;
+      let targetLeft=vp.scrollLeft;
+      if(nr.left<vr.left+margin){
+        targetLeft=Math.max(0,vp.scrollLeft-(vr.left+margin-nr.left));
+      }else if(nr.right>vr.right-margin){
+        targetLeft=Math.max(0,vp.scrollLeft+(nr.right-(vr.right-margin)));
+      }
+      if(Math.abs(targetLeft-vp.scrollLeft)>2){
+        vp.scrollTo({left:targetLeft,behavior:"smooth"});
+      }
       requestAnimationFrame(()=>{
         const pr=pop.getBoundingClientRect();
         const nodeRect=nodeEl.getBoundingClientRect();
@@ -846,6 +881,10 @@ function importData(txt){
 function bind(){
   $("#undoBtn").onclick=undoLast;
   $("#resetBtn").onclick=()=>{
+    if(points()===0){
+      notify("当前天赋树已经是空的 / This tree is already empty");
+      return;
+    }
     if(confirm("重置当前职业的天赋？ / Reset this class tree?")){
       pushUndo();
       state.selected[selectionKey(state.classKey)]=[];
@@ -858,19 +897,16 @@ function bind(){
   $("#infoAction").onclick=()=>{
     const n=hotSlug?nodeMap[hotSlug]:null;
     if(!n||n.s===ROOT)return;
-    if(active.has(n.s)){
-      toggleNode(n);
-      redraw();
-      if(active.has(n.s)){
-        notify("该天赋仍被后续节点依赖 / Downstream nodes still depend on it");
-      }else{
-        hideInfo(false);
-        notify("已移除天赋 / Talent removed");
-      }
-    }else if(isAvail(n.s)){
-      toggleNode(n);
-      redraw();
-      showInfo(n,false);
+    const wasActive=active.has(n.s);
+    toggleNode(n);
+    redraw();
+    showInfo(n,false);
+    if(wasActive&&active.has(n.s)){
+      notify("该天赋仍被后续节点依赖 / Downstream nodes still depend on it");
+    }else if(wasActive){
+      notify("已移除天赋 / Talent removed");
+    }else if(active.has(n.s)){
+      notify("已选择天赋 / Talent selected");
     }
   };
   $("#futurePatchBtn").onclick=()=>switchPatch("future");
@@ -1013,14 +1049,19 @@ function runAutomatedSelfTest(){
     const before=points();
     const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
     if(!firstAvail)throw new Error("no selectable first node");
-    hotSlug=firstAvail.s;
-    toggleNode(firstAvail);
-    redraw();
-    showInfo(firstAvail,false);
-    if(points()!==before+1)throw new Error("talent click did not spend a point");
-    if($("#nodePopover").classList.contains("hidden"))throw new Error("talent detail did not open");
-    hideInfo();
-    if(!$("#nodePopover").classList.contains("hidden"))throw new Error("talent detail did not dismiss");
+
+    nodeEls[firstAvail.s].dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    if(points()!==before)throw new Error("preview tap changed talent points");
+    if($("#nodePopover").classList.contains("hidden"))throw new Error("talent preview did not open");
+
+    nodeEls[firstAvail.s].dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    if(!$("#nodePopover").classList.contains("hidden"))throw new Error("same-node tap did not dismiss");
+
+    nodeEls[firstAvail.s].dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    $("#infoAction").click();
+    if(points()!==before+1)throw new Error("explicit select did not spend a point");
+    if($("#nodePopover").classList.contains("hidden"))throw new Error("card closed after explicit select");
+
     undoLast();
     if(points()!==before)throw new Error("undo did not restore points");
     hotSlug=firstAvail.s;
@@ -1049,6 +1090,7 @@ function runAutomatedSelfTest(){
     if(!warp||!warp.descCn||!/[\u4e00-\u9fff]/.test(warp.descCn))throw new Error("Warp Expenditure Chinese description missing");
     showInfo(warp,false);
     if(!/[\u4e00-\u9fff]/.test($("#infoCnDesc").textContent||""))throw new Error("Chinese description not rendered");
+    if(/\n/.test($("#infoCnDesc").textContent||""))throw new Error("Chinese description still contains source line breaks");
 
     saveSelection();
     state.classKey="hivescum-stimm";
@@ -1076,7 +1118,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl13").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl14").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
