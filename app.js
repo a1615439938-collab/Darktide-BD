@@ -789,6 +789,10 @@ function showInfo(n,focus=false){
     if(cnLabel)cnLabel.textContent="中文说明（人工复核） / Chinese reviewed";
     if(enLabel)enLabel.textContent="英文原文 / English";
     if(source)source.textContent="逐条对照英文原文人工复核；数值由自动审计再次校验。 / Manually reviewed against the English source; mechanics numbers are re-checked automatically.";
+  }else if(pair.source==="stat-source-missing"){
+    if(cnLabel)cnLabel.textContent="属性说明 / Stat";
+    if(enLabel)enLabel.textContent="数据说明 / Data note";
+    if(source)source.textContent="当前预览数据源只提供了属性节点名称，没有可靠的具体数值，因此不猜测数值。 / The preview source exposes the stat-node name but not a reliable exact value, so no value is guessed.";
   }else{
     if(cnLabel)cnLabel.textContent="中文说明 / Chinese";
     if(enLabel)enLabel.textContent="英文原文 / English";
@@ -1347,7 +1351,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl21").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl22").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
