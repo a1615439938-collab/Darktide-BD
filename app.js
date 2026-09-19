@@ -11,7 +11,8 @@ const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
 const STORE="darktide-bilingual-editor-gl10";
-const TREE_TOP=174;
+const BASE_TREE_TOP=20;
+let treeTop=BASE_TREE_TOP;
 
 const CAT={
   passive:{color:"#79b9c6",cn:"普通天赋",en:"Passive"},
@@ -472,7 +473,9 @@ function renderNode(svg,defs,n){
   g.addEventListener("click",e=>{
     e.stopPropagation();
     hotSlug=n.s;
-    toggleNode(n);
+    if(n.s!==ROOT&&!active.has(n.s)&&isAvail(n.s)){
+      toggleNode(n);
+    }
     redraw();
     showInfo(n,true);
   });
@@ -618,6 +621,7 @@ function showInfo(n,focus=false){
     pop.classList.remove("hidden");
     pop.setAttribute("aria-hidden","false");
   }
+  if(treeTop!==BASE_TREE_TOP)setTreeTop(BASE_TREE_TOP);
   const cat=CAT[n.cat]||CAT.passive;
   $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
   $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:(n.en||"");
@@ -650,20 +654,62 @@ function showInfo(n,focus=false){
     }
     vocab.innerHTML=matches.join("");
   }
+  updateInfoAction(n);
   placePopover(n,focus);
 }
-function placePopover(n,focus=false){
-  const pop=$("#nodePopover"),canvas=$("#treeCanvas"),svg=$("#treeSvg"),vp=$("#treeViewport");
-  if(!pop||!canvas||!svg||!CUR)return;
+function setTreeTop(px){
+  treeTop=Math.max(BASE_TREE_TOP,Math.round(px));
+  const canvas=$("#treeCanvas"),svg=$("#treeSvg");
+  if(!canvas||!svg||!CUR)return;
+  const vw=CUR.viewbox[2],vh=CUR.viewbox[3];
+  const height=svg.clientWidth*vh/vw;
+  canvas.style.height=(treeTop+height+28)+"px";
+  canvas.style.setProperty("--tree-top",treeTop+"px");
+  svg.style.top=treeTop+"px";
+}
+function updateInfoAction(n){
+  const b=$("#infoAction");
+  if(!b)return;
+  b.hidden=n.s===ROOT;
+  b.disabled=false;
+  if(n.s===ROOT)return;
+  if(active.has(n.s)){
+    b.textContent="移除天赋 / Remove";
+    b.dataset.mode="remove";
+  }else if(isAvail(n.s)){
+    b.textContent="选择天赋 / Select";
+    b.dataset.mode="select";
+  }else{
+    b.textContent="需要前置节点 / Requires path";
+    b.dataset.mode="locked";
+    b.disabled=true;
+  }
+}
+function placePopover(n,focus=false,allowAdjust=true){
+  const pop=$("#nodePopover"),canvas=$("#treeCanvas"),vp=$("#treeViewport");
+  const nodeEl=nodeEls[n.s];
+  if(!pop||!canvas||!vp||!nodeEl||!CUR)return;
+
   requestAnimationFrame(()=>{
-    const [vx,vy,vw]=CUR.viewbox;
-    const scale=svg.clientWidth/vw;
-    const px=(n.x-vx)*scale;
-    const py=TREE_TOP+(n.y-vy)*scale;
-    const pr=radius(n)*scale;
+    const nr=nodeEl.getBoundingClientRect();
+    const cr=canvas.getBoundingClientRect();
     const pw=pop.offsetWidth,ph=pop.offsetHeight,cw=canvas.clientWidth;
+    const px=nr.left-cr.left+nr.width/2;
+    const nodeTop=nr.top-cr.top;
+    let top=nodeTop-ph-12;
+
+    // Only reserve space while the card is actually open, and only as much as needed.
+    if(allowAdjust&&top<8){
+      const needed=treeTop+(8-top);
+      if(needed>treeTop+1){
+        setTreeTop(needed);
+        requestAnimationFrame(()=>placePopover(n,focus,false));
+        return;
+      }
+    }
+
     const left=Math.max(8,Math.min(cw-pw-8,px-pw/2));
-    const top=Math.max(8,py-pr-13-ph);
+    top=Math.max(8,top);
     const arrow=Math.max(18,Math.min(pw-18,px-left));
     pop.style.left=left+"px";
     pop.style.top=top+"px";
@@ -672,12 +718,12 @@ function placePopover(n,focus=false){
     if(focus){
       vp.scrollTo({left:Math.max(0,px-vp.clientWidth/2),behavior:"smooth"});
       requestAnimationFrame(()=>{
-        const prc=pop.getBoundingClientRect();
-        const nrc=nodeEls[n.s]?.getBoundingClientRect();
+        const pr=pop.getBoundingClientRect();
+        const nodeRect=nodeEl.getBoundingClientRect();
         const hb=document.querySelector(".site-head").getBoundingClientRect().bottom;
         let dy=0;
-        if(prc.top<hb+8)dy=prc.top-(hb+8);
-        else if(nrc&&nrc.bottom>innerHeight-18)dy=nrc.bottom-(innerHeight-18);
+        if(pr.top<hb+8)dy=pr.top-(hb+8);
+        else if(nodeRect.bottom>innerHeight-18)dy=nodeRect.bottom-(innerHeight-18);
         if(Math.abs(dy)>2)scrollBy({top:dy,behavior:"smooth"});
       });
     }
@@ -689,6 +735,7 @@ function hideInfo(redrawTree=true){
     pop.classList.add("hidden");
     pop.setAttribute("aria-hidden","true");
   }
+  if(treeTop!==BASE_TREE_TOP)setTreeTop(BASE_TREE_TOP);
   if(hotSlug!==null){
     hotSlug=null;
     if(redrawTree&&CUR)redraw();
@@ -714,10 +761,9 @@ function applyZoom(){
   const base=Math.max(455,Math.min(700,vp.clientWidth*1.13));
   const width=base*state.zoom,height=width*vh/vw;
   canvas.style.width=width+"px";
-  canvas.style.height=(TREE_TOP+height+28)+"px";
-  canvas.style.setProperty("--tree-top",TREE_TOP+"px");
   svg.style.width=width+"px";
   svg.style.height=height+"px";
+  setTreeTop(treeTop||BASE_TREE_TOP);
   const n=hotSlug?nodeMap[hotSlug]:null;
   if(n&&!$("#nodePopover").classList.contains("hidden"))placePopover(n,false);
 }
@@ -726,6 +772,7 @@ function centerTree(){
   vp.scrollLeft=Math.max(0,(canvas.clientWidth-vp.clientWidth)/2);
 }
 function renderAll(center=false){
+  treeTop=BASE_TREE_TOP;
   renderPatchControls();
   renderClassbar();
   renderSubtreeBar();
@@ -806,6 +853,24 @@ function bind(){
       persist();
       renderAll(false);
       notify("已重置当前天赋树 / Current tree reset");
+    }
+  };
+  $("#infoAction").onclick=()=>{
+    const n=hotSlug?nodeMap[hotSlug]:null;
+    if(!n||n.s===ROOT)return;
+    if(active.has(n.s)){
+      toggleNode(n);
+      redraw();
+      if(active.has(n.s)){
+        notify("该天赋仍被后续节点依赖 / Downstream nodes still depend on it");
+      }else{
+        hideInfo(false);
+        notify("已移除天赋 / Talent removed");
+      }
+    }else if(isAvail(n.s)){
+      toggleNode(n);
+      redraw();
+      showInfo(n,false);
     }
   };
   $("#futurePatchBtn").onclick=()=>switchPatch("future");
@@ -911,6 +976,7 @@ function selfCheck(){
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
   if(!$("#nodePopover")) throw new Error("node popover is missing");
+  if(treeTop>40&&$("#nodePopover").classList.contains("hidden")) throw new Error("hidden tree has excessive top spacing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
 }
 
@@ -982,7 +1048,7 @@ try{
   selfCheck();
   runAutomatedSelfTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl11").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl12").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
