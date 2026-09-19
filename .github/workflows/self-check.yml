@@ -14,34 +14,43 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate source syntax
+      - name: Validate source and data
         run: |
           node --check app.js
           python -m py_compile tools/scrape_future.py
+          for KEY in veteran zealot psyker ogryn arbites skitarii hivescum hivescum-stimm; do
+            grep -q "\"key\":\"$KEY\"" tree-data.js
+          done
+          ICONS=$(grep -o 'data:image/webp;base64' tree-data.js | wc -l)
+          echo "Embedded icons: $ICONS"
+          test "$ICONS" -ge 600
 
       - name: Start local site
         run: |
           python -m http.server 8000 >/tmp/darktide-http.log 2>&1 &
           sleep 2
 
-      - name: Render site in headless Chrome
+      - name: Run mobile interaction test in headless Chrome
         run: |
-          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,932             --virtual-time-budget=6000             --dump-dom http://127.0.0.1:8000/ > /tmp/dom.html
+          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,932             --virtual-time-budget=9000             --dump-dom 'http://127.0.0.1:8000/?selftest=1' > /tmp/dom.html
 
-      - name: Assert visual tree booted
+      - name: Assert editor behavior
         run: |
-          grep -q "Depths of the Damned Future update" /tmp/dom.html
-          grep -q 'class="node active' /tmp/dom.html
+          grep -q 'data-selftest="pass"' /tmp/dom.html
+          grep -q '兴奋剂实验室' /tmp/dom.html
+          grep -q 'Stimm Lab' /tmp/dom.html
+          grep -q 'id="meleeWeapon"' /tmp/dom.html
+          grep -q 'id="rangedWeapon"' /tmp/dom.html
+          grep -q 'id="curio1Main"' /tmp/dom.html
+          grep -q 'id="nodePopover"' /tmp/dom.html
           grep -q 'class="art"' /tmp/dom.html
-          grep -q '老兵' /tmp/dom.html
-          grep -q 'Veteran' /tmp/dom.html
           COUNT=$(grep -o 'data-s=' /tmp/dom.html | wc -l)
-          echo "Rendered talent nodes: $COUNT"
-          test "$COUNT" -ge 60
+          echo "Rendered Stimm Lab nodes after self-test: $COUNT"
+          test "$COUNT" -ge 20
 
-      - name: Capture mobile screenshot
+      - name: Capture normal mobile screenshot
         run: |
-          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,1600             --virtual-time-budget=6000             --screenshot=/tmp/darktide-mobile.png             http://127.0.0.1:8000/
+          google-chrome --headless --no-sandbox --disable-gpu             --window-size=430,1800             --virtual-time-budget=7000             --screenshot=/tmp/darktide-mobile.png             'http://127.0.0.1:8000/'
 
       - uses: actions/upload-artifact@v4
         with:
