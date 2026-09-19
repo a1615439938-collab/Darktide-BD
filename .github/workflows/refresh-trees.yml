@@ -6,6 +6,7 @@ on:
     paths:
       - "tools/scrape_future.py"
       - "tools/enhanced_zh.py"
+      - "tools/manual_zh.json"
       - ".github/workflows/refresh-trees.yml"
   schedule:
     - cron: "15 3 * * *"
