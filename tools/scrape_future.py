@@ -17,6 +17,18 @@ try:
 except Exception:
     MANUAL_ZH = {}
 
+MANUAL_CURRENT_PATH = Path(__file__).with_name('manual_current_cn.json')
+try:
+    MANUAL_CURRENT_CN = json.loads(MANUAL_CURRENT_PATH.read_text(encoding='utf-8'))
+except Exception:
+    MANUAL_CURRENT_CN = {}
+
+def exact_reviewed_cn(en, desc):
+    item = MANUAL_CURRENT_CN.get(en or '')
+    if not isinstance(item, dict):
+        return ''
+    return item.get('cn','') if item.get('desc','') == (desc or '') else ''
+
 def manual_desc_key(en, desc):
     raw = ((en or '') + '\0' + (desc or '')).encode('utf-8')
     return hashlib.sha1(raw).hexdigest()[:16]
@@ -309,6 +321,8 @@ def translation_map():
         'damage boost':'伤害提升',
         'just getting started':'热身完毕',
         'vulture s mark':'兀鹫印记',
+        'potent tox':'强效毒素',
+        'kinetic energy distributors':'动能分配器',
     }
     for en, zh in curated.items():
         if en not in raw:
@@ -747,6 +761,7 @@ def attach_info(trees):
                 pair_cn = pair.get('cn','')
                 preview_cn = FUTURE_PREVIEW_CN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
                 reviewed_cn = MANUAL_ZH.get(manual_desc_key(en, n['desc']), '')
+                exact_cn = exact_reviewed_cn(en, n['desc'])
                 if official_override:
                     pass
                 elif preview_cn and numeric_multiset(n['desc']) == numeric_multiset(preview_cn):
@@ -759,6 +774,9 @@ def attach_info(trees):
                 elif reviewed_cn:
                     n['descCn'] = reviewed_cn
                     n['descSource'] = 'manual-reviewed'
+                elif exact_cn:
+                    n['descCn'] = exact_cn
+                    n['descSource'] = 'manual-reviewed-current-tooltip'
                 else:
                     n['descCn'] = ''
                     n['descSource'] = 'base-english-only'
@@ -802,6 +820,8 @@ print('base-aligned zh-cn coverage', zh_hits, 'of', len(all_nodes))
 print('paired advanced-mechanics coverage', advanced_hits, 'of', len(all_nodes))
 reviewed_hits=sum(1 for n in all_nodes if n.get('descSource') == 'manual-reviewed')
 print('manual-reviewed base coverage', reviewed_hits, 'of', len(all_nodes))
+exact_reviewed_hits=sum(1 for n in all_nodes if n.get('descSource') == 'manual-reviewed-current-tooltip')
+print('exact current-tooltip reviewed coverage', exact_reviewed_hits, 'of', len(all_nodes))
 
 out = {
     'version': 'Depths of the Damned Future update',
