@@ -13,24 +13,49 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: refresh-talent-trees
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install converter
         run: pip install opencc-python-reimplemented
-      - name: Scrape Games Lantern future trees
-        run: python tools/scrape_future.py
+
+      - name: Sync latest source and regenerate
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+          python tools/scrape_future.py
+
       - name: Commit refreshed tree data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tree-data.js
-          git diff --cached --quiet || git commit -m "Refresh Depths of the Damned talent trees"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          if git diff --cached --quiet; then
+            echo "tree-data.js is already current"
+            exit 0
+          fi
+          git commit -m "Refresh Depths of the Damned talent trees"
+          if ! git push origin HEAD:main; then
+            echo "main changed while scraping; regenerating once on top of latest main"
+            git fetch origin main
+            git reset --hard origin/main
+            python tools/scrape_future.py
+            git add tree-data.js
+            if git diff --cached --quiet; then
+              echo "Latest main already contains current tree-data.js"
+              exit 0
+            fi
+            git commit -m "Refresh Depths of the Damned talent trees"
+            git push origin HEAD:main
+          fi
