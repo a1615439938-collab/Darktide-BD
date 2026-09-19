@@ -702,6 +702,39 @@ function selfCheck(){
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
 }
 
+function runAutomatedSelfTest(){
+  if(new URLSearchParams(location.search).get("selftest")!=="1")return;
+  try{
+    const before=points();
+    const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
+    if(!firstAvail)throw new Error("no selectable first node");
+    hotSlug=firstAvail.s;
+    toggleNode(firstAvail);
+    redraw();
+    showInfo(firstAvail,false);
+    if(points()!==before+1)throw new Error("talent click did not spend a point");
+
+    const melee=$("#meleeWeapon");
+    melee.value="SELFTEST WEAPON";
+    melee.dispatchEvent(new Event("input",{bubbles:true}));
+    if(currentLoadout().meleeWeapon!=="SELFTEST WEAPON")throw new Error("loadout did not persist");
+
+    const code=exportData();
+    if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
+
+    saveSelection();
+    state.classKey="hivescum-stimm";
+    renderAll(false);
+    if(!CUR||CUR.key!=="hivescum-stimm"||CUR.nodes.length<20)throw new Error("Stimm Lab did not render");
+
+    document.body.dataset.selftest="pass";
+    document.body.dataset.selftestNodes=String(CUR.nodes.length);
+  }catch(e){
+    document.body.dataset.selftest="fail";
+    document.body.dataset.selftestError=String(e.message||e);
+  }
+}
+
 try{
   load();
   bind();
