@@ -887,6 +887,37 @@ function showInfo(n,focus=false){
       ?"当前没有可靠的一一对应简中来源，因此不再显示自动拼接翻译。 / No reliable one-to-one Chinese source; automatic word-substitution translation is suppressed."
       :"";
   }
+  const mechanics=$("#infoMechanics");
+  if(mechanics){
+    if(n.mechanicsCn||n.mechanicsEn){
+      mechanics.hidden=false;
+      $("#infoMechanicsCn").textContent=n.mechanicsCn||"";
+      $("#infoMechanicsEn").textContent=n.mechanicsEn||"";
+    }else{
+      mechanics.hidden=true;
+      $("#infoMechanicsCn").textContent="";
+      $("#infoMechanicsEn").textContent="";
+    }
+  }
+  const provenance=$("#infoProvenance");
+  if(provenance){
+    const labels={
+      "games-lantern":"Games Lantern",
+      "fatshark-official-preview":"Fatshark 官方更新预览 / official preview",
+      "fatshark-official-bound-by-duty":"Fatshark 官方 Bound by Duty",
+      "syuantsai-glossary":"Darktide 中文术语表 / translation glossary",
+      "enhanced-translation-table":"Enhanced Descriptions 翻译表",
+      "syuantsai-fatshark-preview-translation":"更新预览中文整理 / preview translation",
+      "manual-name-fallback":"缺少现成译名 / no maintained title",
+      "source-name-untranslated":"保留原名 / source name retained"
+    };
+    const bits=[];
+    if(n.descSourceEn)bits.push("EN: "+(labels[n.descSourceEn]||n.descSourceEn));
+    if(n.nameSourceCn)bits.push("中文名: "+(labels[n.nameSourceCn]||n.nameSourceCn));
+    if(n.descSource)bits.push("中文说明: "+(labels[n.descSource]||n.descSource));
+    provenance.textContent=bits.length?"来源 / Sources · "+bits.join(" · "):"";
+  }
+
   const vocab=$("#infoVocab");
   if(vocab){
     const text=pair.en||n.desc||"";
@@ -1537,7 +1568,7 @@ try{
   if("requestIdleCallback" in window)requestIdleCallback(()=>loadTalentIcons(),{timeout:1200});
   else setTimeout(loadTalentIcons,250);
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl25").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl26").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
