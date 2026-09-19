@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Split the generated talent payload so layout/text can render before icon art.
+"""Split generated talent data into a light core plus lazy icon packs.
 
-tree-core.js is intentionally small and contains every gameplay/text field.
-tree-icons.js contains only the large base64 icon map and is loaded lazily.
-tree-data.js remains the canonical generated artifact for audits/backward compatibility.
+Outputs:
+- tree-core.js: all layout/text/mechanics, no base64 art
+- tree-icons.js: full icon map kept for backward compatibility
+- tree-icons-<class>.js: only the art needed by that base class across live/future
+
+The browser loads tree-core.js immediately and then fetches only the current
+class's ~1 MB icon pack, instead of the former ~9 MB all-class image payload.
 """
 import json
 from pathlib import Path
@@ -20,9 +24,34 @@ data=json.loads(payload)
 icons=data.pop("icons",{})
 
 core="window.TREE_DATA="+json.dumps(data,ensure_ascii=False,separators=(",",":"))+";\n"
-icon_js="window.TREE_ICONS="+json.dumps(icons,ensure_ascii=False,separators=(",",":"))+";\n"
 Path("tree-core.js").write_text(core,encoding="utf-8")
+
+# Full pack remains available as a compatibility/debug artifact but is no longer
+# requested by the normal application path.
+icon_js="window.TREE_ICONS="+json.dumps(icons,ensure_ascii=False,separators=(",",":"))+";\n"
 Path("tree-icons.js").write_text(icon_js,encoding="utf-8")
+
+base_sets={}
+for tree in (data.get("classes") or []) + (data.get("liveClasses") or []):
+    base=tree.get("parent") or tree.get("key")
+    if not base:
+        continue
+    keys=base_sets.setdefault(base,set())
+    for node in tree.get("nodes",[]):
+        s=node.get("s")
+        if s in icons:
+            keys.add(s)
+
+for base,keys in sorted(base_sets.items()):
+    pack={k:icons[k] for k in sorted(keys)}
+    js=(
+        "window.TREE_ICONS=Object.assign(window.TREE_ICONS||{},"
+        +json.dumps(pack,ensure_ascii=False,separators=(",",":"))
+        +");\n"
+    )
+    path=Path(f"tree-icons-{base}.js")
+    path.write_text(js,encoding="utf-8")
+    print(path.name,"MB",round(path.stat().st_size/1048576,2),"icons",len(pack))
 
 print("tree-data.js MB",round(src.stat().st_size/1048576,2))
 print("tree-core.js MB",round(Path("tree-core.js").stat().st_size/1048576,2))
