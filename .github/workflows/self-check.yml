@@ -30,10 +30,17 @@ jobs:
           CORE=$(stat -c%s tree-core.js)
           ICONS=$(stat -c%s tree-icons.js)
           echo "tree-core.js: $CORE bytes"
-          echo "tree-icons.js: $ICONS bytes (deferred)"
+          echo "tree-icons.js: $ICONS bytes (compatibility artifact; never loaded by normal UI)"
           test "$CORE" -lt 1500000
           ! grep -q 'tree-data.js' index.html
           ! grep -q 'tree-icons.js' index.html
+          for KEY in veteran zealot psyker ogryn arbites skitarii hivescum; do
+            FILE="tree-icons-$KEY.js"
+            test -f "$FILE"
+            SIZE=$(stat -c%s "$FILE")
+            echo "$FILE: $SIZE bytes"
+            test "$SIZE" -lt 2200000
+          done
 
       - name: Start local site
         run: |
@@ -63,6 +70,7 @@ jobs:
           check "ranged editor" 'id="rangedWeapon"'
           check "curio editor" 'id="curio1Main"'
           check "node popover" 'id="nodePopover"'
+          check "selected-class icon pack" 'data-icon-pack="veteran"'
           check "embedded talent art" 'class="art"'
           COUNT=$(grep -o 'data-s=' /tmp/dom.html | wc -l)
           echo "Rendered nodes after self-test: $COUNT"
