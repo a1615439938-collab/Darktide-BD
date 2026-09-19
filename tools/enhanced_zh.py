@@ -23,6 +23,7 @@ FILES = [
 ]
 PHRASES_EN = "Colors_Keywords_Numbers/COLORS_KWords.lua"
 PHRASES_ZH = "Colors_Keywords_Numbers/COLORS_KWords_zh_cn.lua"
+PHRASES_ZH_TW = "Colors_Keywords_Numbers/COLORS_KWords_tw.lua"
 UA = {"User-Agent": "Darktide-BD bilingual planner"}
 
 _RUNTIME = re.compile(
@@ -133,6 +134,38 @@ def _sanitize_zh(text):
     text = re.sub(r"\s+([，。；：！？])", r"\1", text)
     return text.strip()
 
+def _to_simplified(text):
+    if not text:
+        return ""
+    try:
+        from opencc import OpenCC
+        return OpenCC("t2s").convert(text)
+    except Exception:
+        return text
+
+def _prefer_maintained_chinese(en, zh_cn, zh_tw):
+    """Prefer maintained zh-CN; use maintained zh-TW converted to Simplified
+    when the zh-CN entry drops an important semantic cue (known upstream issue)
+    or cannot form a safe numeric pair.
+    """
+    tw=_to_simplified(zh_tw)
+    cn_ok=_pair_safe(en, zh_cn)
+    tw_ok=_pair_safe(en, tw)
+    if tw_ok and not cn_ok:
+        return tw, "zh-tw-t2s"
+    if cn_ok and tw_ok:
+        # Battle Meditation is a known example where zh-CN says merely
+        # "10% 危机值生成" while zh-TW correctly says the generation is reduced.
+        if "降低" in tw and "危机值生成" in zh_cn and "降低" not in zh_cn:
+            return tw, "zh-tw-t2s"
+        if "平息" in tw and "压制" in zh_cn and "危机值" in zh_cn:
+            return tw, "zh-tw-t2s"
+    if cn_ok:
+        return zh_cn, "zh-cn"
+    if tw_ok:
+        return tw, "zh-tw-t2s"
+    return "", ""
+
 def _sanitize_en(text):
     text = text or ""
     text = re.sub(r'\{#color\([^}]*\)\}', "", text, flags=re.I)
@@ -235,6 +268,7 @@ def _pair_safe(en, zh):
 def load_bilingual_descriptions():
     en_phrases = _load_phrases(PHRASES_EN)
     zh_phrases = _load_phrases(PHRASES_ZH)
+    zh_tw_phrases = _load_phrases(PHRASES_ZH_TW)
     out = {}
     details = {}
     for path in FILES:
@@ -262,9 +296,12 @@ def load_bilingual_descriptions():
 
             ens, zhs = [], []
             diagnostic_en, diagnostic_cn = [], []
+            zh_sources = []
             for chunk in chunks:
                 en = _extract_lang(chunk, "en", en_phrases)
-                zh = _extract_lang(chunk, "zh-cn", zh_phrases)
+                zh_cn = _extract_lang(chunk, "zh-cn", zh_phrases)
+                zh_tw = _extract_lang(chunk, "zh-tw", zh_tw_phrases)
+                zh, zh_source = _prefer_maintained_chinese(en, zh_cn, zh_tw)
                 if _safe(en):
                     diagnostic_en.append(en)
                 if _safe(zh):
@@ -272,6 +309,8 @@ def load_bilingual_descriptions():
                 if _pair_safe(en, zh):
                     ens.append(en)
                     zhs.append(zh)
+                    if zh_source:
+                        zh_sources.append(zh_source)
 
             safe_en = "\n".join(ens).strip()
             safe_cn = "\n".join(zhs).strip()
@@ -289,6 +328,7 @@ def load_bilingual_descriptions():
                     "unpaired_en": unpaired_en,
                     "unpaired_cn": unpaired_cn,
                     "pairValid": bool(safe_en and safe_cn),
+                    "zhSource": "+".join(sorted(set(zh_sources))) if zh_sources else "",
                     "source": path,
                 }
                 if not any((record["en"], record["cn"], record["unpaired_en"], record["unpaired_cn"])):
