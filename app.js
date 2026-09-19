@@ -28,6 +28,18 @@ const CAT={
 
 const EXCLUSIVE=new Set(["blitz","aura","ability","keystone"]);
 
+const VOCAB=[
+  ["Toughness","韧性"],["Health","生命"],["Stamina","耐力"],["Damage Reduction","伤害减免"],
+  ["Melee Attack Speed","近战攻击速度"],["Attack Speed","攻击速度"],["Movement Speed","移动速度"],
+  ["Reload Speed","装填速度"],["Critical Chance","暴击率"],["Critical Hit","暴击"],
+  ["Weakspot","弱点"],["Weak Spot","弱点"],["Melee Damage","近战伤害"],["Ranged Damage","远程伤害"],
+  ["Power","威力"],["Strength","强度"],["Rending","撕裂"],["Brittleness","脆弱"],
+  ["Bleeding","流血"],["Soulblaze","灵魂烈焰"],["Burning","燃烧"],["Toxin","毒素"],
+  ["Coherency","协同范围"],["Cooldown","冷却"],["Combat Ability","战斗技能"],["Grenade","手雷"],
+  ["Elite","精英"],["Specialist","专家"],["Monstrosity","巨兽"],["Carapace","甲壳装甲"],
+  ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
+];
+
 const GEAR_GUIDE={
   veteran:{
     melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk VI Power Sword"],
@@ -267,7 +279,9 @@ function renderClassbar(){
     const b=document.createElement("button");
     b.type="button";
     b.className=c.key===selectedBase?"on":"";
-    b.innerHTML=`<span>${c.cn}</span> · <span>${c.name}</span>`;
+    const root=c.nodes.find(n=>n.cat==="root");
+    const icon=root&&ICONS[root.s]?'<img src="'+ICONS[root.s]+'" alt="">':"";
+    b.innerHTML=icon+`<span>${c.cn} · ${c.name}</span>`;
     b.onclick=()=>{
       saveSelection();
       persist();
@@ -478,6 +492,20 @@ function showInfo(n,focus=false){
   }else{
     $("#infoCnDesc").textContent="暂无可靠的预览效果说明";
     $("#infoDesc").textContent="No reliable preview effect text is available for this node yet.";
+  }
+  const vocab=$("#infoVocab");
+  if(vocab){
+    const text=n.desc||"";
+    const matches=[];
+    const seen=new Set();
+    for(const [en,cn] of VOCAB){
+      if(text.toLowerCase().includes(en.toLowerCase())&&!seen.has(en.toLowerCase())){
+        matches.push('<span class="v"><b>'+en+'</b> · '+cn+'</span>');
+        seen.add(en.toLowerCase());
+      }
+      if(matches.length>=6)break;
+    }
+    vocab.innerHTML=matches.join("");
   }
   placePopover(n,focus);
 }
@@ -746,7 +774,7 @@ try{
   }
   selfCheck();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl7").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl8").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
