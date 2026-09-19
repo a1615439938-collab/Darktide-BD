@@ -773,6 +773,7 @@ try{
     renderAll(false);
   }
   selfCheck();
+  runAutomatedSelfTest();
   if("serviceWorker" in navigator){
     window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl8").catch(()=>{}));
   }
