@@ -55,10 +55,7 @@ const VOCAB=[
   ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
 ];
 
-const TALENT_CN_OVERRIDES={
-  "Battle Meditation":"危机值生成降低10%。击杀敌人时有10%几率平息10%危机值。",
-  "Smite":"释放一道生物闪电洪流：这是一种快速的引导攻击，会锁定并眩晕一名敌人，同时造成伤害；闪电会扩散至附近敌人。蓄力可提高扩散速度和伤害。"
-};
+const TALENT_CN_OVERRIDES={};
 const TALENT_NAME_CN_OVERRIDES={
   "Toughness Boost":"韧性提升",
   "Health Boost":"生命提升",
@@ -122,11 +119,13 @@ function descriptionPair(n){
   if(TALENT_CN_OVERRIDES[enName]){
     return {cn:TALENT_CN_OVERRIDES[enName],en:baseEn,source:"curated-base"};
   }
-  if(n.descCn&&!looksLikeEnhancedMismatch(n)){
+  const source=n.descSource||"";
+  const maintainedBase=n.descCn&&source!=="manual-reviewed"&&!looksLikeEnhancedMismatch(n);
+  if(maintainedBase){
     return {
       cn:formatChineseDescription(stripGameMarkup(n.descCn)),
       en:baseEn,
-      source:n.descSource||"base-aligned"
+      source:source||"base-aligned"
     };
   }
   if(n.advancedCn&&n.advancedEn){
@@ -134,6 +133,13 @@ function descriptionPair(n){
       cn:formatChineseDescription(stripGameMarkup(n.advancedCn)),
       en:formatEnglishDescription(stripGameMarkup(n.advancedEn)),
       source:"paired-enhanced"
+    };
+  }
+  if(n.descCn&&!looksLikeEnhancedMismatch(n)){
+    return {
+      cn:formatChineseDescription(stripGameMarkup(n.descCn)),
+      en:baseEn,
+      source:source||"base-aligned"
     };
   }
   if(n.cat==="stat"){
@@ -453,7 +459,7 @@ function loadTalentIconsForClass(base=baseClassKey()){
   const attr=CSS.escape(base);
   if(document.querySelector('script[data-tree-icon-pack="'+attr+'"]'))return;
   const s=document.createElement("script");
-  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl29";
+  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl30";
   s.async=true;
   s.dataset.treeIconPack=base;
   s.onload=()=>{
@@ -899,7 +905,7 @@ function showInfo(n,focus=false){
   if(pair.source==="paired-enhanced"){
     if(cnLabel)cnLabel.textContent="中文详细机制 / Chinese enhanced";
     if(enLabel)enLabel.textContent="英文详细机制 / English enhanced";
-    if(source)source.textContent="成对的社区维护详细机制说明；中英文来自同一说明层。 / Paired community-maintained mechanics.";
+    if(source)source.textContent="优先使用成对维护的中英机制说明；两种语言来自同一说明层。 / Preferred paired maintained bilingual mechanics from the same source layer.";
   }else if(pair.source==="fatshark-preview-zh"){
     if(cnLabel)cnLabel.textContent="中文说明（更新预览） / Chinese preview";
     if(enLabel)enLabel.textContent="英文原文 / English";
@@ -1606,7 +1612,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl29").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl30").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
