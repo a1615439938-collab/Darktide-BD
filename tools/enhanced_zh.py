@@ -25,8 +25,9 @@ PHRASES_ZH = "Colors_Keywords_Numbers/COLORS_KWords_zh_cn.lua"
 UA = {"User-Agent": "Darktide-BD bilingual planner"}
 
 _RUNTIME = re.compile(
-    r'\{[A-Za-z0-9_]+:%s\}|\{#|CKWord\(|CNumb\(|CPhrs\(|CNote\(|Dot_[A-Za-z_]+'
+    r'%s|\{[A-Za-z0-9_]+(?::%s)?\}|\{#|CKWord\(|CNumb\(|CPhrs\(|CNote\(|Dot_[A-Za-z_]+'
 )
+_NUM = re.compile(r'(?<![A-Za-z])[-+]?\d+(?:\.\d+)?%?')
 
 def get(url):
     req = urllib.request.Request(url, headers=UA)
@@ -184,6 +185,24 @@ def _header_name(label):
 def _safe(text):
     return bool(text) and not _RUNTIME.search(text)
 
+def _number_magnitudes(text):
+    out = []
+    for m in _NUM.finditer(text or ""):
+        token = m.group(0).lstrip("+-").rstrip("%")
+        try:
+            value = float(token)
+            out.append(("%g" % value))
+        except Exception:
+            out.append(token)
+    return sorted(out)
+
+def _pair_safe(en, zh):
+    if not (_safe(en) and _safe(zh)):
+        return False
+    # Signed values may be expressed by Chinese verbs such as “降低”, and % may
+    # be supplied by a localization helper on only one side. Compare magnitudes.
+    return _number_magnitudes(en) == _number_magnitudes(zh)
+
 def load_bilingual_descriptions():
     en_phrases = _load_phrases(PHRASES_EN)
     zh_phrases = _load_phrases(PHRASES_ZH)
@@ -209,14 +228,21 @@ def load_bilingual_descriptions():
             if not key:
                 continue
 
-            # Keep Chinese-only safe entries for base translation lookup.
+            safe_en = en if _safe(en) else ""
+            safe_cn = zh if _safe(zh) else ""
+            pair_valid = _pair_safe(safe_en, safe_cn)
+            # Keep a safe single-language string for diagnostics, but expose both
+            # sides together only when their mechanics numbers match.
             record = {
                 "name": name,
-                "en": en if _safe(en) else "",
-                "cn": zh if _safe(zh) else "",
+                "en": safe_en if pair_valid else "",
+                "cn": safe_cn if pair_valid else "",
+                "unpaired_en": safe_en if safe_en and not pair_valid else "",
+                "unpaired_cn": safe_cn if safe_cn and not pair_valid else "",
+                "pairValid": pair_valid,
                 "source": path,
             }
-            if not record["en"] and not record["cn"]:
+            if not any((record["en"], record["cn"], record["unpaired_en"], record["unpaired_cn"])):
                 continue
 
             score = len(record["en"]) + len(record["cn"])
