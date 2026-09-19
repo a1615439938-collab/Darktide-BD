@@ -980,6 +980,33 @@ function selfCheck(){
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
 }
 
+function runVisualPopoverTest(){
+  if(new URLSearchParams(location.search).get("visual")!=="popover")return;
+  setTimeout(()=>{
+    try{
+      const candidate=CUR.nodes.find(n=>n.en==="Mettle")
+        ||CUR.nodes.find(n=>n.descCn&&n.cat!=="root"&&n.y>CUR.viewbox[1]+200)
+        ||CUR.nodes.find(n=>n.cat!=="root");
+      if(!candidate)return;
+      hotSlug=candidate.s;
+      redraw();
+      showInfo(candidate,false);
+      setTimeout(()=>{
+        const pop=$("#nodePopover"),node=nodeEls[candidate.s];
+        if(!pop||!node)return;
+        const pr=pop.getBoundingClientRect(),nr=node.getBoundingClientRect();
+        const arrow=parseFloat(pop.style.getPropertyValue("--arrow-left")||"0");
+        const arrowX=pr.left+arrow;
+        const nodeX=nr.left+nr.width/2;
+        document.body.dataset.popoverXError=String(Math.round(Math.abs(arrowX-nodeX)));
+        document.body.dataset.popoverAbove=String(pr.bottom<=nr.top+16);
+      },80);
+    }catch(e){
+      document.body.dataset.popoverVisualError=String(e.message||e);
+    }
+  },120);
+}
+
 function runAutomatedSelfTest(){
   if(new URLSearchParams(location.search).get("selftest")!=="1")return;
   try{
@@ -1047,8 +1074,9 @@ try{
   }
   selfCheck();
   runAutomatedSelfTest();
+  runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl12").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl13").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
