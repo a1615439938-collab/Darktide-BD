@@ -439,7 +439,7 @@ FATSHARK_FUTURE_OVERRIDES = {
     },
     name_key("Retributor's Stance"): {
         'en': 'During its Duration, replenish 0.5% Toughness per second per spent Stack of Momentum, up to 10%.',
-        'cn': '效果持续期间，每消耗1层“势能”每秒恢复0.5%韧性，最高10%。'
+        'cn': '效果持续期间，每消耗一层“势能”每秒恢复0.5%韧性，最高10%。'
     },
     name_key('Chorus of Spiritual Fortitude'): {
         'en': 'Wield a holy relic that releases 5 energy pulses every 0.8 s. While channeling, Allies in Coherency are Stun Immune and Unkillable. Each pulse Replenishes 45% Toughness and also grants +15 Max Toughness, up to +75 total. After the first pulse, only Enemies within 8 m are Staggered or Suppressed by later pulses. Base Cooldown: 60 s.',
@@ -517,11 +517,11 @@ FATSHARK_FUTURE_OVERRIDES = {
     },
     name_key('Voltaic Motivator'): {
         'en': 'When using Voltaic Emitter, gain +5% Attack Speed plus an additional +5% per Charge spent for 15 s.',
-        'cn': '使用“电能发射器”时获得+5%攻击速度，并且每消耗1次充能再额外获得+5%攻击速度，持续15秒。'
+        'cn': '使用“电能发射器”时获得+5%攻击速度，并且每消耗一次充能再额外获得+5%攻击速度，持续15秒。'
     },
     name_key('Voltaic Overcharge'): {
         'en': 'Voltaic Emitter restores 25% Toughness per Charge spent, plus an additional 1% Toughness for each Enemy hit by the Electric Discharge.',
-        'cn': '“电能发射器”每消耗1次充能恢复25%韧性；电能冲击每命中1名敌人，额外恢复1%韧性。'
+        'cn': '“电能发射器”每消耗一次充能恢复25%韧性；电能冲击每命中一名敌人，额外恢复1%韧性。'
     },
     name_key('Higher Purpose'): {
         'en': 'Elite and Specialist Kills restore an additional +2.5% Capacitance.',
