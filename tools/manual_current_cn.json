@@ -1,72 +1,282 @@
 {
-  "Desperado":{"desc":"+10% Melee Critical Hit Chance & +25% Melee Finesse Bonus.","cn":"近战暴击率+10%，近战精巧加成+25%。"},
-  "Infiltrate":{"desc":"Replenish all Toughness and enter Stealth for 8 s, gaining +25% Movement Speed. Leaving Stealth Suppresses nearby Enemies. While in Stealth, and for 8 s afterwards, you have +30% Damage. Attacking makes you leave Stealth. Base Cooldown: 40 s.","cn":"恢复全部韧性并进入隐身状态8秒，移动速度+25%。离开隐身时会压制附近敌人。隐身期间及隐身结束后的8秒内，伤害+30%。发动攻击会结束隐身。基础冷却时间40秒。"},
-  "Agile Engagement":{"desc":"Killing an enemy with a Melee Attack grants +25% Ranged Damage and killing an enemy with a Ranged Attack grants +25% Melee Damage. Lasts 6 s.","cn":"近战击杀使远程伤害+25%；远程击杀使近战伤害+25%。持续6秒。"},
-  "Executioner's Stance":{"desc":"Enter Ranged Stance for 6 s. When in Ranged Stance you instantly equip your ranged weapon, deal +25% Ranged Damage, +25% Ranged Weakspot Damage, replenish 10% Toughness each second, and your Spread and Recoil are greatly reduced. Human-sized Elite Enemies and Specialist Enemies are highlighted for 6 s. Killing a highlighted Enemy refreshes the duration of its bonuses for 6 s. Base Cooldown: 30 s. This is an augmented version of Volley Fire .","cn":"进入远程姿态6秒。处于远程姿态时立即装备远程武器，远程伤害+25%、远程弱点伤害+25%，每秒恢复10%韧性，并大幅降低散布与后坐力。人类型精英和专家敌人会被高亮6秒；击杀被高亮的敌人会将这些加成的持续时间刷新为6秒。基础冷却时间30秒。该技能是“齐射”的强化版本。"},
-  "Enhanced Target Priority":{"desc":"Executioner's Stance now outlines Elite & Specialist Enemies for Allies in Coherency for 6 s.","cn":"“处决者姿态”现在会为协同范围内的盟友高亮精英和专家敌人，持续6秒。"},
-  "Voice of Command":{"desc":"Replenishes your Toughness & Staggers all Enemies within 9 m. Base Cooldown 40 s.","cn":"恢复你的韧性，并使9米范围内的所有敌人踉跄。基础冷却时间40秒。"},
-  "Longshot":{"desc":"You deal +10% Ranged Damage to targets within 12.5 m and up to +25% Ranged Damage to targets further away. Maximum bonus at 30 m.","cn":"对12.5米内的目标造成+10%远程伤害；距离越远加成越高，最高+25%远程伤害，并在30米时达到最大值。"},
-  "The Bigger they Are ...":{"desc":"Executioner's Stance now outlines all Ogryn, Captain, and Monstrosity Enemies and has its duration increased to 9 s.","cn":"“处决者姿态”现在会高亮所有欧格林、队长和巨兽敌人，并将持续时间延长至9秒。"},
-  "Chink in their Armour":{"desc":"+15% Rending when at, or over, 10 stacks of Focus.","cn":"拥有10层或更多“专注”时，获得+15%撕裂。"},
-  "Tunnel Vision":{"desc":"+4% Toughness Replenishment for each stack of Focus. In addition, weakspot kills restore 10% Stamina.","cn":"每层“专注”提供+4%韧性恢复量。此外，弱点击杀恢复10%耐力。"},
-  "Weapons Specialist":{"desc":"Gain Ranged Specialist on Melee Kills (Stacks 10 times). Gain Melee Specialist on Ranged Kill (Stacks 1 times.) When you wield your Ranged Weapon, you activate your Ranged Specialist effect to gain +2% Ranged Attack Speed, 2% Reload Speed, as well as +33% Ranged Critical Hit Chance on your next shot, per stack. Lasts 10 s. When you wield your Melee Weapon, you activate your Melee Specialist effect, to gain +15% Melee Attack Speed, and 10% Dodge Speed and Dodge Distance. Lasts 10 s.","cn":"近战击杀获得“远程专家”（最多10层）；远程击杀获得“近战专家”（最多1层）。装备远程武器时激活“远程专家”：每层提供+2%远程攻击速度、+2%装填速度，并使下一发射击获得+33%远程暴击率，持续10秒。装备近战武器时激活“近战专家”：获得+15%近战攻击速度、+10%闪避速度和+10%闪避距离，持续10秒。"},
-  "Focus Target!":{"desc":"Gain Focus Target every 1.5 s (Stacks 4 times). Tagging an Enemy applies the Focus Target stacks to them, causing them to take +5% additional Damage for each stack, and resets your Focus Target stacks to 1.","cn":"每1.5秒获得1层“锁定目标”，最多4层。标记敌人时会将当前层数施加到该敌人身上，使其每层额外受到5%伤害，并将你的“锁定目标”层数重置为1层。"},
-  "Withering Fire":{"desc":"+50% Ranged Cleave.","cn":"+50%远程顺劈。"},
-  "Enduring Faith":{"desc":"+40% Toughness Damage Reduction on Critical Hit for 4 s.","cn":"暴击后获得+40%韧性伤害减免，持续4秒。"},
-  "Beacon of Purity":{"desc":"Heal 1.5 Corruption from the current Wound for you and Allies in Coherency every 1 s.","cn":"每1秒为你和协同范围内的盟友治疗当前伤口中的1.5点腐化。"},
-  "Unfaltering":{"desc":"Become Uninterruptible while charging Melee Attacks. Remove +100% of Heavy Melee Attack Movement Speed penalties.","cn":"蓄力近战攻击时不会被打断，并完全移除重型近战攻击蓄力时的移动速度惩罚。"},
-  "Quietude":{"desc":"Replenish 4% Toughness for each 10% of Peril Quelled or Generated.","cn":"每平息或生成10%危机值，恢复4%韧性。"},
-  "Kinetic Flayer":{"desc":"All Attacks against Specialists, Elites and Monstrosities, have 100% chance on Hit to Brain Rupture the target. This cannot occur while at critical Peril, and has a Cooldown of 12 s.","cn":"对专家、精英和巨兽敌人的所有攻击命中时，都有100%几率对目标触发“颅脑崩裂”。处于临界危机值时无法触发，冷却时间12秒。"},
-  "Kinetic Presence":{"desc":"+10% Damage against Elite Enemies for you and Allies in Coherency.","cn":"你和协同范围内的盟友对精英敌人的伤害+10%。"},
-  "Puppet Master":{"desc":"75% Radius for your Coherency Aura.","cn":"你的协同光环半径+75%。"},
-  "Warp Siphon":{"desc":"Killing an Elite or Specialist Enemy gains you a Warp Charge for 25 s, stacking 4 time(s). Each Stack increases Base Damage by +4% . Your next Combat Ability spends all available Warp Charges to reduce the Cooldown of that Combat Ability by 7.5% per Warp Charge.","cn":"击杀精英或专家敌人获得1层“亚空间充能”，持续25秒，最多4层。每层使基础伤害+4%。下一次使用战斗技能时会消耗全部亚空间充能，每层使该战斗技能的冷却时间缩短7.5%。"},
-  "Empowered Psionics":{"desc":"Kills have a 10% chance to Empower your next Blitz. Empowered Brain Rupture : 100% Peril Cost Reduction 50% Cast time Reduction +50% Damage Empowered Smite : +200% Damage 50% faster spread between enemies Empowered Assail : 100% Peril Cost Reduction. Base Damage increase from 125 to 150 . Does not consume any charges.","cn":"击杀敌人有10%几率强化你的下一次闪击。“强化颅脑崩裂”：危机值消耗降低100%，施放时间缩短50%，伤害+50%。“强化惩戒”：伤害+200%，在敌人之间的扩散速度提高50%。“强化灵能攻击”：危机值消耗降低100%，基础伤害由125提高至150，且不消耗充能次数。"},
-  "Inner Tranquility":{"desc":"-8% Peril Generation Reduction for each Warp Charge.","cn":"每层“亚空间充能”使危机值生成降低8%。"},
-  "Bio-Lodestone":{"desc":"Increases the chance to gain Empowered Psionics on Kill from 10% to 15% .","cn":"击杀时获得“灵能强化”的几率由10%提高至15%。"},
-  "Psychic Leeching":{"desc":"Using your Blitz while Empowered Psionics is active replenishes 20% Toughness to you and Allies in Coherency.","cn":"“灵能强化”激活期间使用闪击时，为你和协同范围内的盟友恢复20%韧性。"},
-  "Purloin Providence":{"desc":"Killing Enemies Marked by Disrupt Destiny have a 100% chance to instantly Quell 5% of your Peril.","cn":"击杀被“扰动命运”标记的敌人时，有100%几率立即平息5%危机值。"},
-  "Lynchpin":{"desc":"+100% Coherency Toughness Regeneration.","cn":"协同韧性恢复速度+100%。"},
-  "Furious":{"desc":"For each Enemy you hit during the same Melee Attack, gain +3% Damage on your next Melee Attack.","cn":"同一次近战攻击每多命中一名敌人，你的下一次近战攻击伤害+3%。"},
-  "Stay Close!":{"desc":"+20% Toughness Replenishment for you and Allies in Coherency.","cn":"你和协同范围内的盟友韧性恢复量+20%。"},
-  "Crunch!":{"desc":"Up to +30% Damage bonus & +30% Impact bonus to your charged Melee Attack, based on charge time.","cn":"根据蓄力时间，你的蓄力近战攻击最多获得+30%伤害和+30%冲击。"},
-  "Hard Knocks":{"desc":"Enemies staggered by your Melee Attacks take +15% more Melee Damage for 5 s.","cn":"被你的近战攻击打至踉跄的敌人，在5秒内额外受到15%近战伤害。"},
-  "Pacemaker":{"desc":"Hitting 3 or more Enemies with a single Attack grants +15% Reload Speed on your next Reload.","cn":"单次攻击命中3名或更多敌人后，你的下一次装填速度+15%。"},
-  "Feel No Pain":{"desc":"You are blessed with 10 Stacks of Feel No Pain. Each Stack grants +3% Toughness Replenishment and +3% Damage Reduction. Taking Damage removes one stack. Stacks are restored every 2 s.","cn":"你拥有10层“麻木”。每层提供+3%韧性恢复量和+3%伤害减免。受到伤害会移除1层；每2秒恢复1层。"},
-  "Delight in Destruction":{"desc":"+5% Damage Resistance per Bleeding Enemy in Melee range. Stacks 6 times.","cn":"近战范围内每有一名正在流血的敌人，获得+5%伤害抗性，最多叠加6层。"},
-  "Just Getting Started!":{"desc":"While Heavy Hitter is at 8 Stacks, gain +10% Attack Speed.","cn":"“重拳出击”达到8层时，攻击速度+10%。"},
-  "Too Stubborn to Die":{"desc":"+100% Toughness Replenishment while below 50% Health.","cn":"生命值低于50%时，韧性恢复量+100%。"},
-  "No Stopping Me!":{"desc":"Become Uninterruptible while charging Heavy Melee Attacks. Remove 100% of Heavy Melee Attack Movement Speed penalties.","cn":"蓄力重型近战攻击时不会被打断，并完全移除重型近战攻击的移动速度惩罚。"},
-  "Massacre":{"desc":"Killing an Enemy grants +2% Critical Chance for 12 s. Stacks 8 times.","cn":"击杀敌人后暴击率+2%，持续12秒，最多叠加8层。"},
-  "Payback Time":{"desc":"+15% Damage for 5 s after a Successful Dodge, or being Hit by an Attack.","cn":"成功闪避或被攻击命中后，伤害+15%，持续5秒。"},
-  "Unstoppable Momentum":{"desc":"+20% Movement Speed for 3 s on Ranged Kill.","cn":"远程击杀后移动速度+20%，持续3秒。"},
-  "Point-Blank Barrage":{"desc":"Swaps to and reloads your Ranged Weapon. You have +25% Rate of Fire, +65% Reload Speed, 50% Reduced Braced Movement Speed penalties, and gain +15% Close Range Damage for the next 12 s. 50% of Ammo consumed while active is returned to your Reserve once finished. Base Cooldown: 60 s","cn":"切换至远程武器并完成装填。接下来12秒内，射速+25%、装填速度+65%，架枪时的移动速度惩罚降低50%，近距离伤害+15%。效果结束时，激活期间消耗弹药的50%会返还至弹药储备。基础冷却时间60秒。"},
-  "Bullet Bravado":{"desc":"While Point-Blank Barrage is active, Replenish +2.5% Toughness for every shot fired and +15% Toughness on each reload.","cn":"“贴身火力”激活期间，每射击一发恢复2.5%韧性，每次装填恢复15%韧性。"},
-  "No Pain!":{"desc":"Loyal Protector and its Repeats, Replenish 10% Toughness and an additional 0.5% each 1s per enemy affected, up to 10% , for 3 s.","cn":"“忠诚护卫”及其重复触发每次恢复10%韧性；每影响一名敌人，之后3秒内每1秒额外恢复0.5%韧性，额外恢复最高10%。"},
-  "Pumped Up":{"desc":"+12.5% Damage Resistance while above 75% Stamina.","cn":"耐力高于75%时，伤害抗性+12.5%。"},
-  "Ruthless Efficiency":{"desc":"You and Allies in Coherency gain additional +12.5% Reload Speed.","cn":"你和协同范围内的盟友额外获得+12.5%装填速度。"},
-  "Remote Detonation":{"desc":"Cause an Explosion at your Cyber-Mastiff's Location. Staggering and Electrocuting nearby Enemies. 2 Charges. 50 s Cooldown.","cn":"在你的赛博獒所在位置引发爆炸，使附近敌人踉跄并遭受电击。拥有2次充能，冷却时间50秒。"},
-  "Up Close":{"desc":"Replenish 5% Toughness on Close Kill.","cn":"近距离击杀恢复5%韧性。"},
-  "Force of Will":{"desc":"Replenish 7.5% Toughness on Staggering Melee Attack.","cn":"使敌人踉跄的近战攻击会恢复7.5%韧性。"},
-  "Walk It Off":{"desc":"Spending 1 Stamina replenishes 10% Toughness over 3 s.","cn":"消耗1点耐力后，在3秒内恢复10%韧性。"},
-  "Arbites Vigilant":{"desc":"On Combat Ability, Gain +2.5% Strength for each stack. Lasts 12 s. Removes all Stacks.","cn":"使用战斗技能时，每层提供+2.5%强度，持续12秒，并移除全部层数。"},
-  "Razor-Jaw Augment":{"desc":"Enemies knocked away by your Cyber Mastiff's Pounce have 6 Stack(s) of Bleed applied to them.","cn":"被你的赛博獒扑击撞飞的敌人会被施加6层流血。"},
-  "Justified Measures":{"desc":"+2% Damage on Successful Attack. 5 Max Stacks. Lasts 5 s.","cn":"成功攻击后伤害+2%，最多叠加5层，持续5秒。"},
-  "Purgator Servo-Skull":{"desc":"You have an additional Servo-Skull equipped with a Flamer. Target an Area to deploy it. Use your Primary Action to switch between Dispersed or Focused Fire Mode. If Purgator Servo-Skull and Medicae Servo-Skull are both selected, you gain +2 Charges.","cn":"额外装备一颗带火焰喷射器的涤罪伺服头骨。指定区域进行部署；使用主要操作可在分散火力与集中火力模式之间切换。若同时选择“涤罪伺服头骨”和“医疗伺服头骨”，充能次数+2。"},
-  "Sustained Assault Doctrine":{"desc":"+3% Damage on successful Melee Attack for 8 s. Stacks 5 times.","cn":"成功的近战攻击使伤害+3%，持续8秒，最多叠加5层。"},
-  "Vulture's Dodge":{"desc":"Ranged Critical Hits makes you count as Dodging against all Attacks for 1 s.","cn":"远程暴击后1秒内，你会被视为正在闪避所有攻击。"},
-  "Adrenaline Smiter":{"desc":"Killing Blows now grants +4 additional stacks of Adrenaline . Elite Killing Blows grants +10 additional stacks. Non-Killing Blows grants none.","cn":"造成击杀的攻击现在额外获得4层“肾上腺素”；击杀精英敌人时额外获得10层。未造成击杀的攻击不再获得层数。"},
-  "Practiced Deployment":{"desc":"Once a Stimm becomes available to use (collected or otherwise), Stimm Supply instantly becomes ready for deployment.","cn":"一旦有兴奋剂可供使用（无论通过拾取或其他方式获得），“兴奋剂补给”会立即准备好部署。"},
-  "Toxic Renewal":{"desc":"Replenish 1% Toughness every 1 s for each Chem Toxin infected Enemy within 15 m, up to a maximum of 10 Enemies.","cn":"15米内每有一名感染化学毒素的敌人，每1秒恢复1%韧性；最多计算10名敌人。"},
-  "Fervor":{"desc":"+10% Movement Speed. +10% Dodge Distance. +10% Dodge Speed. +10% Dodge Recovery Speed.","cn":"移动速度+10%，闪避距离+10%，闪避速度+10%，闪避恢复速度+10%。"},
-  "Hypex":{"desc":"While active, Melee Kills grant +75% Ability Cooldown Regeneration for 1 s.","cn":"生效期间，近战击杀使技能冷却恢复速度+75%，持续1秒。"},
-  "Klay":{"desc":"While active, Ranged Kills grant +75% Ability Cooldown Regeneration for 1 s.","cn":"生效期间，远程击杀使技能冷却恢复速度+75%，持续1秒。"},
-  "Holy Cause":{"desc":"Channeling 5 pulses grants +40% Toughness Damage Reduction to you and Allies in Coherency. Lasts 10 s.","cn":"引导5次脉冲后，你和协同范围内的盟友获得+40%韧性伤害减免，持续10秒。"},
-  "Ecclesiarch's Call":{"desc":"Channeling 5 pulses grants +30% Damage to you and Allies in Coherency. Lasts 10 s.","cn":"引导5次脉冲后，你和协同范围内的盟友获得+30%伤害，持续10秒。"},
-  "Surety of Arms":{"desc":"30% Reload Speed while below 75% Peril. On Reload generate up to 15% Peril based on the Percentage of the Clip Restored.","cn":"危机值低于75%时，装填速度+30%。装填时，根据恢复的弹匣比例最多生成15%危机值。"},
-  "Soften Them Up":{"desc":"Enemies damaged by your Melee Attacks take +10% more Damage for 5 s.","cn":"被你的近战攻击命中的敌人额外受到10%伤害，持续5秒。"},
-  "Towering Presence":{"desc":"+75% Coherency radius.","cn":"协同范围半径+75%。"},
-  "Maximum Firepower":{"desc":"+100% Ability Cooldown Reduction for 4 s when Lucky Bullet triggers.","cn":"触发“幸运子弹”时，技能冷却缩减+100%，持续4秒。"},
-  "Indomitable":{"desc":"Charge forward with great force, knocking back Enemies and Staggering them. Gain +25% Attack Speed and +25% Movement Speed for 5 s. Charge is stopped on collision with Monstrosities. Base Cooldown: 30 s This is an augmented version of Bull Rush with an increased charge distance of 100% .","cn":"向前强力冲锋，击退并使敌人踉跄。获得+25%攻击速度和+25%移动速度，持续5秒。撞上巨兽时停止冲锋。基础冷却时间30秒。该技能是“蛮牛冲撞”的强化版本，冲锋距离提高100%。"},
-  "Nuncio-Aquila":{"desc":"Deploy a Nuncio-Aquila in the target direction. Allies within 7.5 m Replenish 7.5% Toughness per second, gain +30% Suppression Dealt, +30% Impact, -25% Recoil as well as are Immune to Stun, Slowdown, and Suppression. Enemies within 7.5 m have +15% Damage Taken. Lasts 20 s. 60 s Cooldown. This is an augmented version of Nuncio-Aquila .","cn":"向目标方向部署“天鹰使节”。7.5米内的盟友每秒恢复7.5%韧性，获得+30%压制效果、+30%冲击、-25%后坐力，并免疫眩晕、减速与压制。7.5米内的敌人受到的伤害+15%。持续20秒，冷却60秒。该技能是“天鹰使节”的强化版本。"},
-  "Target-Neutralization Feedback":{"desc":"Weakspot kills grant Stun and Suppression Immunity for 4 s.","cn":"弱点击杀会使你免疫眩晕与压制，持续4秒。"}
+  "Desperado": {
+    "desc": "+10% Melee Critical Hit Chance & +25% Melee Finesse Bonus.",
+    "cn": "近战暴击率+10%，近战精巧加成+25%。"
+  },
+  "Infiltrate": {
+    "desc": "Replenish all Toughness and enter Stealth for 8 s, gaining +25% Movement Speed. Leaving Stealth Suppresses nearby Enemies. While in Stealth, and for 8 s afterwards, you have +30% Damage. Attacking makes you leave Stealth. Base Cooldown: 40 s.",
+    "cn": "恢复全部韧性并进入隐身状态8秒，移动速度+25%。离开隐身时会压制附近敌人。隐身期间及隐身结束后的8秒内，伤害+30%。发动攻击会结束隐身。基础冷却时间40秒。"
+  },
+  "Agile Engagement": {
+    "desc": "Killing an enemy with a Melee Attack grants +25% Ranged Damage and killing an enemy with a Ranged Attack grants +25% Melee Damage. Lasts 6 s.",
+    "cn": "近战击杀使远程伤害+25%；远程击杀使近战伤害+25%。持续6秒。"
+  },
+  "Executioner's Stance": {
+    "desc": "Enter Ranged Stance for 6 s. When in Ranged Stance you instantly equip your ranged weapon, deal +25% Ranged Damage, +25% Ranged Weakspot Damage, replenish 10% Toughness each second, and your Spread and Recoil are greatly reduced. Human-sized Elite Enemies and Specialist Enemies are highlighted for 6 s. Killing a highlighted Enemy refreshes the duration of its bonuses for 6 s. Base Cooldown: 30 s. This is an augmented version of Volley Fire .",
+    "cn": "进入远程姿态6秒。处于远程姿态时立即装备远程武器，远程伤害+25%、远程弱点伤害+25%，每秒恢复10%韧性，并大幅降低散布与后坐力。人类型精英和专家敌人会被高亮6秒；击杀被高亮的敌人会将这些加成的持续时间刷新为6秒。基础冷却时间30秒。该技能是“齐射”的强化版本。"
+  },
+  "Enhanced Target Priority": {
+    "desc": "Executioner's Stance now outlines Elite & Specialist Enemies for Allies in Coherency for 6 s.",
+    "cn": "“处决者姿态”现在会为协同范围内的盟友高亮精英和专家敌人，持续6秒。"
+  },
+  "Voice of Command": {
+    "desc": "Replenishes your Toughness & Staggers all Enemies within 9 m. Base Cooldown 40 s.",
+    "cn": "恢复你的韧性，并使9米范围内的所有敌人踉跄。基础冷却时间40秒。"
+  },
+  "Longshot": {
+    "desc": "You deal +10% Ranged Damage to targets within 12.5 m and up to +25% Ranged Damage to targets further away. Maximum bonus at 30 m.",
+    "cn": "对12.5米内的目标造成+10%远程伤害；距离越远加成越高，最高+25%远程伤害，并在30米时达到最大值。"
+  },
+  "The Bigger they Are ...": {
+    "desc": "Executioner's Stance now outlines all Ogryn, Captain, and Monstrosity Enemies and has its duration increased to 9 s.",
+    "cn": "“处决者姿态”现在会高亮所有欧格林、队长和巨兽敌人，并将持续时间延长至9秒。"
+  },
+  "Chink in their Armour": {
+    "desc": "+15% Rending when at, or over, 10 stacks of Focus.",
+    "cn": "拥有10层或更多“专注”时，获得+15%撕裂。"
+  },
+  "Tunnel Vision": {
+    "desc": "+4% Toughness Replenishment for each stack of Focus. In addition, weakspot kills restore 10% Stamina.",
+    "cn": "每层“专注”提供+4%韧性恢复量。此外，弱点击杀恢复10%耐力。"
+  },
+  "Weapons Specialist": {
+    "desc": "Gain Ranged Specialist on Melee Kills (Stacks 10 times). Gain Melee Specialist on Ranged Kill (Stacks 1 times.) When you wield your Ranged Weapon, you activate your Ranged Specialist effect to gain +2% Ranged Attack Speed, 2% Reload Speed, as well as +33% Ranged Critical Hit Chance on your next shot, per stack. Lasts 10 s. When you wield your Melee Weapon, you activate your Melee Specialist effect, to gain +15% Melee Attack Speed, and 10% Dodge Speed and Dodge Distance. Lasts 10 s.",
+    "cn": "近战击杀获得“远程专家”（最多10层）；远程击杀获得“近战专家”（最多1层）。装备远程武器时激活“远程专家”：每层提供+2%远程攻击速度、+2%装填速度，并使下一发射击获得+33%远程暴击率，持续10秒。装备近战武器时激活“近战专家”：获得+15%近战攻击速度，闪避速度和闪避距离均+10%，持续10秒。"
+  },
+  "Focus Target!": {
+    "desc": "Gain Focus Target every 1.5 s (Stacks 4 times). Tagging an Enemy applies the Focus Target stacks to them, causing them to take +5% additional Damage for each stack, and resets your Focus Target stacks to 1.",
+    "cn": "每1.5秒获得一层“锁定目标”，最多4层。标记敌人时会将当前层数施加到该敌人身上，使其每层额外受到5%伤害，并将你的“锁定目标”层数重置为1层。"
+  },
+  "Withering Fire": {
+    "desc": "+50% Ranged Cleave.",
+    "cn": "+50%远程顺劈。"
+  },
+  "Enduring Faith": {
+    "desc": "+40% Toughness Damage Reduction on Critical Hit for 4 s.",
+    "cn": "暴击后获得+40%韧性伤害减免，持续4秒。"
+  },
+  "Beacon of Purity": {
+    "desc": "Heal 1.5 Corruption from the current Wound for you and Allies in Coherency every 1 s.",
+    "cn": "每1秒为你和协同范围内的盟友治疗当前伤口中的1.5点腐化。"
+  },
+  "Unfaltering": {
+    "desc": "Become Uninterruptible while charging Melee Attacks. Remove +100% of Heavy Melee Attack Movement Speed penalties.",
+    "cn": "蓄力近战攻击时不会被打断，并移除100%的重型近战攻击蓄力移动速度惩罚。"
+  },
+  "Quietude": {
+    "desc": "Replenish 4% Toughness for each 10% of Peril Quelled or Generated.",
+    "cn": "每平息或生成10%危机值，恢复4%韧性。"
+  },
+  "Kinetic Flayer": {
+    "desc": "All Attacks against Specialists, Elites and Monstrosities, have 100% chance on Hit to Brain Rupture the target. This cannot occur while at critical Peril, and has a Cooldown of 12 s.",
+    "cn": "对专家、精英和巨兽敌人的所有攻击命中时，都有100%几率对目标触发“颅脑崩裂”。处于临界危机值时无法触发，冷却时间12秒。"
+  },
+  "Kinetic Presence": {
+    "desc": "+10% Damage against Elite Enemies for you and Allies in Coherency.",
+    "cn": "你和协同范围内的盟友对精英敌人的伤害+10%。"
+  },
+  "Puppet Master": {
+    "desc": "75% Radius for your Coherency Aura.",
+    "cn": "你的协同光环半径+75%。"
+  },
+  "Warp Siphon": {
+    "desc": "Killing an Elite or Specialist Enemy gains you a Warp Charge for 25 s, stacking 4 time(s). Each Stack increases Base Damage by +4% . Your next Combat Ability spends all available Warp Charges to reduce the Cooldown of that Combat Ability by 7.5% per Warp Charge.",
+    "cn": "击杀精英或专家敌人获得一层“亚空间充能”，持续25秒，最多4层。每层使基础伤害+4%。下一次使用战斗技能时会消耗全部亚空间充能，每层使该战斗技能的冷却时间缩短7.5%。"
+  },
+  "Empowered Psionics": {
+    "desc": "Kills have a 10% chance to Empower your next Blitz. Empowered Brain Rupture : 100% Peril Cost Reduction 50% Cast time Reduction +50% Damage Empowered Smite : +200% Damage 50% faster spread between enemies Empowered Assail : 100% Peril Cost Reduction. Base Damage increase from 125 to 150 . Does not consume any charges.",
+    "cn": "击杀敌人有10%几率强化你的下一次闪击。“强化颅脑崩裂”：危机值消耗降低100%，施放时间缩短50%，伤害+50%。“强化惩戒”：伤害+200%，在敌人之间的扩散速度提高50%。“强化灵能攻击”：危机值消耗降低100%，基础伤害由125提高至150，且不消耗充能次数。"
+  },
+  "Inner Tranquility": {
+    "desc": "-8% Peril Generation Reduction for each Warp Charge.",
+    "cn": "每层“亚空间充能”使危机值生成降低8%。"
+  },
+  "Bio-Lodestone": {
+    "desc": "Increases the chance to gain Empowered Psionics on Kill from 10% to 15% .",
+    "cn": "击杀时获得“灵能强化”的几率由10%提高至15%。"
+  },
+  "Psychic Leeching": {
+    "desc": "Using your Blitz while Empowered Psionics is active replenishes 20% Toughness to you and Allies in Coherency.",
+    "cn": "“灵能强化”激活期间使用闪击时，为你和协同范围内的盟友恢复20%韧性。"
+  },
+  "Purloin Providence": {
+    "desc": "Killing Enemies Marked by Disrupt Destiny have a 100% chance to instantly Quell 5% of your Peril.",
+    "cn": "击杀被“扰动命运”标记的敌人时，有100%几率立即平息5%危机值。"
+  },
+  "Lynchpin": {
+    "desc": "+100% Coherency Toughness Regeneration.",
+    "cn": "协同韧性恢复速度+100%。"
+  },
+  "Furious": {
+    "desc": "For each Enemy you hit during the same Melee Attack, gain +3% Damage on your next Melee Attack.",
+    "cn": "同一次近战攻击每多命中一名敌人，你的下一次近战攻击伤害+3%。"
+  },
+  "Stay Close!": {
+    "desc": "+20% Toughness Replenishment for you and Allies in Coherency.",
+    "cn": "你和协同范围内的盟友韧性恢复量+20%。"
+  },
+  "Crunch!": {
+    "desc": "Up to +30% Damage bonus & +30% Impact bonus to your charged Melee Attack, based on charge time.",
+    "cn": "根据蓄力时间，你的蓄力近战攻击最多获得+30%伤害和+30%冲击。"
+  },
+  "Hard Knocks": {
+    "desc": "Enemies staggered by your Melee Attacks take +15% more Melee Damage for 5 s.",
+    "cn": "被你的近战攻击打至踉跄的敌人，在5秒内额外受到15%近战伤害。"
+  },
+  "Pacemaker": {
+    "desc": "Hitting 3 or more Enemies with a single Attack grants +15% Reload Speed on your next Reload.",
+    "cn": "单次攻击命中3名或更多敌人后，你的下一次装填速度+15%。"
+  },
+  "Feel No Pain": {
+    "desc": "You are blessed with 10 Stacks of Feel No Pain. Each Stack grants +3% Toughness Replenishment and +3% Damage Reduction. Taking Damage removes one stack. Stacks are restored every 2 s.",
+    "cn": "你拥有10层“麻木”。每层提供+3%韧性恢复量和+3%伤害减免。受到伤害会移除一层；每2秒恢复一层。"
+  },
+  "Delight in Destruction": {
+    "desc": "+5% Damage Resistance per Bleeding Enemy in Melee range. Stacks 6 times.",
+    "cn": "近战范围内每有一名正在流血的敌人，获得+5%伤害抗性，最多叠加6层。"
+  },
+  "Just Getting Started!": {
+    "desc": "While Heavy Hitter is at 8 Stacks, gain +10% Attack Speed.",
+    "cn": "“重拳出击”达到8层时，攻击速度+10%。"
+  },
+  "Too Stubborn to Die": {
+    "desc": "+100% Toughness Replenishment while below 50% Health.",
+    "cn": "生命值低于50%时，韧性恢复量+100%。"
+  },
+  "No Stopping Me!": {
+    "desc": "Become Uninterruptible while charging Heavy Melee Attacks. Remove 100% of Heavy Melee Attack Movement Speed penalties.",
+    "cn": "蓄力重型近战攻击时不会被打断，并移除100%的重型近战攻击移动速度惩罚。"
+  },
+  "Massacre": {
+    "desc": "Killing an Enemy grants +2% Critical Chance for 12 s. Stacks 8 times.",
+    "cn": "击杀敌人后暴击率+2%，持续12秒，最多叠加8层。"
+  },
+  "Payback Time": {
+    "desc": "+15% Damage for 5 s after a Successful Dodge, or being Hit by an Attack.",
+    "cn": "成功闪避或被攻击命中后，伤害+15%，持续5秒。"
+  },
+  "Unstoppable Momentum": {
+    "desc": "+20% Movement Speed for 3 s on Ranged Kill.",
+    "cn": "远程击杀后移动速度+20%，持续3秒。"
+  },
+  "Point-Blank Barrage": {
+    "desc": "Swaps to and reloads your Ranged Weapon. You have +25% Rate of Fire, +65% Reload Speed, 50% Reduced Braced Movement Speed penalties, and gain +15% Close Range Damage for the next 12 s. 50% of Ammo consumed while active is returned to your Reserve once finished. Base Cooldown: 60 s",
+    "cn": "切换至远程武器并完成装填。接下来12秒内，射速+25%、装填速度+65%，架枪时的移动速度惩罚降低50%，近距离伤害+15%。效果结束时，激活期间消耗弹药的50%会返还至弹药储备。基础冷却时间60秒。"
+  },
+  "Bullet Bravado": {
+    "desc": "While Point-Blank Barrage is active, Replenish +2.5% Toughness for every shot fired and +15% Toughness on each reload.",
+    "cn": "“贴身火力”激活期间，每射击一发恢复2.5%韧性，每次装填恢复15%韧性。"
+  },
+  "No Pain!": {
+    "desc": "Loyal Protector and its Repeats, Replenish 10% Toughness and an additional 0.5% each 1s per enemy affected, up to 10% , for 3 s.",
+    "cn": "“忠诚护卫”及其重复触发每次恢复10%韧性；每影响一名敌人，之后3秒内每1秒额外恢复0.5%韧性，额外恢复最高10%。"
+  },
+  "Pumped Up": {
+    "desc": "+12.5% Damage Resistance while above 75% Stamina.",
+    "cn": "耐力高于75%时，伤害抗性+12.5%。"
+  },
+  "Ruthless Efficiency": {
+    "desc": "You and Allies in Coherency gain additional +12.5% Reload Speed.",
+    "cn": "你和协同范围内的盟友额外获得+12.5%装填速度。"
+  },
+  "Remote Detonation": {
+    "desc": "Cause an Explosion at your Cyber-Mastiff's Location. Staggering and Electrocuting nearby Enemies. 2 Charges. 50 s Cooldown.",
+    "cn": "在你的赛博獒所在位置引发爆炸，使附近敌人踉跄并遭受电击。拥有2次充能，冷却时间50秒。"
+  },
+  "Up Close": {
+    "desc": "Replenish 5% Toughness on Close Kill.",
+    "cn": "近距离击杀恢复5%韧性。"
+  },
+  "Force of Will": {
+    "desc": "Replenish 7.5% Toughness on Staggering Melee Attack.",
+    "cn": "使敌人踉跄的近战攻击会恢复7.5%韧性。"
+  },
+  "Walk It Off": {
+    "desc": "Spending 1 Stamina replenishes 10% Toughness over 3 s.",
+    "cn": "消耗1点耐力后，在3秒内恢复10%韧性。"
+  },
+  "Arbites Vigilant": {
+    "desc": "On Combat Ability, Gain +2.5% Strength for each stack. Lasts 12 s. Removes all Stacks.",
+    "cn": "使用战斗技能时，每层提供+2.5%强度，持续12秒，并移除全部层数。"
+  },
+  "Razor-Jaw Augment": {
+    "desc": "Enemies knocked away by your Cyber Mastiff's Pounce have 6 Stack(s) of Bleed applied to them.",
+    "cn": "被你的赛博獒扑击撞飞的敌人会被施加6层流血。"
+  },
+  "Justified Measures": {
+    "desc": "+2% Damage on Successful Attack. 5 Max Stacks. Lasts 5 s.",
+    "cn": "成功攻击后伤害+2%，最多叠加5层，持续5秒。"
+  },
+  "Purgator Servo-Skull": {
+    "desc": "You have an additional Servo-Skull equipped with a Flamer. Target an Area to deploy it. Use your Primary Action to switch between Dispersed or Focused Fire Mode. If Purgator Servo-Skull and Medicae Servo-Skull are both selected, you gain +2 Charges.",
+    "cn": "额外装备一颗带火焰喷射器的涤罪伺服头骨。指定区域进行部署；使用主要操作可在分散火力与集中火力模式之间切换。若同时选择“涤罪伺服头骨”和“医疗伺服头骨”，充能次数+2。"
+  },
+  "Sustained Assault Doctrine": {
+    "desc": "+3% Damage on successful Melee Attack for 8 s. Stacks 5 times.",
+    "cn": "成功的近战攻击使伤害+3%，持续8秒，最多叠加5层。"
+  },
+  "Vulture's Dodge": {
+    "desc": "Ranged Critical Hits makes you count as Dodging against all Attacks for 1 s.",
+    "cn": "远程暴击后1秒内，你会被视为正在闪避所有攻击。"
+  },
+  "Adrenaline Smiter": {
+    "desc": "Killing Blows now grants +4 additional stacks of Adrenaline . Elite Killing Blows grants +10 additional stacks. Non-Killing Blows grants none.",
+    "cn": "造成击杀的攻击现在额外获得4层“肾上腺素”；击杀精英敌人时额外获得10层。未造成击杀的攻击不再获得层数。"
+  },
+  "Practiced Deployment": {
+    "desc": "Once a Stimm becomes available to use (collected or otherwise), Stimm Supply instantly becomes ready for deployment.",
+    "cn": "一旦有兴奋剂可供使用（无论通过拾取或其他方式获得），“兴奋剂补给”会立即准备好部署。"
+  },
+  "Toxic Renewal": {
+    "desc": "Replenish 1% Toughness every 1 s for each Chem Toxin infected Enemy within 15 m, up to a maximum of 10 Enemies.",
+    "cn": "15米内每有一名感染化学毒素的敌人，每1秒恢复1%韧性；最多计算10名敌人。"
+  },
+  "Fervor": {
+    "desc": "+10% Movement Speed. +10% Dodge Distance. +10% Dodge Speed. +10% Dodge Recovery Speed.",
+    "cn": "移动速度+10%，闪避距离+10%，闪避速度+10%，闪避恢复速度+10%。"
+  },
+  "Hypex": {
+    "desc": "While active, Melee Kills grant +75% Ability Cooldown Regeneration for 1 s.",
+    "cn": "生效期间，近战击杀使技能冷却恢复速度+75%，持续1秒。"
+  },
+  "Klay": {
+    "desc": "While active, Ranged Kills grant +75% Ability Cooldown Regeneration for 1 s.",
+    "cn": "生效期间，远程击杀使技能冷却恢复速度+75%，持续1秒。"
+  },
+  "Holy Cause": {
+    "desc": "Channeling 5 pulses grants +40% Toughness Damage Reduction to you and Allies in Coherency. Lasts 10 s.",
+    "cn": "引导5次脉冲后，你和协同范围内的盟友获得+40%韧性伤害减免，持续10秒。"
+  },
+  "Ecclesiarch's Call": {
+    "desc": "Channeling 5 pulses grants +30% Damage to you and Allies in Coherency. Lasts 10 s.",
+    "cn": "引导5次脉冲后，你和协同范围内的盟友获得+30%伤害，持续10秒。"
+  },
+  "Surety of Arms": {
+    "desc": "30% Reload Speed while below 75% Peril. On Reload generate up to 15% Peril based on the Percentage of the Clip Restored.",
+    "cn": "危机值低于75%时，装填速度+30%。装填时，根据恢复的弹匣比例最多生成15%危机值。"
+  },
+  "Soften Them Up": {
+    "desc": "Enemies damaged by your Melee Attacks take +10% more Damage for 5 s.",
+    "cn": "被你的近战攻击命中的敌人额外受到10%伤害，持续5秒。"
+  },
+  "Towering Presence": {
+    "desc": "+75% Coherency radius.",
+    "cn": "协同范围半径+75%。"
+  },
+  "Maximum Firepower": {
+    "desc": "+100% Ability Cooldown Reduction for 4 s when Lucky Bullet triggers.",
+    "cn": "触发“幸运子弹”时，技能冷却缩减+100%，持续4秒。"
+  },
+  "Indomitable": {
+    "desc": "Charge forward with great force, knocking back Enemies and Staggering them. Gain +25% Attack Speed and +25% Movement Speed for 5 s. Charge is stopped on collision with Monstrosities. Base Cooldown: 30 s This is an augmented version of Bull Rush with an increased charge distance of 100% .",
+    "cn": "向前强力冲锋，击退并使敌人踉跄。获得+25%攻击速度和+25%移动速度，持续5秒。撞上巨兽时停止冲锋。基础冷却时间30秒。该技能是“蛮牛冲撞”的强化版本，冲锋距离提高100%。"
+  },
+  "Nuncio-Aquila": {
+    "desc": "Deploy a Nuncio-Aquila in the target direction. Allies within 7.5 m Replenish 7.5% Toughness per second, gain +30% Suppression Dealt, +30% Impact, -25% Recoil as well as are Immune to Stun, Slowdown, and Suppression. Enemies within 7.5 m have +15% Damage Taken. Lasts 20 s. 60 s Cooldown. This is an augmented version of Nuncio-Aquila .",
+    "cn": "向目标方向部署“天鹰使节”。7.5米内的盟友每秒恢复7.5%韧性，获得+30%压制效果、+30%冲击、-25%后坐力，并免疫眩晕、减速与压制。7.5米内的敌人受到的伤害+15%。持续20秒，冷却60秒。该技能是“天鹰使节”的强化版本。"
+  },
+  "Target-Neutralization Feedback": {
+    "desc": "Weakspot kills grant Stun and Suppression Immunity for 4 s.",
+    "cn": "弱点击杀会使你免疫眩晕与压制，持续4秒。"
+  }
 }
