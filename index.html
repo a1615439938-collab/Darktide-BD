@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=gl3">
+  <link rel="stylesheet" href="./styles.css?v=gl4">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -43,24 +43,7 @@
     </button>
   </section>
 
-  <p class="patch-note">本 BD 会按你选择的版本保存。 / Your build is saved against the selected patch.</p>
-
-  <section class="section-title">
-    <span>天赋详情</span><b>Talent</b>
-  </section>
-
-  <section class="talent-card" id="talentCard">
-    <div class="talent-card-top">
-      <div>
-        <div class="talent-type" id="infoType">职业节点 / Class node</div>
-        <h2 id="infoCn">老兵</h2>
-        <div class="talent-en" id="infoEn">Veteran</div>
-      </div>
-      <div id="infoState" class="state">已选择 / Selected</div>
-    </div>
-    <div class="effect-cn" id="infoCnDesc">点击天赋节点查看说明。</div>
-    <div class="effect-en" id="infoDesc">Tap a talent node to view its effect.</div>
-  </section>
+  <p class="patch-note">本 BD 会按所选版本保存。 / Your build is saved against the selected patch.</p>
 
   <section class="section-title tree-title">
     <span>天赋树</span><b>Talent Tree</b>
@@ -68,16 +51,32 @@
 
   <section id="status" class="status">正在载入未来更新天赋树… / Loading future-update talent tree…</section>
 
-  <section class="tree-wrap">
-    <svg id="treeSvg" role="img" aria-label="Darktide talent tree"></svg>
+  <section class="tree-viewport" id="treeViewport">
+    <div class="tree-canvas" id="treeCanvas">
+      <svg id="treeSvg" role="img" aria-label="Darktide talent tree"></svg>
+
+      <div class="node-popover" id="nodePopover">
+        <div class="popover-type" id="infoType">职业节点 / Class node</div>
+        <div class="popover-head">
+          <div>
+            <h2 id="infoCn">老兵</h2>
+            <div class="popover-en" id="infoEn">Veteran</div>
+          </div>
+          <div id="infoState" class="state">已选择 / Selected</div>
+        </div>
+        <div class="effect-cn" id="infoCnDesc">点击天赋节点查看说明。</div>
+        <div class="effect-en" id="infoDesc">Tap a talent node to view its effect.</div>
+        <div class="popover-arrow"></div>
+      </div>
+    </div>
   </section>
 
   <section class="tree-tools">
-    <button id="resetBtn" type="button">重置<br><small>Reset</small></button>
-    <button id="zoomOut" type="button">−</button>
-    <button id="zoomFit" type="button">适配<br><small>Fit</small></button>
-    <button id="zoomIn" type="button">＋</button>
-    <button id="saveBtn" class="gold" type="button">保存<br><small>Save</small></button>
+    <button id="resetBtn" type="button">重置 <small>Reset</small></button>
+    <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+    <button id="zoomFit" type="button">适配 <small>Fit</small></button>
+    <button id="zoomIn" type="button" aria-label="Zoom in">＋</button>
+    <button id="saveBtn" class="gold" type="button">保存 <small>Save</small></button>
   </section>
 
   <section class="legend">
@@ -123,7 +122,7 @@
   </form>
 </dialog>
 
-<script src="./tree-data.js?v=gl3"></script>
-<script src="./app.js?v=gl3"></script>
+<script src="./tree-data.js?v=gl4"></script>
+<script src="./app.js?v=gl4"></script>
 </body>
 </html>
