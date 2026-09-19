@@ -17,6 +17,9 @@ CLASSES = [
     {'key':'zealot','name':'Zealot','cn':'狂信徒','ig':'zealot','page':'zealot-preacher'},
     {'key':'psyker','name':'Psyker','cn':'灵能者','ig':'psyker','page':'psyker-psykinetic'},
     {'key':'ogryn','name':'Ogryn','cn':'欧格林','ig':'ogryn','page':'ogryn-skullbreaker'},
+    {'key':'arbites','name':'Arbites','cn':'仲裁官','ig':'adamant','page':'arbites'},
+    {'key':'skitarii','name':'Skitarii','cn':'护教军','ig':'cryptic','page':'skitarii'},
+    {'key':'hivescum','name':'Hive Scum','cn':'巢都渣滓','ig':'broker','page':'hive-scum'},
 ]
 
 FOLDER_CAT = {
@@ -208,7 +211,8 @@ for cl in CLASSES:
         raise SystemExit('No talent tree SVGs for ' + cl['name'])
 
     # Games Lantern currently renders current/live first and Future update second.
-    idx = 1 if len(svgs) > 1 else 0
+    # Some classes may expose extra trees; choose the last large talent-tree SVG as the future patch.
+    idx = len(svgs)-1 if len(svgs) > 1 else 0
     nodes, raw_edges, icon_urls = extract_svg(svgs[idx], cl['ig'], 'root-' + cl['ig'])
 
     for n in nodes:
