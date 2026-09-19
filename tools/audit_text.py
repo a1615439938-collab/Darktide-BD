@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Audit version: 4
+# Audit version: 5
 import json, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
