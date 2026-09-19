@@ -108,7 +108,7 @@ button{touch-action:manipulation}
 .tree-viewport::-webkit-scrollbar{display:none}
 .tree-canvas{position:relative;margin:0 auto}
 #treeSvg{
-  position:absolute;left:0;top:var(--tree-top,174px);
+  position:absolute;left:0;top:var(--tree-top,20px);
   display:block;user-select:none;-webkit-user-select:none
 }
 
@@ -256,3 +256,12 @@ dialog::backdrop{background:rgba(0,0,0,.76)}
 @media (prefers-reduced-motion: reduce){
   .node-popover,.toast,.patch,.tree-tools button{transition:none!important}
 }
+
+.popover-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.popover-actions button{
+  border:1px solid rgba(191,213,176,.42);
+  background:rgba(10,20,12,.45);color:#eef5e9;
+  border-radius:8px;padding:7px 10px;font-size:10px;font-weight:700;
+}
+.popover-actions button:disabled{opacity:.45}
+.popover-actions button:active:not(:disabled){transform:scale(.97)}
