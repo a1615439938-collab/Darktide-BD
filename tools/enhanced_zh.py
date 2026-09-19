@@ -131,6 +131,7 @@ def _sanitize_zh(text):
         text,
     )
     text = text.replace("没甚么", "没什么")
+    text = re.sub(r"%(?:\s*)\.(?=[\s，。；：！？]|$)", "%", text)
     text = re.sub(r"\s+([，。；：！？])", r"\1", text)
     return text.strip()
 
@@ -171,6 +172,7 @@ def _sanitize_en(text):
     text = re.sub(r'\{#color\([^}]*\)\}', "", text, flags=re.I)
     text = re.sub(r'\{#reset\(\)\}', "", text, flags=re.I)
     text = re.sub(r'\{#[^}]+\}', "", text)
+    text = re.sub(r"%(?:\s*)\.(?=[\s,.;:!?]|$)", "%", text)
     return text.strip()
 
 def _extract_lang(block, lang, phrases):
