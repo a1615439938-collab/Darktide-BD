@@ -430,6 +430,11 @@ def attach_info(trees):
                 en = dedupe_display_name(info.get('n') or canonical.replace('-',' ').title(), canonical)
                 n['en'] = en
                 n['cn'] = TR.get(name_key(en), en)
+                # Stimm Lab names such as Hypex/Kalma/Vultoprene are product/formula labels.
+                # Keep the source name intact rather than inventing a transliteration, but make
+                # the Chinese UI meaning explicit when no maintained Chinese title exists.
+                if cl.get('key') == 'hivescum-stimm' and n['cn'] == en:
+                    n['cn'] = en + '（兴奋剂配方）'
                 n['type'] = info.get('t','')
                 n['desc'] = info.get('d','')
                 pair = BI_DESC.get(normalize_name(en), {})
