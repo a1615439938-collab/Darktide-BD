@@ -337,3 +337,18 @@ html.desktop-input .build-panel{max-width:980px;margin-left:auto;margin-right:au
   html.desktop-input .site-head{padding-left:max(22px,calc((100vw - 1380px)/2));padding-right:max(22px,calc((100vw - 1380px)/2))}
   html.desktop-input .brand h1{font-size:20px}
 }
+
+.mechanics-note{
+  margin-top:9px;padding:8px 9px;
+  border-left:3px solid rgba(218,177,72,.75);
+  background:rgba(12,20,13,.32)
+}
+.mechanics-note[hidden]{display:none!important}
+.mechanics-note .effect-label{margin-top:0;color:#d0b76f}
+.mechanics-note .effect-cn{font-size:10.5px}
+.mechanics-note .effect-en{font-size:9.5px;margin-top:4px}
+.provenance{
+  margin-top:7px;color:#7f8d82;font-size:7.5px;line-height:1.45;
+  overflow-wrap:anywhere
+}
+html.desktop-input .provenance{font-size:8px}
