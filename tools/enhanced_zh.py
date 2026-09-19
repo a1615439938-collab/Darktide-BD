@@ -38,8 +38,7 @@ def _decode_lua_literal(tok):
     try:
         return ast.literal_eval(tok)
     except Exception:
-        body=tok[1:-1]
-        return body.replace(r"\n","\n").replace(r'\"','"').replace(r"\\","\")
+        return tok[1:-1]
 
 def _keep_first_arg(expr, fn):
     pat=re.compile(r"\b"+re.escape(fn)+r'\(\s*("(?:(?:\\.)|[^"\\])*")\s*(?:,[^)]*)?\)')
