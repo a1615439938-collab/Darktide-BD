@@ -422,6 +422,7 @@ function renderSubtreeBar(){
       persist();
       state.classKey=c.key;
       hotSlug=null;
+      clearHistory();
       renderAll(true);
     };
     host.appendChild(b);
@@ -430,6 +431,8 @@ function renderSubtreeBar(){
 function renderNode(svg,defs,n){
   const r=radius(n);
   const g=createSvg("g",{class:"node"+(n.cat==="stat"?" stat":""),"data-s":n.s});
+  const hit=createSvg("circle",{cx:n.x,cy:n.y,r:Math.max(24,r+10),class:"hit-target"});
+  g.appendChild(hit);
   g.appendChild(nodeShape(n,r));
   if(n.cat!=="stat"){
     const inner=nodeShape(n,Math.max(7,r-4));
@@ -462,6 +465,10 @@ function renderNode(svg,defs,n){
   title.textContent=(n.cn&&n.cn!==n.en?n.cn+" / ":"")+(n.en||"");
   g.appendChild(title);
 
+  g.addEventListener("pointerdown",()=>g.classList.add("pressed"),{passive:true});
+  for(const evt of ["pointerup","pointercancel","pointerleave"]){
+    g.addEventListener(evt,()=>g.classList.remove("pressed"),{passive:true});
+  }
   g.addEventListener("click",e=>{
     e.stopPropagation();
     hotSlug=n.s;
@@ -918,6 +925,14 @@ function runAutomatedSelfTest(){
     redraw();
     showInfo(firstAvail,false);
     if(points()!==before+1)throw new Error("talent click did not spend a point");
+    if($("#nodePopover").classList.contains("hidden"))throw new Error("talent detail did not open");
+    hideInfo();
+    if(!$("#nodePopover").classList.contains("hidden"))throw new Error("talent detail did not dismiss");
+    undoLast();
+    if(points()!==before)throw new Error("undo did not restore points");
+    hotSlug=firstAvail.s;
+    toggleNode(firstAvail);
+    redraw();
 
     const melee=$("#meleeWeapon");
     melee.value="SELFTEST WEAPON";
@@ -928,6 +943,13 @@ function runAutomatedSelfTest(){
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
 
     saveSelection();
+    state.patch="live";
+    state.classKey="veteran";
+    renderAll(false);
+    if(CUR.patch!=="live"||CUR.nodes.length<40)throw new Error("live patch did not render");
+
+    saveSelection();
+    state.patch="future";
     state.classKey="psyker";
     renderAll(false);
     const warp=CUR.nodes.find(n=>n.en==="Warp Expenditure");
@@ -960,7 +982,7 @@ try{
   selfCheck();
   runAutomatedSelfTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl10").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl11").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
