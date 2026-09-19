@@ -136,7 +136,7 @@ for cl in CLASSES:
     idx=1 if cl['future'] and len(svgs)>1 else 0
     nodes,raw_edges=extract_svg(svgs[idx],cl['ig'],f'root-{cl["ig"]}')
     for n in nodes:
-        if n['slug']:all_slugs.add(n['slug'])
+        if n['slug']:all_slugs.add(n['slug'].split('/')[-1])
     edges=[]
     for x1,y1,x2,y2 in raw_edges:
         a=nearest(nodes,x1,y1);b=nearest(nodes,x2,y2)
