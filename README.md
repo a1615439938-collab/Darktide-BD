@@ -22,3 +22,13 @@
 - 已切换为真实节点 + 连线的可视化天赋树。
 - 四个基础职业使用 Games Lantern 的 `Depths of the Damned Future update` 树布局。
 - 节点名称中英双语显示；中文来自社区词表并转换为简体。
+
+
+## 实现来源与归因 / Implementation attribution
+
+本项目的交互式天赋树实现参考了 [LawsonMode/darktide-tree-planner](https://github.com/LawsonMode/darktide-tree-planner)。该项目 README 明确说明其原创编辑器代码可自由使用与修改。
+
+- 天赋树布局、连线与效果文本：Games Lantern
+- 游戏内天赋图标：其版权归对应游戏权利人所有，仅用于识别天赋
+- 中文名称：社区翻译词表，经繁体转简体
+- 本项目不会复制 Games Lantern 的专有源代码、Logo 或广告/商业页面；仅复现 BD 编辑器所需的公开交互与信息结构
