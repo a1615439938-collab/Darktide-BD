@@ -25,6 +25,16 @@ jobs:
           echo "Embedded icons: $ICONS"
           test "$ICONS" -ge 600
 
+      - name: Check startup payload size
+        run: |
+          CORE=$(stat -c%s tree-core.js)
+          ICONS=$(stat -c%s tree-icons.js)
+          echo "tree-core.js: $CORE bytes"
+          echo "tree-icons.js: $ICONS bytes (deferred)"
+          test "$CORE" -lt 1500000
+          ! grep -q 'tree-data.js' index.html
+          ! grep -q 'tree-icons.js' index.html
+
       - name: Start local site
         run: |
           python -m http.server 8000 >/tmp/darktide-http.log 2>&1 &
