@@ -145,8 +145,10 @@ button{touch-action:manipulation}
   border:1px solid rgba(158,188,134,.55);color:#c5d8b5;
   padding:4px 7px;border-radius:999px;font-size:8px;white-space:nowrap
 }
-.effect-cn{font-size:11px;line-height:1.45;color:#edf2e8;margin-top:9px}
-.effect-en{font-size:11px;line-height:1.48;color:#c9d1c4;margin-top:4px}
+.effect-label{font-size:8px;letter-spacing:.05em;color:#9fb096;margin-top:10px;margin-bottom:3px;text-transform:none}
+.effect-label-en{margin-top:8px;color:#8f9990}
+.effect-cn{font-size:12px;line-height:1.55;color:#f1f5ec;margin-top:0;white-space:pre-line}
+.effect-en{font-size:10.5px;line-height:1.5;color:#bcc5b8;margin-top:0;white-space:pre-line}
 .vocab{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .vocab .v{
   font-size:8px;line-height:1.2;color:#d9e4d3;background:rgba(7,15,10,.42);
