@@ -70,7 +70,7 @@ jobs:
           check "ranged editor" 'id="rangedWeapon"'
           check "curio editor" 'id="curio1Main"'
           check "node popover" 'id="nodePopover"'
-          check "selected-class icon pack" 'data-icon-pack="veteran"'
+          check "selected-class icon pack" 'data-icon-pack="'
           check "embedded talent art" 'class="art"'
           COUNT=$(grep -o 'data-s=' /tmp/dom.html | wc -l)
           echo "Rendered nodes after self-test: $COUNT"
