@@ -41,9 +41,77 @@ const VOCAB=[
   ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
 ];
 
+const TALENT_CN_OVERRIDES={
+  "Battle Meditation":"危机值生成降低10%。击杀敌人时有10%几率平息10%危机值。",
+  "Smite":"释放一道生物闪电洪流：这是一种快速的引导攻击，会锁定并眩晕一名敌人，同时造成伤害；闪电会扩散至附近敌人。蓄力可提高扩散速度和伤害。"
+};
+const TALENT_NAME_CN_OVERRIDES={
+  "Toughness Boost":"韧性提升",
+  "Health Boost":"生命提升",
+  "Stamina Boost":"耐力提升",
+  "Damage Boost":"伤害提升",
+  "Melee Damage Boost":"近战伤害提升",
+  "Ranged Damage Boost":"远程伤害提升"
+};
+function cleanTalentName(name){
+  return String(name||"")
+    .replace(/\s+[A-F0-9]{8,}$/i,"")
+    .replace(/[-_][A-F0-9]{8,}$/i,"")
+    .trim();
+}
+function displayTalentEn(n){
+  return cleanTalentName(n.en||"");
+}
+function displayTalentCn(n){
+  const en=displayTalentEn(n);
+  const raw=cleanTalentName(n.cn||"");
+  if(TALENT_NAME_CN_OVERRIDES[en])return TALENT_NAME_CN_OVERRIDES[en];
+  if(!raw||raw===en||/[A-F0-9]{8}$/i.test(raw))return en;
+  return raw;
+}
+function stripGameMarkup(text){
+  return String(text||"")
+    .replace(/\{#color\([^}]*\)\}/gi,"")
+    .replace(/\{#reset\(\)\}/gi,"")
+    .replace(/\{#[^}]+\}/g,"")
+    .replace(/\{[A-Za-z0-9_]+:%s\}/g,"")
+    .trim();
+}
+function numericTokens(text){
+  return new Set((String(text||"").match(/\d+(?:\.\d+)?%?/g)||[]).map(x=>x.replace(/\.0(?=%|$)/,"")));
+}
+function looksLikeEnhancedMismatch(n){
+  const zh=String(n.descCn||"");
+  const en=String(n.desc||"");
+  if(!zh||!en)return false;
+  if(/\{#(?:color|reset)/i.test(zh))return true;
+  const zn=numericTokens(zh),enums=numericTokens(en);
+  let extra=0;
+  for(const x of zn)if(!enums.has(x))extra++;
+  // Extra numeric mechanics usually means the Chinese text came from an enhanced-description layer.
+  return extra>=2;
+}
+function getChineseDescription(n){
+  const enName=displayTalentEn(n);
+  if(TALENT_CN_OVERRIDES[enName])return TALENT_CN_OVERRIDES[enName];
+  if(n.descCn&&!looksLikeEnhancedMismatch(n)){
+    return formatChineseDescription(stripGameMarkup(n.descCn));
+  }
+  if(n.desc){
+    return formatChineseDescription(translateEffectFallback(n.desc));
+  }
+  if(n.cat==="stat"){
+    const cn=displayTalentCn(n);
+    return cn&&cn!==displayTalentEn(n)
+      ?cn+"。具体数值暂未从预览数据源可靠读取。"
+      :"该属性节点的具体数值暂未从预览数据源可靠读取。";
+  }
+  return "暂无可靠的简中预览效果说明。";
+}
+
 function formatChineseDescription(text){
   if(!text)return "";
-  const lines=String(text)
+  const lines=stripGameMarkup(text)
     .replace(/\r/g,"")
     .split(/\n+/)
     .map(x=>x.replace(/^\s*[•·▪●◦\-*]+\s*/,"").trim())
@@ -488,7 +556,7 @@ function renderNode(svg,defs,n){
   }
 
   const title=createSvg("title");
-  title.textContent=(n.cn&&n.cn!==n.en?n.cn+" / ":"")+(n.en||"");
+  title.textContent=displayTalentCn(n)+" / "+displayTalentEn(n);
   g.appendChild(title);
 
   let pressX=0,pressY=0,dragged=false;
@@ -664,22 +732,20 @@ function showInfo(n,focus=false){
   }
   const cat=CAT[n.cat]||CAT.passive;
   $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
-  $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:(n.en||"");
-  $("#infoEn").textContent=n.en||"";
+  $("#infoCn").textContent=displayTalentCn(n);
+  $("#infoEn").textContent=displayTalentEn(n);
 
   let stateText="已选择 / Selected";
   if(n.s===ROOT)stateText="职业起点 / Root";
   else if(!active.has(n.s))stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
   $("#infoState").textContent=stateText;
 
-  if(n.descCn){
-    $("#infoCnDesc").textContent=formatChineseDescription(n.descCn);
-  }else if(n.desc){
-    $("#infoCnDesc").textContent=formatChineseDescription(translateEffectFallback(n.desc));
-  }else{
-    $("#infoCnDesc").textContent="暂无可靠的简中预览效果说明。";
-  }
-  $("#infoDesc").textContent=formatEnglishDescription(n.desc||"No reliable preview effect text is available for this node yet.");
+  $("#infoCnDesc").textContent=getChineseDescription(n);
+  $("#infoDesc").textContent=formatEnglishDescription(
+    n.desc||(n.cat==="stat"
+      ?"Stat node. Exact preview value is not available from the current data source."
+      :"No reliable preview effect text is available for this node yet.")
+  );
   const vocab=$("#infoVocab");
   if(vocab){
     const text=n.desc||"";
@@ -1076,6 +1142,13 @@ function selfCheck(){
   if(!$("#nodePopover")) throw new Error("node popover is missing");
   if(treeTop!==BASE_TREE_TOP) throw new Error("tree top shifted unexpectedly");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
+  for(const tree of [...DATA.classes,...DATA.liveClasses]){
+    for(const n of tree.nodes){
+      if(/[A-F0-9]{8,}$/i.test(displayTalentEn(n)))throw new Error("internal talent id leaked into display name");
+      const zh=getChineseDescription(n);
+      if(/\{#(?:color|reset)/i.test(zh))throw new Error("game markup leaked into Chinese description");
+    }
+  }
 }
 
 function runVisualPopoverTest(){
@@ -1174,6 +1247,16 @@ function runAutomatedSelfTest(){
     state.patch="future";
     state.classKey="psyker";
     renderAll(false);
+    const battle=CUR.nodes.find(n=>displayTalentEn(n)==="Battle Meditation");
+    if(battle&&getChineseDescription(battle)!=="危机值生成降低10%。击杀敌人时有10%几率平息10%危机值。")throw new Error("Battle Meditation base translation mismatch");
+    const smite=CUR.nodes.find(n=>displayTalentEn(n)==="Smite");
+    if(smite){
+      const smiteZh=getChineseDescription(smite);
+      if(/\{#|16米|8\.5%|100%/.test(smiteZh))throw new Error("Smite enhanced/raw text leaked into base translation");
+    }
+    const statNode=CUR.nodes.find(n=>n.cat==="stat");
+    if(statNode&&/[A-F0-9]{8,}$/i.test(displayTalentEn(statNode)))throw new Error("stat node internal id leaked");
+
     const warp=CUR.nodes.find(n=>n.en==="Warp Expenditure");
     if(!warp||!warp.descCn||!/[\u4e00-\u9fff]/.test(warp.descCn))throw new Error("Warp Expenditure Chinese description missing");
     showInfo(warp,false);
@@ -1206,7 +1289,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl19").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl20").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
