@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Audit version: 10
+# Audit version: 11
 import json, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -142,6 +142,8 @@ for tree in trees:
         has_advanced_pair = bool(ae and ac)
         if ed and not has_base_pair and not has_advanced_pair:
             issue("missing_renderable_cn_pair", "medium", tree, n)
+        if not ed and not has_advanced_pair:
+            issue("missing_source_description", "medium", tree, n, n.get("cat",""))
 
         # A half-populated enhanced pair is unsafe because the UI must never mix layers.
         if bool(ae) != bool(ac):
@@ -226,6 +228,12 @@ for x in issues:
 print("MISSING_PAIR_BREAKDOWN")
 for cat,count in missing_by_cat.most_common():
     print(f"{cat or 'unknown':10} {count:4} rows / {len(missing_unique[cat]):3} unique names")
+
+no_desc = [x for x in issues if x["kind"]=="missing_source_description"]
+if no_desc:
+    print("MISSING_SOURCE_DESCRIPTIONS")
+    for x in no_desc:
+        print(json.dumps(x, ensure_ascii=False))
 
 print("\nSAMPLES")
 for x in issues[:260]:
