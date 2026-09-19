@@ -7,6 +7,7 @@ on:
       - "tree-data.js"
       - "app.js"
       - "tools/audit_text.py"
+      - "tools/source_audit.py"
       - "tools/scrape_future.py"
       - "tools/enhanced_zh.py"
   workflow_dispatch:
@@ -21,6 +22,9 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run bilingual text audit
         run: python tools/audit_text.py
+
+      - name: Audit source provenance and official preview values
+        run: python tools/source_audit.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
