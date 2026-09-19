@@ -164,6 +164,32 @@ textarea{min-height:88px;resize:vertical}
 input:focus,textarea:focus{border-color:#a8893d}
 .share-row{display:flex;gap:7px;margin-top:9px}
 .share-row button{flex:1}
+
+.loadout-title{margin-top:18px}
+.loadout-grid{display:grid;grid-template-columns:1fr;gap:9px}
+.gear-card,.curio-section{
+  border:1px solid #2b3741;background:linear-gradient(180deg,#0f181f,#0b1319);
+  border-radius:10px;padding:11px
+}
+.gear-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.gear-head span{font-size:11px;color:#8e999f}
+.gear-head b{font-family:Georgia,"Times New Roman",serif;font-size:16px;color:#e6eaec}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.curio-section{margin-top:9px}
+.curio-grid{display:grid;grid-template-columns:1fr;gap:7px}
+.curio-card{border:1px solid #26323a;background:#081116;border-radius:8px;padding:9px}
+.curio-card strong{display:block;font-size:11px;color:#d8dddf;margin-bottom:7px}
+.curio-card input+input{margin-top:7px}
+.meta-hint{
+  margin-top:8px;padding:8px 9px;border-left:3px solid #806b37;background:#171811;
+  color:#a9b0a2;font-size:9px;line-height:1.45
+}
+.open-panel{margin-top:9px}
+.open-panel .panel-body{border-top:0}
+@media(min-width:760px){
+  .loadout-grid{grid-template-columns:1fr 1fr}
+  .curio-grid{grid-template-columns:repeat(3,1fr)}
+}
 footer{padding:16px 5px 7px;color:#64717a;font-size:8px;line-height:1.5;text-align:center}
 
 dialog{border:0;padding:0;background:transparent;width:min(94vw,720px)}
