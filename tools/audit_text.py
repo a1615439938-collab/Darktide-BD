@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Audit version: 6
+# Audit version: 7
 import json, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -31,7 +31,8 @@ BAD_ZH_PATTERNS = [
 ]
 
 def nums(s):
-    return Counter(m.group(0).lstrip("+") for m in NUM.finditer(s or ""))
+    # Sign may be expressed linguistically in Chinese ("降低 10%") rather than with "-10%".
+    return Counter(m.group(0).lstrip("+-") for m in NUM.finditer(s or ""))
 
 def cjk_count(s):
     return len(CJK.findall(s or ""))
@@ -213,6 +214,18 @@ print("SEVERITY_COUNTS=" + json.dumps(dict(sev), ensure_ascii=False, sort_keys=T
 print("TOP_CATEGORIES")
 for (severity, kind), count in counts.most_common(50):
     print(f"{severity:6} {count:4} {kind}")
+
+missing_by_cat = Counter()
+missing_unique = defaultdict(set)
+for x in issues:
+    if x["kind"]=="missing_renderable_cn_pair":
+        node = next((n for t,n in all_nodes if t.get("patch")==x["patch"] and t.get("key")==x["class"] and n.get("s")==x["node"]), None)
+        cat = node.get("cat","") if node else ""
+        missing_by_cat[cat] += 1
+        missing_unique[cat].add(x["en"])
+print("MISSING_PAIR_BREAKDOWN")
+for cat,count in missing_by_cat.most_common():
+    print(f"{cat or 'unknown':10} {count:4} rows / {len(missing_unique[cat]):3} unique names")
 
 print("\nSAMPLES")
 for x in issues[:260]:
