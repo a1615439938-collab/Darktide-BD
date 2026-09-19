@@ -10,7 +10,7 @@
 const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
-const STORE="darktide-bilingual-editor-gl5";
+const STORE="darktide-bilingual-editor-gl6";
 const TREE_TOP=174;
 
 const CAT={
@@ -507,22 +507,54 @@ function renderAll(center=false){
   buildTree();
   if(center)requestAnimationFrame(centerTree);
 }
-function exportData(){
+function buildPayload(){
   saveSelection();
   persist();
-  return JSON.stringify({
-    format:"Darktide-Future-Tree-BD-2",
+  return {
+    format:"DTB3",
     patch:DATA.version,
     classKey:state.classKey,
     selected:state.selected,
     name:state.name,
     notes:state.notes,
     loadouts:state.loadouts
-  },null,2);
+  };
+}
+function base64urlEncode(text){
+  const bytes=new TextEncoder().encode(text);
+  let bin="";
+  for(const b of bytes)bin+=String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function base64urlDecode(text){
+  let s=text.replace(/-/g,"+").replace(/_/g,"/");
+  while(s.length%4)s+="=";
+  const bin=atob(s);
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function exportData(){
+  return "DTB3."+base64urlEncode(JSON.stringify(buildPayload()));
+}
+function shareURL(){
+  const u=new URL(location.href);
+  u.search="";
+  u.hash="b="+exportData();
+  return u.toString();
 }
 function importData(txt){
-  const x=JSON.parse(txt);
-  if(!["Darktide-Future-Tree-BD-1","Darktide-Future-Tree-BD-2"].includes(x.format)){
+  txt=(txt||"").trim();
+  let x;
+  if(txt.startsWith("DTB3.")){
+    x=JSON.parse(base64urlDecode(txt.slice(5)));
+  }else if(txt.startsWith("{")){
+    x=JSON.parse(txt);
+  }else if(txt.includes("#b=")){
+    x=JSON.parse(base64urlDecode(txt.split("#b=DTB3.")[1]||""));
+  }else{
+    throw new Error("无法识别的 BD 数据 / Unsupported build format");
+  }
+  if(!["DTB3","Darktide-Future-Tree-BD-1","Darktide-Future-Tree-BD-2"].includes(x.format)){
     throw new Error("不是本规划器的 BD 数据 / Unsupported build format");
   }
   state.classKey=x.classKey||state.classKey;
@@ -531,7 +563,7 @@ function importData(txt){
   state.notes=x.notes||"";
   state.loadouts=x.loadouts||state.loadouts||{};
   persist();
-  renderAll(false);
+  renderAll(true);
 }
 function bind(){
   $("#resetBtn").onclick=()=>{
@@ -586,11 +618,20 @@ function bind(){
     const text=$("#codeBox").value;
     try{
       await navigator.clipboard.writeText(text);
-      $("#dialogMsg").textContent="已复制 / Copied ✓";
+      $("#dialogMsg").textContent="代码已复制 / Code copied ✓";
     }catch(_){
       $("#codeBox").select();
       document.execCommand("copy");
-      $("#dialogMsg").textContent="已复制 / Copied ✓";
+      $("#dialogMsg").textContent="代码已复制 / Code copied ✓";
+    }
+  };
+  $("#copyLinkBtn").onclick=async()=>{
+    const text=shareURL();
+    try{
+      await navigator.clipboard.writeText(text);
+      $("#dialogMsg").textContent="分享链接已复制 / Share link copied ✓";
+    }catch(_){
+      $("#dialogMsg").textContent=text;
     }
   };
   $("#loadBtn").onclick=()=>{
@@ -604,6 +645,12 @@ function bind(){
   };
 
   addEventListener("resize",()=>{applyZoom();requestAnimationFrame(centerTree);});
+  addEventListener("hashchange",()=>{
+    const raw=location.hash.startsWith("#b=")?location.hash.slice(3):"";
+    if(raw){
+      try{importData(raw);}catch(_){}
+    }
+  });
 }
 function selfCheck(){
   if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.length<7) throw new Error("all seven class trees are not loaded");
@@ -618,10 +665,15 @@ function selfCheck(){
 try{
   load();
   bind();
-  renderAll(false);
+  const hashBuild=location.hash.startsWith("#b=")?location.hash.slice(3):"";
+  if(hashBuild){
+    try{importData(hashBuild);}catch(_){renderAll(false);}
+  }else{
+    renderAll(false);
+  }
   selfCheck();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl5").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl6").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
