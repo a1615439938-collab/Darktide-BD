@@ -58,6 +58,13 @@ jobs:
           echo "Rendered nodes after self-test: $COUNT"
           test "$COUNT" -ge 20
 
+      - name: Run desktop interaction test
+        run: |
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=1440,1200 --virtual-time-budget=9000 --dump-dom 'http://127.0.0.1:8000/?desktoptest=1' > /tmp/desktop-dom.html
+          grep -q 'data-desktoptest="pass"' /tmp/desktop-dom.html
+          grep -q 'desktop-input' /tmp/desktop-dom.html
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=1440,1200 --virtual-time-budget=7000 --screenshot=/tmp/darktide-desktop.png 'http://127.0.0.1:8000/?desktoptest=1'
+
       - name: Capture normal mobile screenshot
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-mobile.png 'http://127.0.0.1:8000/'
@@ -93,6 +100,8 @@ jobs:
           name: darktide-mobile-smoke-test
           path: |
             /tmp/darktide-mobile.png
+            /tmp/darktide-desktop.png
             /tmp/darktide-popover.png
             /tmp/dom.html
+            /tmp/desktop-dom.html
             /tmp/popover-dom.html
