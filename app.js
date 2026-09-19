@@ -14,6 +14,18 @@ const STORE="darktide-bilingual-editor-gl10";
 const BASE_TREE_TOP=20;
 let treeTop=BASE_TREE_TOP;
 
+const QUERY=new URLSearchParams(location.search);
+const DESKTOP_TEST=QUERY.get("desktoptest")==="1";
+const MOBILE_TEST=QUERY.get("selftest")==="1"||QUERY.get("visual")==="popover";
+const POINTER_MEDIA=matchMedia("(hover: hover) and (pointer: fine)");
+function isDesktopInteraction(){
+  return DESKTOP_TEST||(!MOBILE_TEST&&POINTER_MEDIA.matches);
+}
+function syncInputMode(){
+  document.documentElement.classList.toggle("desktop-input",isDesktopInteraction());
+  document.documentElement.classList.toggle("touch-input",!isDesktopInteraction());
+}
+
 const CAT={
   passive:{color:"#79b9c6",cn:"普通天赋",en:"Passive"},
   stat:{color:"#59616a",cn:"属性节点",en:"Stat"},
@@ -588,9 +600,9 @@ function renderNode(svg,defs,n){
     g.appendChild(tx);
   }
 
-  const title=createSvg("title");
-  title.textContent=displayTalentCn(n)+" / "+displayTalentEn(n);
-  g.appendChild(title);
+  g.setAttribute("role","button");
+  g.setAttribute("tabindex","0");
+  g.setAttribute("aria-label",displayTalentCn(n)+" / "+displayTalentEn(n));
 
   let pressX=0,pressY=0,dragged=false;
   g.addEventListener("pointerdown",e=>{
@@ -606,10 +618,27 @@ function renderNode(svg,defs,n){
   for(const evt of ["pointerup","pointercancel","pointerleave"]){
     g.addEventListener(evt,()=>g.classList.remove("pressed"),{passive:true});
   }
+  g.addEventListener("mouseenter",()=>{
+    if(!isDesktopInteraction())return;
+    hotSlug=n.s;
+    redraw();
+    showInfo(n,false);
+  });
+  g.addEventListener("mouseleave",()=>{
+    if(!isDesktopInteraction())return;
+    hideInfo();
+  });
   g.addEventListener("click",e=>{
     e.stopPropagation();
     if(dragged){
       dragged=false;
+      return;
+    }
+    if(isDesktopInteraction()){
+      hotSlug=n.s;
+      if(n.s!==ROOT)toggleNode(n);
+      redraw();
+      showInfo(n,false);
       return;
     }
     const pop=$("#nodePopover");
@@ -620,6 +649,41 @@ function renderNode(svg,defs,n){
     hotSlug=n.s;
     redraw();
     showInfo(n,true);
+  });
+  g.addEventListener("contextmenu",e=>{
+    if(!isDesktopInteraction())return;
+    e.preventDefault();
+    e.stopPropagation();
+    hotSlug=n.s;
+    if(n.s!==ROOT&&active.has(n.s))toggleNode(n);
+    redraw();
+    showInfo(n,false);
+  });
+  g.addEventListener("focus",()=>{
+    if(!isDesktopInteraction())return;
+    hotSlug=n.s;
+    redraw();
+    showInfo(n,false);
+  });
+  g.addEventListener("blur",()=>{
+    if(!isDesktopInteraction())return;
+    hideInfo();
+  });
+  g.addEventListener("keydown",e=>{
+    if(!isDesktopInteraction()||n.s===ROOT)return;
+    if(e.key==="Enter"||e.key===" "){
+      e.preventDefault();
+      hotSlug=n.s;
+      toggleNode(n);
+      redraw();
+      showInfo(n,false);
+    }else if((e.key==="Delete"||e.key==="Backspace")&&active.has(n.s)){
+      e.preventDefault();
+      hotSlug=n.s;
+      toggleNode(n);
+      redraw();
+      showInfo(n,false);
+    }
   });
 
   svg.appendChild(g);
@@ -746,6 +810,8 @@ function redraw(){
     if(active.has(n.s)) g.classList.add("active");
     else if(isAvail(n.s)) g.classList.add("avail");
     else g.classList.add("locked");
+    g.setAttribute("aria-pressed",active.has(n.s)?"true":"false");
+    g.setAttribute("aria-disabled",n.s!==ROOT&&!active.has(n.s)&&!isAvail(n.s)?"true":"false");
     if(n.s===hotSlug) g.classList.add("hot");
   }
 
@@ -866,12 +932,16 @@ function placePopover(n,focus=false){
     const gap=12;
     const minTop=Math.max(vTop+margin,hb+margin);
 
-    // On phones, keep the card screen-centered and let the arrow point to the node.
-    // This is more stable than trying to center a wide card on edge nodes.
-    pop.style.maxWidth=Math.max(240,vw-2*margin)+"px";
-    pop.style.width=Math.min(330,Math.max(240,vw-2*margin))+"px";
+    const desktop=isDesktopInteraction();
+    // Touch: center a compact card in the visual viewport.
+    // Desktop: use a wider hover card while keeping it clear of screen edges.
+    const cardMax=desktop?430:330;
+    const cardMin=desktop?330:240;
+    const cardHeightMax=desktop?620:430;
+    pop.style.maxWidth=Math.max(cardMin,vw-2*margin)+"px";
+    pop.style.width=Math.min(cardMax,Math.max(cardMin,vw-2*margin))+"px";
 
-    const natural=Math.min(pop.scrollHeight||430,430);
+    const natural=Math.min(pop.scrollHeight||cardHeightMax,cardHeightMax);
     const above=Math.max(0,nr.top-minTop-gap);
     const below=Math.max(0,vBottom-nr.bottom-gap-margin);
 
@@ -881,13 +951,13 @@ function placePopover(n,focus=false){
     else side=above>=below?"above":"below";
 
     const available=Math.max(100,side==="above"?above:below);
-    pop.style.maxHeight=Math.min(430,available)+"px";
+    pop.style.maxHeight=Math.min(cardHeightMax,available)+"px";
 
     const pr=pop.getBoundingClientRect();
     const pw=pr.width;
     const ph=pr.height;
     const nodeX=nr.left+nr.width/2;
-    const left=vw<=620
+    const left=!desktop||vw<=620
       ?vLeft+(vw-pw)/2
       :Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
     const top=side==="above"
@@ -937,7 +1007,9 @@ function applyZoom(){
   if(!CUR)return;
   const vp=$("#treeViewport"),canvas=$("#treeCanvas"),svg=$("#treeSvg");
   const vw=CUR.viewbox[2],vh=CUR.viewbox[3];
-  const base=Math.max(455,Math.min(700,vp.clientWidth*1.13));
+  const base=isDesktopInteraction()
+    ?Math.max(760,Math.min(1120,vp.clientWidth*.92))
+    :Math.max(455,Math.min(700,vp.clientWidth*1.13));
   const width=base*state.zoom,height=width*vh/vw;
   canvas.style.width=width+"px";
   svg.style.width=width+"px";
@@ -1039,6 +1111,7 @@ function bind(){
     }
   };
   $("#infoAction").onclick=()=>{
+    if(isDesktopInteraction())return;
     const n=hotSlug?nodeMap[hotSlug]:null;
     if(!n||n.s===ROOT)return;
     const wasActive=active.has(n.s);
@@ -1125,6 +1198,58 @@ function bind(){
     }
   };
 
+  syncInputMode();
+  const syncPointerMode=()=>{
+    const wasDesktop=document.documentElement.classList.contains("desktop-input");
+    syncInputMode();
+    const nowDesktop=isDesktopInteraction();
+    if(wasDesktop!==nowDesktop){
+      hideInfo();
+      applyZoom();
+      requestAnimationFrame(centerTree);
+    }
+  };
+  if(POINTER_MEDIA.addEventListener)POINTER_MEDIA.addEventListener("change",syncPointerMode);
+
+  document.addEventListener("keydown",e=>{
+    if(!isDesktopInteraction())return;
+    const tag=(e.target&&e.target.tagName||"").toLowerCase();
+    const typing=tag==="input"||tag==="textarea"||e.target?.isContentEditable;
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){
+      e.preventDefault();
+      undoLast();
+      return;
+    }
+    if(typing)return;
+    if(e.key==="0"||e.key.toLowerCase()==="f"){
+      e.preventDefault();
+      state.zoom=1;
+      applyZoom();
+      requestAnimationFrame(centerTree);
+      persist();
+    }else if(e.key==="+"||e.key==="="){
+      e.preventDefault();
+      state.zoom=Math.min(1.9,state.zoom*1.12);
+      applyZoom();
+      persist();
+    }else if(e.key==="-"){
+      e.preventDefault();
+      state.zoom=Math.max(.72,state.zoom/1.12);
+      applyZoom();
+      persist();
+    }
+  });
+  const desktopTree=$("#treeViewport");
+  if(desktopTree){
+    desktopTree.addEventListener("wheel",e=>{
+      if(!isDesktopInteraction()||!e.ctrlKey)return;
+      e.preventDefault();
+      state.zoom=e.deltaY<0?Math.min(1.9,state.zoom*1.08):Math.max(.72,state.zoom/1.08);
+      applyZoom();
+      persist();
+    },{passive:false});
+  }
+
   const pop=$("#nodePopover");
   if(pop)pop.addEventListener("pointerdown",e=>e.stopPropagation());
 
@@ -1202,6 +1327,42 @@ function selfCheck(){
       const zh=getChineseDescription(n);
       if(/\{#(?:color|reset)/i.test(zh))throw new Error("game markup leaked into Chinese description");
     }
+  }
+}
+
+function runDesktopSelfTest(){
+  if(!DESKTOP_TEST)return;
+  try{
+    syncInputMode();
+    if(!isDesktopInteraction())throw new Error("desktop interaction mode not active");
+    const before=points();
+    const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
+    if(!firstAvail)throw new Error("no selectable desktop node");
+    const el=nodeEls[firstAvail.s];
+
+    el.dispatchEvent(new MouseEvent("mouseenter",{bubbles:false}));
+    if(points()!==before)throw new Error("desktop hover changed talent points");
+    if($("#nodePopover").classList.contains("hidden"))throw new Error("desktop hover did not show details");
+
+    el.dispatchEvent(new MouseEvent("mouseleave",{bubbles:false}));
+    if(!$("#nodePopover").classList.contains("hidden"))throw new Error("desktop mouseleave did not hide details");
+
+    el.dispatchEvent(new MouseEvent("mouseenter",{bubbles:false}));
+    el.dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    if(points()!==before+1)throw new Error("desktop left click did not select talent");
+
+    el.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true,button:2}));
+    if(points()!==before)throw new Error("desktop right click did not remove talent");
+
+    el.dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    if(points()!==before+1)throw new Error("desktop second select failed");
+    el.dispatchEvent(new MouseEvent("click",{bubbles:true}));
+    if(points()!==before)throw new Error("desktop second left click did not remove talent");
+
+    document.body.dataset.desktoptest="pass";
+  }catch(e){
+    document.body.dataset.desktoptest="fail";
+    document.body.dataset.desktoptestError=String(e.message||e);
   }
 }
 
@@ -1349,9 +1510,10 @@ try{
   }
   selfCheck();
   runAutomatedSelfTest();
+  runDesktopSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl23").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl24").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
