@@ -12,6 +12,7 @@ import urllib.request
 
 BASE = "https://raw.githubusercontent.com/xsSplater/Darktide_Enhanced_Descriptions_BETA/xss0/"
 FILES = [
+    "Main_Modules/TALENTS_Modular.lua",
     "Main_Modules/TALENTS/TALENTS_Veteran.lua",
     "Main_Modules/TALENTS/TALENTS_Zealot.lua",
     "Main_Modules/TALENTS/TALENTS_Psyker.lua",
@@ -157,6 +158,34 @@ def _extract_lang(block, lang, phrases):
     text = text.replace(" 。", "。").replace(" ，", "，").replace(" %", "%")
     return _sanitize_en(text) if lang == "en" else _sanitize_zh(text)
 
+def _entry_chunks(block):
+    starts = list(re.finditer(r'^\s*\["loc_[^"]+"\]\s*=\s*\{', block, re.M))
+    if not starts:
+        return [block]
+    out = []
+    for i, m in enumerate(starts):
+        end = starts[i + 1].start() if i + 1 < len(starts) else len(block)
+        out.append(block[m.start():end])
+    return out
+
+_ROMAN = {"I":1,"II":2,"III":3,"IV":4,"V":5,"VI":6,"VII":7,"VIII":8,"IX":9,"X":10}
+_ROMAN_REV = {v:k for k,v in _ROMAN.items()}
+
+def _expand_single_range_header(label, entry_count):
+    if entry_count != 1:
+        return []
+    m = re.fullmatch(
+        r'(.+?)\s+(I|II|III|IV|V|VI|VII|VIII|IX|X)-(I|II|III|IV|V|VI|VII|VIII|IX|X)',
+        (label or "").strip(),
+    )
+    if not m:
+        return []
+    base, a, b = m.groups()
+    lo, hi = _ROMAN[a], _ROMAN[b]
+    if lo > hi:
+        lo, hi = hi, lo
+    return [f"{base} {_ROMAN_REV[i]}" for i in range(lo, hi + 1)]
+
 def _header_name(label):
     label = (label or "").strip()
     # Handles both:
@@ -217,40 +246,59 @@ def load_bilingual_descriptions():
             re.finditer(r"^\s*--\[\+\s*(.*?)\s*\+\]--[^\n]*", src, re.M)
         )
         for i, h in enumerate(headers):
-            name = _header_name(h.group(1).strip())
-            if not name or name.startswith("+"):
-                continue
+            label = h.group(1).strip()
             end = headers[i + 1].start() if i + 1 < len(headers) else len(src)
             block = src[h.end():end]
-            en = _extract_lang(block, "en", en_phrases)
-            zh = _extract_lang(block, "zh-cn", zh_phrases)
-            key = normalize_name(name)
-            if not key:
+            chunks = _entry_chunks(block)
+
+            names = []
+            name = _header_name(label)
+            if name and not name.startswith("+"):
+                names = [name]
+            else:
+                names = _expand_single_range_header(label, len(chunks))
+            if not names:
                 continue
 
-            safe_en = en if _safe(en) else ""
-            safe_cn = zh if _safe(zh) else ""
-            pair_valid = _pair_safe(safe_en, safe_cn)
-            # Keep a safe single-language string for diagnostics, but expose both
-            # sides together only when their mechanics numbers match.
-            record = {
-                "name": name,
-                "en": safe_en if pair_valid else "",
-                "cn": safe_cn if pair_valid else "",
-                "unpaired_en": safe_en if safe_en and not pair_valid else "",
-                "unpaired_cn": safe_cn if safe_cn and not pair_valid else "",
-                "pairValid": pair_valid,
-                "source": path,
-            }
-            if not any((record["en"], record["cn"], record["unpaired_en"], record["unpaired_cn"])):
-                continue
+            ens, zhs = [], []
+            diagnostic_en, diagnostic_cn = [], []
+            for chunk in chunks:
+                en = _extract_lang(chunk, "en", en_phrases)
+                zh = _extract_lang(chunk, "zh-cn", zh_phrases)
+                if _safe(en):
+                    diagnostic_en.append(en)
+                if _safe(zh):
+                    diagnostic_cn.append(zh)
+                if _pair_safe(en, zh):
+                    ens.append(en)
+                    zhs.append(zh)
 
-            score = len(record["en"]) + len(record["cn"])
-            old = out.get(key)
-            old_score = len(old.get("en", "")) + len(old.get("cn", "")) if old else -1
-            if score > old_score:
-                out[key] = record
-                details[key] = {"name": name, "source": path}
+            safe_en = "\n".join(ens).strip()
+            safe_cn = "\n".join(zhs).strip()
+            unpaired_en = "\n".join(diagnostic_en).strip() if not safe_en else ""
+            unpaired_cn = "\n".join(diagnostic_cn).strip() if not safe_cn else ""
+
+            for name in names:
+                key = normalize_name(name)
+                if not key:
+                    continue
+                record = {
+                    "name": name,
+                    "en": safe_en,
+                    "cn": safe_cn,
+                    "unpaired_en": unpaired_en,
+                    "unpaired_cn": unpaired_cn,
+                    "pairValid": bool(safe_en and safe_cn),
+                    "source": path,
+                }
+                if not any((record["en"], record["cn"], record["unpaired_en"], record["unpaired_cn"])):
+                    continue
+                score = len(record["en"]) + len(record["cn"])
+                old = out.get(key)
+                old_score = len(old.get("en", "")) + len(old.get("cn", "")) if old else -1
+                if score > old_score:
+                    out[key] = record
+                    details[key] = {"name": name, "source": path}
     return out, details
 
 def load_chinese_descriptions():
