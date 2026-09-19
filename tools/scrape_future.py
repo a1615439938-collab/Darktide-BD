@@ -288,11 +288,20 @@ def translation_map():
     except Exception:
         pass
 
+    # Names verified in SyuanTsai's maintained Enhanced Descriptions name table.
+    maintained_curated = {
+        'cleave boost':'顺劈增幅',
+        'impact boost':'冲击增幅',
+        'critical chance boost':'暴击率增幅',
+        'ranged damage boost':'远程伤害增幅',
+    }
+    for en, zh in maintained_curated.items():
+        if en not in raw:
+            raw[en] = zh
+            TRANSLATION_SOURCE[en] = 'enhanced-translation-table'
+
+    # Fallbacks only where no maintained display-name entry was found.
     curated = {
-        'cleave boost':'顺劈提升',
-        'impact boost':'冲击提升',
-        'critical chance boost':'暴击率提升',
-        'ranged damage boost':'远程伤害提升',
         'melee damage boost':'近战伤害提升',
         'toughness boost':'韧性提升',
         'health boost':'生命提升',
