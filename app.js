@@ -10,7 +10,7 @@
 const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
-const STORE="darktide-bilingual-editor-gl6";
+const STORE="darktide-bilingual-editor-gl7";
 const TREE_TOP=174;
 
 const CAT={
@@ -22,6 +22,7 @@ const CAT={
   abilmod:{color:"#79a8c7",cn:"技能强化",en:"Ability modifier"},
   keystone:{color:"#d7b65a",cn:"关键节点",en:"Keystone"},
   keymod:{color:"#b89a52",cn:"关键强化",en:"Keystone modifier"},
+  stimm:{color:"#a7c95b",cn:"兴奋剂强化",en:"Stimm upgrade"},
   root:{color:"#d5d8dc",cn:"职业节点",en:"Class node"}
 };
 
@@ -94,10 +95,15 @@ const LOADOUT_FIELDS=[
 function blankLoadout(){
   return Object.fromEntries(LOADOUT_FIELDS.map(k=>[k,""]));
 }
+function baseClassKey(k=state.classKey){
+  const c=classByKey(k);
+  return c.parent||c.key;
+}
 function currentLoadout(){
   state.loadouts=state.loadouts||{};
-  state.loadouts[state.classKey]={...blankLoadout(),...(state.loadouts[state.classKey]||{})};
-  return state.loadouts[state.classKey];
+  const key=baseClassKey();
+  state.loadouts[key]={...blankLoadout(),...(state.loadouts[key]||{})};
+  return state.loadouts[key];
 }
 function captureLoadout(){
   if(!document.getElementById("meleeWeapon"))return;
@@ -115,7 +121,7 @@ function applyLoadout(){
   }
 }
 function renderGearSuggestions(){
-  const guide=GEAR_GUIDE[state.classKey]||{melee:[],ranged:[],curios:""};
+  const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
   const melee=$("#meleeSuggestions"),ranged=$("#rangedSuggestions");
   if(melee)melee.innerHTML=guide.melee.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
   if(ranged)ranged.innerHTML=guide.ranged.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
@@ -256,18 +262,50 @@ function restoreSelection(){
 function renderClassbar(){
   const bar=$("#classbar");
   bar.innerHTML="";
-  for(const c of DATA.classes){
+  const selectedBase=baseClassKey();
+  for(const c of DATA.classes.filter(x=>!x.parent)){
     const b=document.createElement("button");
     b.type="button";
-    b.className=c.key===state.classKey?"on":"";
+    b.className=c.key===selectedBase?"on":"";
     b.innerHTML=`<span>${c.cn}</span> · <span>${c.name}</span>`;
     b.onclick=()=>{
       saveSelection();
-      state.classKey=c.key;
       persist();
+      state.classKey=c.key;
+      hotSlug=null;
       renderAll(true);
     };
     bar.appendChild(b);
+  }
+}
+function renderSubtreeBar(){
+  const host=$("#subtreeStrip");
+  if(!host)return;
+  const base=baseClassKey();
+  if(base!=="hivescum"){
+    host.className="subtree-strip";
+    host.innerHTML="";
+    return;
+  }
+  const choices=[
+    DATA.classes.find(c=>c.key==="hivescum"),
+    DATA.classes.find(c=>c.key==="hivescum-stimm")
+  ].filter(Boolean);
+  host.className="subtree-strip show";
+  host.innerHTML="";
+  for(const c of choices){
+    const b=document.createElement("button");
+    b.type="button";
+    b.className=c.key===state.classKey?"on":"";
+    b.textContent=c.key==="hivescum"?"天赋树 · Talent Tree":"兴奋剂实验室 · Stimm Lab";
+    b.onclick=()=>{
+      saveSelection();
+      persist();
+      state.classKey=c.key;
+      hotSlug=null;
+      renderAll(true);
+    };
+    host.appendChild(b);
   }
 }
 function renderNode(svg,defs,n){
@@ -499,6 +537,7 @@ function centerTree(){
 }
 function renderAll(center=false){
   renderClassbar();
+  renderSubtreeBar();
   $("#buildName").value=state.name||"";
   $("#notes").value=state.notes||"";
   renderGearSuggestions();
@@ -653,7 +692,8 @@ function bind(){
   });
 }
 function selfCheck(){
-  if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.length<7) throw new Error("all seven class trees are not loaded");
+  if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.filter(c=>!c.parent).length<7) throw new Error("all seven class trees are not loaded");
+  if(!DATA.classes.find(c=>c.key==="hivescum-stimm")) throw new Error("Hive Scum Stimm Lab is not loaded");
   if(!DATA.icons||Object.keys(DATA.icons).length<50) throw new Error("talent icons are missing");
   if(!CUR||CUR.nodes.length<40) throw new Error("talent tree data is incomplete");
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
@@ -673,7 +713,7 @@ try{
   }
   selfCheck();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl6").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl7").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
