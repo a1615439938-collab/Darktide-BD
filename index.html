@@ -3,111 +3,96 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0d0f12">
+  <meta name="theme-color" content="#0b0d10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
-  <title>暗潮中英双语 BD 规划器</title>
+  <title>暗潮中英双语天赋树 BD 规划器</title>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>暗潮中英双语 BD 规划器</h1>
-    <div class="subtitle">Darktide Bilingual Build Planner · Mobile-first</div>
+<header class="top">
+  <div class="titlebox">
+    <div class="eyebrow">WARHAMMER 40,000 · DARKTIDE</div>
+    <h1>中英双语天赋树 BD 规划器</h1>
+    <div class="subtitle">Bilingual Talent Tree Build Planner · Depths of the Damned Future Update</div>
   </div>
+  <div class="points"><b id="pts">0 / 30</b><span>已用天赋点 / Points spent</span></div>
 </header>
 
-<main class="wrap">
-  <div id="runtimeWarning" class="card warning">
-    <b>交互功能尚未启动 / Interactive mode is not running</b>
-    <span>如果这里一直存在，说明网页脚本没有正常运行。</span>
-  </div>
+<main>
+  <section class="toolbar">
+    <div class="classbar" id="classbar"></div>
+    <div class="actions">
+      <button id="resetBtn">重置<br><small>Reset</small></button>
+      <button id="zoomOut">−</button>
+      <button id="zoomFit">适配<br><small>Fit</small></button>
+      <button id="zoomIn">＋</button>
+      <button id="saveBtn" class="primary">保存<br><small>Save</small></button>
+    </div>
+  </section>
 
-  <div class="card guide">
-    <b>使用方法 / How to use</b>
-    <span>1. 选择职业 / Choose a class</span>
-    <span>2. 点选天赋 / Select talents</span>
-    <span>3. 填写装备与珍品 / Add gear and curios</span>
-    <span>4. 保存或导出 / Save or export</span>
-  </div>
+  <section id="status" class="status">
+    正在载入 9 月 29 日未来更新天赋树… / Loading future-update talent tree…
+  </section>
 
-  <div class="card">
-    <div class="classes" id="classes"></div>
-    <label>BD 名称 <small>/ Build name</small></label>
-    <input id="name" placeholder="例如 / e.g. Havoc 40 指挥之声老兵">
-  </div>
+  <section class="tree-shell">
+    <div class="tree-scroll" id="treeScroll">
+      <svg id="treeSvg" role="img" aria-label="Darktide talent tree"></svg>
+    </div>
+  </section>
 
-  <nav class="tabs">
-    <button class="on" data-tab="tal">天赋<small>Talents</small></button>
-    <button data-tab="gear">装备<small>Gear</small></button>
-    <button data-tab="curio">珍品<small>Curios</small></button>
-    <button data-tab="sum">总览<small>Summary</small></button>
-  </nav>
+  <section class="legend">
+    <span><i class="passive"></i>普通天赋 / Passive</span>
+    <span><i class="blitz"></i>闪击 / Blitz</span>
+    <span><i class="aura"></i>光环 / Aura</span>
+    <span><i class="ability"></i>主动技能 / Ability</span>
+    <span><i class="keystone"></i>关键节点 / Keystone</span>
+  </section>
 
-  <section id="tal" class="on">
-    <div class="card">
-      <div class="stats">
-        <div class="stat"><b id="pts">0</b><small>已选 / 30 · Selected</small></div>
-        <div class="stat"><b id="major">0</b><small>核心选择 · Major</small></div>
+  <section class="card info-card">
+    <div class="info-head">
+      <div>
+        <div class="info-type" id="infoType">点击一个节点 / Tap a node</div>
+        <h2 id="infoCn">选择天赋查看详情</h2>
+        <div class="info-en" id="infoEn">Select a talent to view details</div>
       </div>
-      <label>搜索天赋 <small>/ Search talents</small></label>
-      <input id="search" placeholder="中文或 English">
-      <div class="talent-grid" id="talents"></div>
+      <div id="infoState" class="state-pill">—</div>
     </div>
-    <div class="card note">
-      <b>9 月 29 日预览版 / September 29 Preview</b>
-      <span>四个基础职业存在天赋树路径重排。本工具当前用于提前记录构筑选择；正式上线前请再核对新版树连线。</span>
-      <span>The four original classes receive talent-tree path changes. Re-check the final tree connections after the update launches.</span>
-    </div>
+    <p id="infoDesc" class="info-desc">点选与已点亮节点相连的天赋即可分配；取消上游节点时，会阻止造成后续路径断开的操作。</p>
+    <p class="source-note">树布局：Games Lantern 的 <b>Depths of the Damned · Future update</b>。中文译名来自社区词表并转为简体；未匹配到的节点会保留英文。效果说明作为参考，正式更新上线后仍应核对最终数值。</p>
   </section>
 
-  <section id="gear">
-    <div class="card">
-      <label>近战武器 <small>/ Melee weapon</small></label>
-      <input id="melee">
-      <label>近战祝福与词条 <small>/ Melee blessings & perks</small></label>
-      <input id="meleeInfo">
-      <label>远程武器 <small>/ Ranged weapon</small></label>
-      <input id="ranged">
-      <label>远程祝福与词条 <small>/ Ranged blessings & perks</small></label>
-      <input id="rangedInfo">
+  <section class="card build-card">
+    <div class="field">
+      <label>BD 名称 <small>/ Build name</small></label>
+      <input id="buildName" placeholder="例如：新版发号施令老兵 / New VoC Veteran">
     </div>
-  </section>
-
-  <section id="curio">
-    <div class="card" id="curios"></div>
-  </section>
-
-  <section id="sum">
-    <div class="card" id="summary"></div>
-    <div class="card">
-      <label>备注 <small>/ Notes</small></label>
-      <textarea id="notes"></textarea>
+    <div class="field">
+      <label>装备与备注 <small>/ Gear & notes</small></label>
+      <textarea id="notes" placeholder="记录武器、祝福、珍品、打法等…"></textarea>
+    </div>
+    <div class="share-row">
+      <button id="exportBtn">导出 BD 文本 / Export</button>
+      <button id="importBtn">导入 / Import</button>
     </div>
   </section>
 </main>
 
-<div class="bottom">
-  <button id="reset">重置<small>Reset</small></button>
-  <button id="share">导入 / 导出<small>Import / Export</small></button>
-  <button class="primary" id="save">保存<small>Save</small></button>
-</div>
-
-<dialog id="shareDialog">
+<dialog id="codeDialog">
   <form method="dialog" class="dialog-card">
-    <h2>导入 / 导出 BD <small>Import / Export</small></h2>
-    <textarea id="shareBox"></textarea>
+    <h2>BD 数据 <small>/ Build Data</small></h2>
+    <textarea id="codeBox"></textarea>
     <div class="dialog-actions">
-      <button type="button" id="copyShare">复制 / Copy</button>
-      <button type="button" id="importShare">导入 / Import</button>
+      <button type="button" id="copyBtn">复制 / Copy</button>
+      <button type="button" id="loadBtn">载入 / Load</button>
       <button value="close">关闭 / Close</button>
     </div>
-    <div id="shareStatus"></div>
+    <div id="dialogMsg"></div>
   </form>
 </dialog>
 
-<script src="./data.js"></script>
+<script src="./tree-data.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
