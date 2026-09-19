@@ -309,8 +309,6 @@ def translation_map():
         'damage boost':'伤害提升',
         'just getting started':'热身完毕',
         'vulture s mark':'兀鹫印记',
-        'potent tox':'强效毒素',
-        'kinetic energy distributors':'动能分配器',
     }
     for en, zh in curated.items():
         if en not in raw:
