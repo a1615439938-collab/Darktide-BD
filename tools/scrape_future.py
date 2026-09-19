@@ -52,7 +52,9 @@ def strip_tags(s):
 def clean_display_name(s):
     s = (s or '').strip()
     # Games Lantern stat-node slugs sometimes end in an opaque content hash.
-    s = re.sub(r'[ _-]+[A-Fa-f0-9]{8,}
+    s = re.sub(r'[ _-]+[A-Fa-f0-9]{8,}$', '', s).strip()
+    return s
+
 def img_attrs(tag):
     d = {}
     for k in ('x','y','width','height'):
