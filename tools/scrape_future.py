@@ -63,21 +63,26 @@ def extract_svg(svg,ig,rootkey):
         if 'square' in allh: shape='s'
         elif 'hex' in allh: shape='h'
         elif 'diamond' in allh: shape='d'
-        cat='passive'
+        cat='passive'; art=None
         for i in imgs:
             h=i['href']
             if f'/talents/{ig}/' in h:
                 mf=re.search(rf'/talents/{ig}/([^/]+)/',h)
                 cat=FOLDER_CAT.get(mf.group(1),'passive') if mf else 'passive'
                 x,y,w=i['x'],i['y'],i['width'] or w
+                art=h
                 break
-        if art:\n            icon_urls[slug]=art if art.startswith('http') else BASE+art\n        nodes.append({'s':slug,'slug':slug,'x':round(x+w/2),'y':round(y+w/2),'shape':shape,'cat':cat})
+        if art:
+            icon_urls[slug]=art if art.startswith('http') else BASE+art
+        nodes.append({'s':slug,'slug':slug,'x':round(x+w/2),'y':round(y+w/2),'shape':shape,'cat':cat})
     rootm=re.search(r'<image\b[^>]*?(?:xlink:href|href)="([^"]*?/talent_root/[^"]+)"[^>]*?/?>',svg,re.S)
     if rootm:
         ri=img_attrs(rootm.group(0))
         if ri['x'] is not None and ri['y'] is not None:
             rw=ri['width'] or 90
-            rurl=rootm.group(1)\n            icon_urls[rootkey]=rurl if rurl.startswith('http') else BASE+rurl\n            nodes.append({'s':rootkey,'slug':'','x':round(ri['x']+rw/2),'y':round(ri['y']+rw/2),'shape':'c','cat':'root'})
+            rurl=rootm.group(1)
+            icon_urls[rootkey]=rurl if rurl.startswith('http') else BASE+rurl
+            nodes.append({'s':rootkey,'slug':'','x':round(ri['x']+rw/2),'y':round(ri['y']+rw/2),'shape':'c','cat':'root'})
     edges=[]
     for lm in re.finditer(r'<line\b[^>]*>',svg):
         t=lm.group(0)
