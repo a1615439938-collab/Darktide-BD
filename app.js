@@ -733,19 +733,22 @@ function placePopover(n,focus=false){
     const header=document.querySelector(".site-head");
     const hb=header?header.getBoundingClientRect().bottom:0;
     const vv=window.visualViewport;
-    const vLeft=vv?vv.offsetLeft:0;
-    const vTop=vv?vv.offsetTop:0;
-    const vw=vv?vv.width:window.innerWidth;
+    const layoutW=document.documentElement.clientWidth||window.innerWidth;
+    const visualW=vv?vv.width:layoutW;
+    const vw=Math.min(layoutW,visualW,window.innerWidth||layoutW);
     const vh=vv?vv.height:window.innerHeight;
+    const vLeft=(vv&&visualW<layoutW)?vv.offsetLeft:0;
+    const vTop=vv?vv.offsetTop:0;
     const vRight=vLeft+vw;
     const vBottom=vTop+vh;
     const margin=10;
     const gap=12;
     const minTop=Math.max(vTop+margin,hb+margin);
 
-    // Keep the floating card inside the current visual viewport, including iOS browser chrome.
-    pop.style.maxWidth=Math.max(240,vw-20)+"px";
-    pop.style.width=Math.min(330,Math.max(240,vw-20))+"px";
+    // On phones, keep the card screen-centered and let the arrow point to the node.
+    // This is more stable than trying to center a wide card on edge nodes.
+    pop.style.maxWidth=Math.max(240,vw-2*margin)+"px";
+    pop.style.width=Math.min(330,Math.max(240,vw-2*margin))+"px";
 
     const natural=Math.min(pop.scrollHeight||430,430);
     const above=Math.max(0,nr.top-minTop-gap);
@@ -763,7 +766,9 @@ function placePopover(n,focus=false){
     const pw=pr.width;
     const ph=pr.height;
     const nodeX=nr.left+nr.width/2;
-    const left=Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
+    const left=vw<=620
+      ?vLeft+(vw-pw)/2
+      :Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
     const top=side==="above"
       ?Math.max(minTop,nr.top-gap-ph)
       :Math.min(vBottom-margin-ph,nr.bottom+gap);
@@ -1028,8 +1033,21 @@ function bind(){
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape")hideInfo();
   });
+  let popoverScrollRaf=0;
   addEventListener("scroll",()=>{
-    if(!$("#nodePopover").classList.contains("hidden"))hideInfo();
+    const card=$("#nodePopover");
+    const n=hotSlug?nodeMap[hotSlug]:null;
+    if(!card||card.classList.contains("hidden")||!n)return;
+    cancelAnimationFrame(popoverScrollRaf);
+    popoverScrollRaf=requestAnimationFrame(()=>{
+      const nr=nodeEls[n.s]?.getBoundingClientRect();
+      const hb=document.querySelector(".site-head")?.getBoundingClientRect().bottom||0;
+      if(!nr||nr.bottom<hb||nr.top>innerHeight){
+        hideInfo();
+      }else{
+        placePopover(n,false);
+      }
+    });
   },{passive:true});
 
   addEventListener("resize",()=>{
@@ -1082,8 +1100,11 @@ function runVisualPopoverTest(){
         const nodeX=nr.left+nr.width/2;
         const side=pop.dataset.side||"";
         const vv=window.visualViewport;
-        const vl=vv?vv.offsetLeft:0,vt=vv?vv.offsetTop:0;
-        const vr=vl+(vv?vv.width:innerWidth),vb=vt+(vv?vv.height:innerHeight);
+        const layoutW=document.documentElement.clientWidth||innerWidth;
+        const visualW=vv?vv.width:layoutW;
+        const safeW=Math.min(layoutW,visualW,innerWidth||layoutW);
+        const vl=(vv&&visualW<layoutW)?vv.offsetLeft:0,vt=vv?vv.offsetTop:0;
+        const vr=vl+safeW,vb=vt+(vv?vv.height:innerHeight);
         const relation=side==="above"?pr.bottom<=nr.top+16:pr.top>=nr.bottom-16;
         const insideX=pr.left>=vl+8&&pr.right<=vr-8;
         const insideY=pr.top>=Math.max(vt+6,headerBottom+6)&&pr.bottom<=vb-6;
@@ -1182,7 +1203,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl17").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl18").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
