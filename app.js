@@ -1308,8 +1308,11 @@ function runAutomatedSelfTest(){
     const statNode=CUR.nodes.find(n=>n.cat==="stat");
     if(statNode&&/[A-F0-9]{8,}$/i.test(displayTalentEn(statNode)))throw new Error("stat node internal id leaked");
 
-    const warp=CUR.nodes.find(n=>n.en==="Warp Expenditure");
-    if(!warp||!warp.descCn||!/[\u4e00-\u9fff]/.test(warp.descCn))throw new Error("Warp Expenditure Chinese description missing");
+    const warp=CUR.nodes.find(n=>displayTalentEn(n)==="Warp Expenditure");
+    if(!warp)throw new Error("Warp Expenditure node missing");
+    const warpPair=descriptionPair(warp);
+    if(!/[\u4e00-\u9fff]/.test(warpPair.cn||""))throw new Error("Warp Expenditure Chinese description missing");
+    if(warpPair.source==="paired-enhanced"&&!warpPair.en)throw new Error("paired enhanced English description missing");
     showInfo(warp,false);
     if(!/[\u4e00-\u9fff]/.test($("#infoCnDesc").textContent||""))throw new Error("Chinese description not rendered");
     if(/\n/.test($("#infoCnDesc").textContent||""))throw new Error("Chinese description still contains source line breaks");
