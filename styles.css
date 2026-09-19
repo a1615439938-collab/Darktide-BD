@@ -164,6 +164,7 @@ button{touch-action:manipulation}
 .effect-label-en{margin-top:8px;color:#8f9990}
 .effect-cn{font-size:12px;line-height:1.62;color:#f1f5ec;margin-top:0;white-space:normal}
 .effect-en{font-size:10.5px;line-height:1.58;color:#bcc5b8;margin-top:0;white-space:normal}
+.effect-source{font-size:8px;line-height:1.45;color:#879487;margin-top:5px}
 .vocab{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .vocab .v{
   font-size:8px;line-height:1.2;color:#d9e4d3;background:rgba(7,15,10,.42);
