@@ -10,7 +10,7 @@
 const DATA=window.TREE_DATA;
 const ICONS=(DATA&&DATA.icons)||{};
 const NS="http://www.w3.org/2000/svg";
-const STORE="darktide-bilingual-editor-gl4";
+const STORE="darktide-bilingual-editor-gl5";
 const TREE_TOP=174;
 
 const CAT={
@@ -27,9 +27,48 @@ const CAT={
 
 const EXCLUSIVE=new Set(["blitz","aura","ability","keystone"]);
 
+const GEAR_GUIDE={
+  veteran:{
+    melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk VI Power Sword"],
+    ranged:["M35 Magnacore Mk II Plasma Gun","Accatran Mk XIV Recon Lasgun"],
+    curios:"参考 / Reference: 3× 韧性 Toughness；词条优先韧性回复、技能冷却、枪手减伤 / Toughness Regen, Ability Regen, Gunner DR."
+  },
+  zealot:{
+    melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk X Relic Blade"],
+    ranged:["Artemia Mk III Purgation Flamer","Zarona Mk IIa Quickdraw Stub Revolver"],
+    curios:"参考 / Reference: 2–3× 韧性 Toughness；可混 1× 生命 Health。"
+  },
+  psyker:{
+    melee:["Maccabian Mk IV Duelling Sword","Covenant Mk VI Blaze Force Greatsword"],
+    ranged:["Rifthaven Mk II Inferno Force Staff","Equinox Mk IV Voidstrike Force Staff"],
+    curios:"参考 / Reference: 韧性 Toughness + 技能冷却 Ability Regen；按玩法补生命 / Health."
+  },
+  ogryn:{
+    melee:["Karsolas Mk II Delver's Pickaxe","Brute-Brainer Mk XIX Latrine Shovel"],
+    ranged:["Lorenz Mk VI Rumbler","Foe-Rend Mk V Ripper Gun"],
+    curios:"参考 / Reference: 生命 Health 与韧性 Toughness 混搭；枪手减伤 / Gunner DR."
+  },
+  arbites:{
+    melee:["Branx Mk III Arbites Shock Maul","Branx Mk VI Shock Maul & Suppression Shield"],
+    ranged:["Exaction Mk VIII Exterminator Shotgun","Godwyn-Branx Mk IV Bolt Pistol"],
+    curios:"参考 / Reference: 2× 韧性 Toughness + 1× 生命 Health；枪手减伤与技能冷却。"
+  },
+  skitarii:{
+    melee:["Branx Mk XI Paired Transonic Blades","Branx Mk III Arc Maul"],
+    ranged:["Branx Mk CV Galvanic Rifle","Branx Mk XI Phosphor Blast Pistol"],
+    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、枪手减伤。"
+  },
+  hivescum:{
+    melee:["Improvised Mk I Shivs","Enginseer's Mk VI Crowbar"],
+    ranged:["Branx MkVIII Dual Stub Pistols","Branx MkIII Dual Autopistols"],
+    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、耐力 / Stamina."
+  }
+};
+
 let state={
   classKey:"veteran",
   selected:{},
+  loadouts:{},
   name:"",
   notes:"",
   zoom:1
@@ -47,6 +86,42 @@ let hotSlug=null;
 
 const $=q=>document.querySelector(q);
 
+const LOADOUT_FIELDS=[
+  "meleeWeapon","meleeBlessing1","meleeBlessing2","meleePerk1","meleePerk2",
+  "rangedWeapon","rangedBlessing1","rangedBlessing2","rangedPerk1","rangedPerk2",
+  "curio1Main","curio1Perks","curio2Main","curio2Perks","curio3Main","curio3Perks"
+];
+function blankLoadout(){
+  return Object.fromEntries(LOADOUT_FIELDS.map(k=>[k,""]));
+}
+function currentLoadout(){
+  state.loadouts=state.loadouts||{};
+  state.loadouts[state.classKey]={...blankLoadout(),...(state.loadouts[state.classKey]||{})};
+  return state.loadouts[state.classKey];
+}
+function captureLoadout(){
+  if(!document.getElementById("meleeWeapon"))return;
+  const lo=currentLoadout();
+  for(const id of LOADOUT_FIELDS){
+    const el=document.getElementById(id);
+    if(el)lo[id]=el.value||"";
+  }
+}
+function applyLoadout(){
+  const lo=currentLoadout();
+  for(const id of LOADOUT_FIELDS){
+    const el=document.getElementById(id);
+    if(el)el.value=lo[id]||"";
+  }
+}
+function renderGearSuggestions(){
+  const guide=GEAR_GUIDE[state.classKey]||{melee:[],ranged:[],curios:""};
+  const melee=$("#meleeSuggestions"),ranged=$("#rangedSuggestions");
+  if(melee)melee.innerHTML=guide.melee.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
+  if(ranged)ranged.innerHTML=guide.ranged.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
+  if($("#curioHint"))$("#curioHint").textContent=guide.curios||"";
+}
+
 function load(){
   try{
     const raw=localStorage.getItem(STORE);
@@ -58,6 +133,7 @@ function persist(){
   const notes=$("#notes");
   if(name) state.name=name.value||"";
   if(notes) state.notes=notes.value||"";
+  captureLoadout();
   try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}
 }
 function classByKey(k){
@@ -425,6 +501,8 @@ function renderAll(center=false){
   renderClassbar();
   $("#buildName").value=state.name||"";
   $("#notes").value=state.notes||"";
+  renderGearSuggestions();
+  applyLoadout();
   hotSlug=null;
   buildTree();
   if(center)requestAnimationFrame(centerTree);
@@ -438,7 +516,8 @@ function exportData(){
     classKey:state.classKey,
     selected:state.selected,
     name:state.name,
-    notes:state.notes
+    notes:state.notes,
+    loadouts:state.loadouts
   },null,2);
 }
 function importData(txt){
@@ -450,6 +529,7 @@ function importData(txt){
   state.selected=x.selected||{};
   state.name=x.name||"";
   state.notes=x.notes||"";
+  state.loadouts=x.loadouts||state.loadouts||{};
   persist();
   renderAll(false);
 }
@@ -487,6 +567,10 @@ function bind(){
   };
   $("#buildName").oninput=()=>{state.name=$("#buildName").value;persist();};
   $("#notes").oninput=()=>{state.notes=$("#notes").value;persist();};
+  for(const id of LOADOUT_FIELDS){
+    const el=document.getElementById(id);
+    if(el)el.addEventListener("input",persist);
+  }
 
   $("#exportBtn").onclick=()=>{
     $("#codeBox").value=exportData();
@@ -522,12 +606,13 @@ function bind(){
   addEventListener("resize",()=>{applyZoom();requestAnimationFrame(centerTree);});
 }
 function selfCheck(){
-  if(!DATA||!Array.isArray(DATA.classes)||!DATA.classes.length) throw new Error("tree-data.js not loaded");
+  if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.length<7) throw new Error("all seven class trees are not loaded");
   if(!DATA.icons||Object.keys(DATA.icons).length<50) throw new Error("talent icons are missing");
   if(!CUR||CUR.nodes.length<40) throw new Error("talent tree data is incomplete");
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
   if(!$("#nodePopover")) throw new Error("node popover is missing");
+  if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
 }
 
 try{
@@ -536,7 +621,7 @@ try{
   renderAll(false);
   selfCheck();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl4").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl5").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
