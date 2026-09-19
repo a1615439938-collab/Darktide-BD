@@ -30,6 +30,7 @@ FOLDER_CAT = {
     'aura':'aura',
     'tactical':'blitz',
     'default':'passive',
+    'broker_stimm':'stimm',
 }
 
 def get(url, binary=False, tries=3):
@@ -244,6 +245,45 @@ for cl in CLASSES:
         'edges': edges,
     })
     all_icon_urls.update(icon_urls)
+
+# Hive Scum has a second future-patch tree: the Stimm Lab.
+hive_page = get(BASE + '/classes/hive-scum')
+hive_svgs = pick_tree_svgs(hive_page) if hive_page else []
+if len(hive_svgs) >= 4:
+    stimm_nodes, stimm_raw_edges, stimm_icons = extract_svg(
+        hive_svgs[3], 'broker', 'root-brokerstimm'
+    )
+    stimm_edges = []
+    for x1, y1, x2, y2 in stimm_raw_edges:
+        a = nearest(stimm_nodes, x1, y1)
+        b = nearest(stimm_nodes, x2, y2)
+        if a and b and a['s'] != b['s']:
+            pair = [a['s'], b['s']]
+            if pair not in stimm_edges and pair[::-1] not in stimm_edges:
+                stimm_edges.append(pair)
+    if stimm_nodes:
+        xs = [n['x'] for n in stimm_nodes]
+        ys = [n['y'] for n in stimm_nodes]
+        pad = 70
+        for n in stimm_nodes:
+            if n['slug']:
+                all_slugs.add(n['slug'].split('/')[-1])
+        classes.append({
+            'key':'hivescum-stimm',
+            'name':'Hive Scum — Stimm Lab',
+            'cn':'巢都渣滓 — 兴奋剂实验室',
+            'ig':'broker',
+            'page':'hive-scum',
+            'parent':'hivescum',
+            'subLabel':'Stimm Lab',
+            'subLabelCn':'兴奋剂实验室',
+            'budget':30,
+            'viewbox':[min(xs)-pad,min(ys)-pad,max(xs)-min(xs)+2*pad,max(ys)-min(ys)+2*pad],
+            'nodes':stimm_nodes,
+            'edges':stimm_edges,
+        })
+        all_icon_urls.update(stimm_icons)
+        print('Hive Scum Stimm Lab selected future tree', len(stimm_nodes), 'nodes', len(stimm_edges), 'edges')
 
 DESC = {}
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
