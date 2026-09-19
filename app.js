@@ -1153,21 +1153,23 @@ function selfCheck(){
 
 function runVisualPopoverTest(){
   if(!VISUAL_POPOVER_TEST)return;
-  setTimeout(()=>{
-    try{
-      const candidate=CUR.nodes
-        .filter(n=>n.cat!=="root"&&n.desc)
-        .sort((a,b)=>a.y-b.y)[0]
-        ||CUR.nodes.find(n=>n.cat!=="root");
-      if(!candidate)return;
-      const node=nodeEls[candidate.s];
-      const before=node.getBoundingClientRect().top;
-      hotSlug=candidate.s;
-      redraw();
-      showInfo(candidate,false);
-      setTimeout(()=>{
+  try{
+    const candidate=CUR.nodes
+      .filter(n=>n.cat!=="root"&&n.desc)
+      .sort((a,b)=>a.y-b.y)[0]
+      ||CUR.nodes.find(n=>n.cat!=="root");
+    if(!candidate)throw new Error("no visual-test candidate");
+    const node=nodeEls[candidate.s];
+    const before=node.getBoundingClientRect().top;
+    hotSlug=candidate.s;
+    redraw();
+    showInfo(candidate,false);
+    document.body.dataset.visualTestStarted="true";
+
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      try{
         const pop=$("#nodePopover");
-        if(!pop||!node)return;
+        if(!pop||!node)throw new Error("popover or node missing");
         const pr=pop.getBoundingClientRect();
         const nr=node.getBoundingClientRect();
         const headerBottom=document.querySelector(".site-head").getBoundingClientRect().bottom;
@@ -1197,11 +1199,14 @@ function runVisualPopoverTest(){
         document.body.dataset.popoverTop=String(Math.round(pr.top));
         document.body.dataset.popoverBottom=String(Math.round(pr.bottom));
         document.body.dataset.headerBottom=String(Math.round(headerBottom));
-      },120);
-    }catch(e){
-      document.body.dataset.popoverVisualError=String(e.message||e);
-    }
-  },150);
+        document.body.dataset.visualTestDone="true";
+      }catch(e){
+        document.body.dataset.popoverVisualError=String(e.message||e);
+      }
+    }));
+  }catch(e){
+    document.body.dataset.popoverVisualError=String(e.message||e);
+  }
 }
 
 function runAutomatedSelfTest(){
@@ -1289,7 +1294,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl20").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl21").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
