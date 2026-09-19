@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Audit version: 7
+# Audit version: 8
 import json, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -231,6 +231,33 @@ print("\nSAMPLES")
 for x in issues[:260]:
     print(json.dumps(x, ensure_ascii=False))
 
+missing_unique_map = {}
+for x in issues:
+    if x["kind"] != "missing_renderable_cn_pair":
+        continue
+    node = next((n for t,n in all_nodes if t.get("patch")==x["patch"] and t.get("key")==x["class"] and n.get("s")==x["node"]), None)
+    if not node:
+        continue
+    en = (node.get("en") or "").strip()
+    desc = (node.get("desc") or "").strip()
+    key = (en, desc)
+    item = missing_unique_map.setdefault(key, {
+        "en": en,
+        "cn_name": (node.get("cn") or "").strip(),
+        "desc": desc,
+        "cat": node.get("cat",""),
+        "classes": set(),
+        "patches": set(),
+    })
+    item["classes"].add(x["class"])
+    item["patches"].add(x["patch"])
+missing_unique = []
+for item in missing_unique_map.values():
+    item["classes"] = sorted(item["classes"])
+    item["patches"] = sorted(item["patches"])
+    missing_unique.append(item)
+missing_unique.sort(key=lambda x:(x["cat"],x["en"],x["desc"]))
+
 report = {
     "audited_nodes": len(all_nodes),
     "renderable_cn_pairs": renderable,
@@ -238,6 +265,7 @@ report = {
     "advanced_cn_pairs": advanced_pairs,
     "severity_counts": dict(sev),
     "category_counts": {f"{s}:{k}": v for (s, k), v in counts.items()},
+    "missing_unique": missing_unique,
     "issues": issues,
 }
 Path("text-audit.json").write_text(
