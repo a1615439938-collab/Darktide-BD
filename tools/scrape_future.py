@@ -105,7 +105,7 @@ def translation_map():
     text=get(url) or ''
     out={}
     for line in text.splitlines():
-        m=re.match(r'\s*\*\s+(.+?)\s+-\s+(.+?)\s*$',line)
+        m=re.match(r'\s*[-*]\s+(.+?)\s+-\s+(.+?)\s*$',line)
         if m:
             en=m.group(1).strip().strip('*_ ')
             zh=m.group(2).strip().strip('*_ ')
