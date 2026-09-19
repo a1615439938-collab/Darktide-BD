@@ -1,0 +1,11 @@
+{
+  "name":"暗潮中英双语 BD 规划器",
+  "short_name":"暗潮 BD",
+  "description":"Warhammer 40,000: Darktide bilingual build planner.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#0d0f12",
+  "theme_color":"#0d0f12",
+  "lang":"zh-CN"
+}
