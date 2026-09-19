@@ -352,3 +352,26 @@ html.desktop-input .build-panel{max-width:980px;margin-left:auto;margin-right:au
   overflow-wrap:anywhere
 }
 html.desktop-input .provenance{font-size:8px}
+
+
+/* Simplified talent tooltip: show only talent names + CN/EN descriptions. */
+.node-popover .popover-type,
+.node-popover .state,
+.node-popover .effect-label,
+.node-popover .effect-source,
+.node-popover .mechanics-note,
+.node-popover .provenance,
+.node-popover .vocab{
+  display:none!important;
+}
+.node-popover .popover-head{
+  display:block;
+}
+.node-popover .effect-cn{
+  margin-top:12px;
+}
+.node-popover .effect-en{
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px solid rgba(191,213,176,.18);
+}
