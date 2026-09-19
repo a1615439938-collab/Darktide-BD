@@ -11,6 +11,7 @@ import re
 import urllib.request
 
 BASE = "https://raw.githubusercontent.com/xsSplater/Darktide_Enhanced_Descriptions_BETA/xss0/"
+SYUAN_BASE = "https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/Warhammer%2040%2C000%20DARKTIDE/mods/Enhanced_descriptions/"
 FILES = [
     "Main_Modules/TALENTS_Modular.lua",
     "Main_Modules/TALENTS/TALENTS_Veteran.lua",
@@ -82,9 +83,9 @@ def _clean_expr(expr, phrases=None):
     text = re.sub(r"•\s*•\s*", "• ", text)
     return text.strip()
 
-def _load_phrases(path):
+def _load_phrases(path, base=BASE):
     try:
-        src = get(BASE + path)
+        src = get(base + path)
     except Exception:
         return {}
     out = {}
@@ -267,15 +268,15 @@ def _pair_safe(en, zh):
     # be supplied by a localization helper on only one side. Compare magnitudes.
     return _number_magnitudes(en) == _number_magnitudes(zh)
 
-def load_bilingual_descriptions():
-    en_phrases = _load_phrases(PHRASES_EN)
-    zh_phrases = _load_phrases(PHRASES_ZH)
-    zh_tw_phrases = _load_phrases(PHRASES_ZH_TW)
+def _load_bilingual_descriptions_from(base, source_name):
+    en_phrases = _load_phrases(PHRASES_EN, base)
+    zh_phrases = _load_phrases(PHRASES_ZH, base)
+    zh_tw_phrases = _load_phrases(PHRASES_ZH_TW, base)
     out = {}
     details = {}
     for path in FILES:
         try:
-            src = get(BASE + path)
+            src = get(base + path)
         except Exception:
             continue
         headers = list(
@@ -331,7 +332,7 @@ def load_bilingual_descriptions():
                     "unpaired_cn": unpaired_cn,
                     "pairValid": bool(safe_en and safe_cn),
                     "zhSource": "+".join(sorted(set(zh_sources))) if zh_sources else "",
-                    "source": path,
+                    "source": source_name + ":" + path,
                 }
                 if not any((record["en"], record["cn"], record["unpaired_en"], record["unpaired_cn"])):
                     continue
@@ -340,8 +341,14 @@ def load_bilingual_descriptions():
                 old_score = len(old.get("en", "")) + len(old.get("cn", "")) if old else -1
                 if score > old_score:
                     out[key] = record
-                    details[key] = {"name": name, "source": path}
+                    details[key] = {"name": name, "source": source_name + ":" + path}
     return out, details
+
+def load_bilingual_descriptions():
+    return _load_bilingual_descriptions_from(BASE, "xsSplater")
+
+def load_syuantsai_descriptions():
+    return _load_bilingual_descriptions_from(SYUAN_BASE, "SyuanTsai")
 
 def load_chinese_descriptions():
     pairs, details = load_bilingual_descriptions()
