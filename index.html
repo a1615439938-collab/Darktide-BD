@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d0f12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="暗潮 BD">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>暗潮中英双语 BD 规划器</title>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>暗潮中英双语 BD 规划器</h1>
+    <div class="subtitle">Darktide Bilingual Build Planner · Mobile-first</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="runtimeWarning" class="card warning">
+    <b>交互功能尚未启动 / Interactive mode is not running</b>
+    <span>如果这里一直存在，说明网页脚本没有正常运行。</span>
+  </div>
+
+  <div class="card guide">
+    <b>使用方法 / How to use</b>
+    <span>1. 选择职业 / Choose a class</span>
+    <span>2. 点选天赋 / Select talents</span>
+    <span>3. 填写装备与珍品 / Add gear and curios</span>
+    <span>4. 保存或导出 / Save or export</span>
+  </div>
+
+  <div class="card">
+    <div class="classes" id="classes"></div>
+    <label>BD 名称 <small>/ Build name</small></label>
+    <input id="name" placeholder="例如 / e.g. Havoc 40 指挥之声老兵">
+  </div>
+
+  <nav class="tabs">
+    <button class="on" data-tab="tal">天赋<small>Talents</small></button>
+    <button data-tab="gear">装备<small>Gear</small></button>
+    <button data-tab="curio">珍品<small>Curios</small></button>
+    <button data-tab="sum">总览<small>Summary</small></button>
+  </nav>
+
+  <section id="tal" class="on">
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><b id="pts">0</b><small>已选 / 30 · Selected</small></div>
+        <div class="stat"><b id="major">0</b><small>核心选择 · Major</small></div>
+      </div>
+      <label>搜索天赋 <small>/ Search talents</small></label>
+      <input id="search" placeholder="中文或 English">
+      <div class="talent-grid" id="talents"></div>
+    </div>
+    <div class="card note">
+      <b>9 月 29 日预览版 / September 29 Preview</b>
+      <span>四个基础职业存在天赋树路径重排。本工具当前用于提前记录构筑选择；正式上线前请再核对新版树连线。</span>
+      <span>The four original classes receive talent-tree path changes. Re-check the final tree connections after the update launches.</span>
+    </div>
+  </section>
+
+  <section id="gear">
+    <div class="card">
+      <label>近战武器 <small>/ Melee weapon</small></label>
+      <input id="melee">
+      <label>近战祝福与词条 <small>/ Melee blessings & perks</small></label>
+      <input id="meleeInfo">
+      <label>远程武器 <small>/ Ranged weapon</small></label>
+      <input id="ranged">
+      <label>远程祝福与词条 <small>/ Ranged blessings & perks</small></label>
+      <input id="rangedInfo">
+    </div>
+  </section>
+
+  <section id="curio">
+    <div class="card" id="curios"></div>
+  </section>
+
+  <section id="sum">
+    <div class="card" id="summary"></div>
+    <div class="card">
+      <label>备注 <small>/ Notes</small></label>
+      <textarea id="notes"></textarea>
+    </div>
+  </section>
+</main>
+
+<div class="bottom">
+  <button id="reset">重置<small>Reset</small></button>
+  <button id="share">导入 / 导出<small>Import / Export</small></button>
+  <button class="primary" id="save">保存<small>Save</small></button>
+</div>
+
+<dialog id="shareDialog">
+  <form method="dialog" class="dialog-card">
+    <h2>导入 / 导出 BD <small>Import / Export</small></h2>
+    <textarea id="shareBox"></textarea>
+    <div class="dialog-actions">
+      <button type="button" id="copyShare">复制 / Copy</button>
+      <button type="button" id="importShare">导入 / Import</button>
+      <button value="close">关闭 / Close</button>
+    </div>
+    <div id="shareStatus"></div>
+  </form>
+</dialog>
+
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
