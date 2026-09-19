@@ -338,6 +338,22 @@ FUTURE_PREVIEW_CN = {
     name_key('Focused Warp'):'亚空间伤害+15%。',
     name_key('Peril Equilibrium'):'非亚空间的近战或远程攻击命中时，每次产生2%反噬；通过此效果最多累积至75%。',
     name_key('Psykinetic Grip'):'颅脑崩裂、惩戒与灵能攻击的伤害+20%。',
+    name_key('Kinetic Repulsion'):'“整合型艾曼纳图斯力场”激活期间，每次受到的生命值伤害最多为50。',
+}
+
+FUTURE_PREVIEW_EN = {
+    name_key('Found Some More'):'Replenish 1% Ammo every 15s.',
+    name_key('Zealous Pilgrim'):'Using your Ability grants 5s of Unkillable. Shroudfield: starts on leaving Stealth; Chorus of Spiritual Fortitude: starts on unwielding the relic; Chastise the Wicked / Fury of the Faithful: on ability use.',
+    name_key('Fire and Fury'):'While Unkillable, weapon attacks apply Burn (up to 12 stacks). Melee attacks apply 3 stacks.',
+    name_key('Risen'):'While Unkillable, each second, gain +5 Max Toughness, stacking 8 times, lasting 5 seconds.',
+    name_key('Got Your Back'):'Killing an enemy that is targeting an ally, with a melee attack, restores 7.5% Toughness to that ally and an additional 5% to yourself.',
+    name_key('Holy Tools'):'+20% Damage on your next Melee Attack, within 5s after activating your Weapon Special.',
+    name_key('Wait in Line'):'-20% damage taken from ranged attacks.',
+    name_key('Purifying Hatred'):'+15% damage vs Burning or Electrocuted enemies.',
+    name_key('Focused Warp'):'+15% Warp damage.',
+    name_key('Peril Equilibrium'):'Non-Warp melee/ranged hits generate Peril up to 75% by 2% per hit.',
+    name_key('Psykinetic Grip'):'+20% damage for Brain Rupture, Smite, and Assail.',
+    name_key('Kinetic Repulsion'):'Limit all Health Damage Taken while Integrated Refraction Emitter is active to 50.',
 }
 
 future_classes = []
@@ -457,6 +473,9 @@ def attach_info(trees):
                     n['cn'] = en + '（兴奋剂配方）'
                 n['type'] = info.get('t','')
                 n['desc'] = info.get('d','')
+                future_en = FUTURE_PREVIEW_EN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
+                if not n['desc'] and future_en:
+                    n['desc'] = future_en
                 pair = BI_DESC.get(normalize_name(en), {})
                 pair_en = pair.get('en','')
                 pair_cn = pair.get('cn','')
@@ -477,6 +496,10 @@ def attach_info(trees):
                 pair_safe = safe_paired_text(pair_en, pair_cn)
                 n['advancedEn'] = pair_en if pair_safe else ''
                 n['advancedCn'] = pair_cn if pair_safe else ''
+                if not n['desc'] and n.get('cat') == 'stat':
+                    n['desc'] = f"{en}. Exact stat value is not available from the current preview data source."
+                    n['descCn'] = f"{n['cn']}。当前预览数据源未提供可靠的具体数值。"
+                    n['descSource'] = 'stat-source-missing'
             n.pop('slug', None)
 
 attach_info(future_classes)
