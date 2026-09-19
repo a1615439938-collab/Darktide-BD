@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import re, json, html as htmllib, urllib.request, concurrent.futures, os, sys
+import re, json, html as htmllib, urllib.request, concurrent.futures, os, sys, base64
 from pathlib import Path
 
 UA={'User-Agent':'Mozilla/5.0 (Darktide-BD bilingual planner)'}
@@ -71,13 +71,13 @@ def extract_svg(svg,ig,rootkey):
                 cat=FOLDER_CAT.get(mf.group(1),'passive') if mf else 'passive'
                 x,y,w=i['x'],i['y'],i['width'] or w
                 break
-        nodes.append({'s':slug,'slug':slug,'x':round(x+w/2),'y':round(y+w/2),'shape':shape,'cat':cat})
+        if art:\n            icon_urls[slug]=art if art.startswith('http') else BASE+art\n        nodes.append({'s':slug,'slug':slug,'x':round(x+w/2),'y':round(y+w/2),'shape':shape,'cat':cat})
     rootm=re.search(r'<image\b[^>]*?(?:xlink:href|href)="([^"]*?/talent_root/[^"]+)"[^>]*?/?>',svg,re.S)
     if rootm:
         ri=img_attrs(rootm.group(0))
         if ri['x'] is not None and ri['y'] is not None:
             rw=ri['width'] or 90
-            nodes.append({'s':rootkey,'slug':'','x':round(ri['x']+rw/2),'y':round(ri['y']+rw/2),'shape':'c','cat':'root'})
+            rurl=rootm.group(1)\n            icon_urls[rootkey]=rurl if rurl.startswith('http') else BASE+rurl\n            nodes.append({'s':rootkey,'slug':'','x':round(ri['x']+rw/2),'y':round(ri['y']+rw/2),'shape':'c','cat':'root'})
     edges=[]
     for lm in re.finditer(r'<line\b[^>]*>',svg):
         t=lm.group(0)
@@ -86,7 +86,7 @@ def extract_svg(svg,ig,rootkey):
             return round(float(m.group(1))) if m else None
         vals=[gv('x1'),gv('y1'),gv('x2'),gv('y2')]
         if None not in vals: edges.append(vals)
-    return nodes,edges
+    return nodes,edges,icon_urls
 
 TYPE_RE=re.compile(r'text-\[#707d67\][^>]*>\s*<div>([^<]+)</div>')
 NAME_RE=re.compile(r'text-\[#d7e4ce\][^"]*text-lg[^"]*">([^<]+)<')
@@ -134,7 +134,7 @@ for cl in CLASSES:
     print(cl['name'],'candidate trees',len(svgs))
     if not svgs: raise SystemExit('No talent tree SVGs for '+cl['name'])
     idx=1 if cl['future'] and len(svgs)>1 else 0
-    nodes,raw_edges=extract_svg(svgs[idx],cl['ig'],f'root-{cl["ig"]}')
+    nodes,raw_edges,icon_urls=extract_svg(svgs[idx],cl['ig'],f'root-{cl["ig"]}')
     for n in nodes:
         if n['slug']:all_slugs.add(n['slug'].split('/')[-1])
     edges=[]
@@ -146,13 +146,29 @@ for cl in CLASSES:
     xs=[n['x'] for n in nodes];ys=[n['y'] for n in nodes]
     pad=75
     classes.append({**cl,'budget':30,'viewbox':[min(xs)-pad,min(ys)-pad,max(xs)-min(xs)+pad*2,max(ys)-min(ys)+pad*2],
-                    'nodes':nodes,'edges':edges})
+                    'nodes':nodes,'edges':edges,'icon_urls':icon_urls})
 
 DESC={}
 with concurrent.futures.ThreadPoolExecutor(max_workers=18) as ex:
     for slug,info in ex.map(fetch_desc,sorted(all_slugs)):
         DESC[slug]=info
 TR=translation_map()
+
+# Download in-game talent icons used by the future tree.
+all_icons={}
+for cl in classes:
+    all_icons.update(cl.get('icon_urls',{}))
+def dl_icon(item):
+    key,url=item
+    b=get(url,binary=True)
+    if not b: return key,None
+    return key,'data:image/webp;base64,'+base64.b64encode(b).decode()
+ICONS={}
+with concurrent.futures.ThreadPoolExecutor(max_workers=18) as ex:
+    for key,uri in ex.map(dl_icon,all_icons.items()):
+        if uri: ICONS[key]=uri
+print('icons downloaded',len(ICONS),'of',len(all_icons))
+
 for cl in classes:
     for n in cl['nodes']:
         if n['cat']=='root':
@@ -166,6 +182,6 @@ for cl in classes:
             n['en']=en;n['cn']=TR.get(en,en);n['type']=info.get('t','');n['desc']=info.get('d','')
         n.pop('slug',None)
 
-out={'version':'Depths of the Damned Future update','source':'Games Lantern','generated_by':'tools/scrape_future.py','classes':classes}
+for cl in classes: cl.pop('icon_urls',None)\nout={'version':'Depths of the Damned Future update','source':'Games Lantern','generated_by':'tools/scrape_future.py','classes':classes,'icons':ICONS}
 Path('tree-data.js').write_text('window.TREE_DATA='+json.dumps(out,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf-8')
 print('WROTE tree-data.js',os.path.getsize('tree-data.js'))
