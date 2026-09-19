@@ -91,22 +91,55 @@ function looksLikeEnhancedMismatch(n){
   // Extra numeric mechanics usually means the Chinese text came from an enhanced-description layer.
   return extra>=2;
 }
-function getChineseDescription(n){
+function descriptionPair(n){
   const enName=displayTalentEn(n);
-  if(TALENT_CN_OVERRIDES[enName])return TALENT_CN_OVERRIDES[enName];
-  if(n.descCn&&!looksLikeEnhancedMismatch(n)){
-    return formatChineseDescription(stripGameMarkup(n.descCn));
+  const fallbackEn=n.desc||(n.cat==="stat"
+    ?"Stat node. Exact preview value is not available from the current data source."
+    :"No reliable preview effect text is available for this node yet.");
+  const baseEn=formatEnglishDescription(stripGameMarkup(fallbackEn));
+
+  if(TALENT_CN_OVERRIDES[enName]){
+    return {cn:TALENT_CN_OVERRIDES[enName],en:baseEn,source:"curated-base"};
   }
-  if(n.desc){
-    return formatChineseDescription(translateEffectFallback(n.desc));
+  if(n.descCn&&!looksLikeEnhancedMismatch(n)){
+    return {
+      cn:formatChineseDescription(stripGameMarkup(n.descCn)),
+      en:baseEn,
+      source:n.descSource||"base-aligned"
+    };
+  }
+  if(n.advancedCn&&n.advancedEn){
+    return {
+      cn:formatChineseDescription(stripGameMarkup(n.advancedCn)),
+      en:formatEnglishDescription(stripGameMarkup(n.advancedEn)),
+      source:"paired-enhanced"
+    };
   }
   if(n.cat==="stat"){
     const cn=displayTalentCn(n);
-    return cn&&cn!==displayTalentEn(n)
-      ?cn+"。具体数值暂未从预览数据源可靠读取。"
-      :"该属性节点的具体数值暂未从预览数据源可靠读取。";
+    return {
+      cn:cn&&cn!==displayTalentEn(n)
+        ?cn+"。具体数值暂未从预览数据源可靠读取。"
+        :"该属性节点的具体数值暂未从预览数据源可靠读取。",
+      en:baseEn,
+      source:"stat-fallback"
+    };
   }
-  return "暂无可靠的简中预览效果说明。";
+  if(n.desc){
+    return {
+      cn:"暂无与英文原文可靠对应的简中说明，请参考下方英文原文。",
+      en:baseEn,
+      source:"english-only"
+    };
+  }
+  return {
+    cn:"暂无可靠的简中预览效果说明。",
+    en:baseEn,
+    source:"missing"
+  };
+}
+function getChineseDescription(n){
+  return descriptionPair(n).cn;
 }
 
 function formatChineseDescription(text){
@@ -740,15 +773,28 @@ function showInfo(n,focus=false){
   else if(!active.has(n.s))stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
   $("#infoState").textContent=stateText;
 
-  $("#infoCnDesc").textContent=getChineseDescription(n);
-  $("#infoDesc").textContent=formatEnglishDescription(
-    n.desc||(n.cat==="stat"
-      ?"Stat node. Exact preview value is not available from the current data source."
-      :"No reliable preview effect text is available for this node yet.")
-  );
+  const pair=descriptionPair(n);
+  $("#infoCnDesc").textContent=pair.cn;
+  $("#infoDesc").textContent=pair.en;
+  const cnLabel=$("#infoCnLabel"),enLabel=$("#infoEnLabel"),source=$("#infoSource");
+  if(pair.source==="paired-enhanced"){
+    if(cnLabel)cnLabel.textContent="中文详细机制 / Chinese enhanced";
+    if(enLabel)enLabel.textContent="英文详细机制 / English enhanced";
+    if(source)source.textContent="成对的社区维护详细机制说明；中英文来自同一说明层。 / Paired community-maintained mechanics.";
+  }else if(pair.source==="fatshark-preview-zh"){
+    if(cnLabel)cnLabel.textContent="中文说明（更新预览） / Chinese preview";
+    if(enLabel)enLabel.textContent="英文原文 / English";
+    if(source)source.textContent="简中依据更新预览译文，并与当前英文数值核对。 / Preview translation checked against current numeric values.";
+  }else{
+    if(cnLabel)cnLabel.textContent="中文说明 / Chinese";
+    if(enLabel)enLabel.textContent="英文原文 / English";
+    if(source)source.textContent=pair.source==="english-only"
+      ?"当前没有可靠的一一对应简中来源，因此不再显示自动拼接翻译。 / No reliable one-to-one Chinese source; automatic word-substitution translation is suppressed."
+      :"";
+  }
   const vocab=$("#infoVocab");
   if(vocab){
-    const text=n.desc||"";
+    const text=pair.en||n.desc||"";
     const matches=[];
     const seen=new Set();
     for(const [en,cn] of VOCAB){
