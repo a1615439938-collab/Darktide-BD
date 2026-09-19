@@ -785,6 +785,10 @@ function showInfo(n,focus=false){
     if(cnLabel)cnLabel.textContent="中文说明（更新预览） / Chinese preview";
     if(enLabel)enLabel.textContent="英文原文 / English";
     if(source)source.textContent="简中依据更新预览译文，并与当前英文数值核对。 / Preview translation checked against current numeric values.";
+  }else if(pair.source==="manual-reviewed"){
+    if(cnLabel)cnLabel.textContent="中文说明（人工复核） / Chinese reviewed";
+    if(enLabel)enLabel.textContent="英文原文 / English";
+    if(source)source.textContent="逐条对照英文原文人工复核；数值由自动审计再次校验。 / Manually reviewed against the English source; mechanics numbers are re-checked automatically.";
   }else{
     if(cnLabel)cnLabel.textContent="中文说明 / Chinese";
     if(enLabel)enLabel.textContent="英文原文 / English";
