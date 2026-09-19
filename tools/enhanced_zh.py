@@ -93,7 +93,7 @@ def _params_from_block(block):
     if not m:
         return {}
     out={}
-    for k,v in re.findall(r"([A-Za-z0-9_]+)\s*:\s*([^,]+)",m.group(1)):
+    for k,v in re.findall(r"!?([A-Za-z0-9_]+)!?\s*:\s*([^,]+)",m.group(1)):
         v=v.strip()
         if v and not v.startswith("{"):
             out[k]=v
@@ -116,7 +116,79 @@ def _extract_zh(block, phrases):
     text=_clean_expr(m.group(1),phrases)
     text=_fill_params(text,_params_from_block(block))
     text=text.replace(" 。","。").replace(" ，","，").replace(" %","%")
+    return _sanitize_zh(text)
+
+def _header_name(label):
+    label=(label or "").strip()
+    # Newer files sometimes use bilingual headers such as:
+    # PASSIVES - ПАССИВНЫЙ - 42 - Ablative Motion Routines - Процедуры ...
+    # Capture the English title after the numeric slot and before the Cyrillic gloss.
+    m=re.search(r'(?:^| - )\\d+(?:-\\d+)* - (.+?)(?: - [\\u0400-\\u04FF].*)?
+    phrases=_load_phrases()
+    out={}
+    details={}
+    for path in FILES:
+        try:
+            src=get(BASE+path)
+        except Exception:
+            continue
+        headers=list(re.finditer(r"^\s*--\[\+\s*(.*?)\s*\+\]--[^\n]*",src,re.M))
+        for i,h in enumerate(headers):
+            label=h.group(1).strip()
+            name=_header_name(label)
+            if not name or name.startswith("+"):
+                continue
+            end=headers[i+1].start() if i+1<len(headers) else len(src)
+            block=src[h.end():end]
+            zh=_extract_zh(block,phrases)
+            if not zh or _has_unresolved_runtime_markup(zh):
+                continue
+            key=normalize_name(name)
+            if not key:
+                continue
+            # Prefer the longer maintained description if duplicate headings exist.
+            if key not in out or len(zh)>len(out[key]):
+                out[key]=zh
+                details[key]={"name":name,"source":path}
+    return out,details
+
+if __name__=="__main__":
+    m,_=load_chinese_descriptions()
+    print("Chinese descriptions:",len(m))
+    for k in ("warp expenditure","voice of command","smite"):
+        print(k,"=>",m.get(k,"")[:400])
+, label)
+    if m:
+        name=m.group(1).strip()
+        if name and "/" not in name:
+            return name
+    # Classic headers: Passive 4 - Warp Expenditure / KEYSTONE 3 - Go Get 'Em!
+    parts=[p.strip() for p in label.split(" - ") if p.strip()]
+    if len(parts)>=2:
+        # Prefer the first segment after a category/index prefix.
+        cand=parts[1]
+        if re.search(r'\\d', parts[0]) and not re.search(r'[\\u0400-\\u04FF]', cand):
+            return cand
+        # Otherwise take the last non-Cyrillic segment.
+        for cand in reversed(parts):
+            if not re.search(r'[\\u0400-\\u04FF]', cand) and not re.fullmatch(r'\\d+(?:-\\d+)*',cand):
+                if "/" not in cand:
+                    return cand
+    return ""
+
+def _sanitize_zh(text):
+    text=(text or "")
+    text=re.sub(r'\\{#color\\([^}]*\\)\\}', '', text, flags=re.I)
+    text=re.sub(r'\\{#reset\\(\\)\\}', '', text, flags=re.I)
+    text=re.sub(r'\\{#[^}]+\\}', '', text)
+    text=text.replace("危机值产生","危机值生成")
+    text=re.sub(r'压制\\s*(\\d+(?:\\.\\d+)?%?)\\s*危机值', r'平息\\1危机值', text)
+    text=text.replace("没甚么","没什么")
+    text=re.sub(r'\\s+([，。；：！？])', r'\\1', text)
     return text.strip()
+
+def _has_unresolved_runtime_markup(text):
+    return bool(re.search(r'\\{[A-Za-z0-9_]+:%s\\}|\\{#|CKWord\\(|CNumb\\(|CPhrs\\(', text or ""))
 
 def load_chinese_descriptions():
     phrases=_load_phrases()
