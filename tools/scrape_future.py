@@ -210,9 +210,12 @@ for cl in CLASSES:
     if not svgs:
         raise SystemExit('No talent tree SVGs for ' + cl['name'])
 
-    # Games Lantern currently renders current/live first and Future update second.
-    # Some classes may expose extra trees; choose the last large talent-tree SVG as the future patch.
-    idx = len(svgs)-1 if len(svgs) > 1 else 0
+    # Games Lantern renders live + future. Hive Scum also has a Stimm Lab for each patch:
+    # [live talent, live stimm, future talent, future stimm].
+    if cl['key'] == 'hivescum' and len(svgs) >= 4:
+        idx = 2
+    else:
+        idx = 1 if len(svgs) > 1 else 0
     nodes, raw_edges, icon_urls = extract_svg(svgs[idx], cl['ig'], 'root-' + cl['ig'])
 
     for n in nodes:
@@ -232,6 +235,7 @@ for cl in CLASSES:
     ys = [n['y'] for n in nodes]
     pad = 70
 
+    print(cl['name'], 'selected future tree', len(nodes), 'nodes', len(edges), 'edges')
     classes.append({
         **cl,
         'budget': 30,
