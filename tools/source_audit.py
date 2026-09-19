@@ -168,6 +168,39 @@ if axial:
 else:
     issues.append(("high","official_preview_talent_missing","future","skitarii","axial slash",""))
 
+# High-value Psyker text checks where upstream maintained Simplified Chinese has
+# historically dropped semantic cues. Prefer a safe maintained bilingual pair.
+battle=[]
+smite=[]
+for tree,n in nodes:
+    nn=norm(n.get("en"))
+    if nn=="battle meditation":
+        battle.append((tree,n))
+    elif nn=="smite":
+        smite.append((tree,n))
+
+for tree,n in battle:
+    cn=(n.get("advancedCn") or n.get("descCn") or "")
+    en=(n.get("advancedEn") or n.get("desc") or "")
+    if "降低" not in cn:
+        issues.append(("high","battle_meditation_reduction_missing",tree.get("patch"),tree.get("key"),n.get("s"),cn))
+    if "平息" not in cn:
+        issues.append(("high","battle_meditation_quell_term_missing",tree.get("patch"),tree.get("key"),n.get("s"),cn))
+    for token in ("10%","10%","10%"):
+        if token not in en:
+            issues.append(("high","battle_meditation_english_value_missing",tree.get("patch"),tree.get("key"),n.get("s"),en))
+            break
+
+for tree,n in smite:
+    cn=(n.get("advancedCn") or n.get("descCn") or "")
+    en=(n.get("advancedEn") or n.get("desc") or "")
+    if n.get("advancedEn") and n.get("advancedCn"):
+        for token in ("16","100%","8.5%"):
+            if token not in en or token not in cn:
+                issues.append(("high","smite_maintained_pair_value_missing",tree.get("patch"),tree.get("key"),n.get("s"),token))
+    if re.search(r'\{#|\{[A-Za-z0-9_]+(?::%s)?\}',cn):
+        issues.append(("fatal","smite_markup_leaked",tree.get("patch"),tree.get("key"),n.get("s"),cn))
+
 # Just a Dream: official user-facing effect + code behavior.
 jad=[]
 for tree,n in nodes:
