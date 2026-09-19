@@ -449,7 +449,7 @@ function iconFor(n){
 function loadTalentIcons(){
   if(iconsLoaded||document.querySelector('script[data-tree-icons]'))return;
   const s=document.createElement("script");
-  s.src="./tree-icons.js?v=gl27";
+  s.src="./tree-icons.js?v=gl28";
   s.async=true;
   s.dataset.treeIcons="1";
   s.onload=()=>{
@@ -1582,7 +1582,7 @@ try{
   if("requestIdleCallback" in window)requestIdleCallback(()=>loadTalentIcons(),{timeout:1200});
   else setTimeout(loadTalentIcons,250);
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl27").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl28").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
