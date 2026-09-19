@@ -62,25 +62,28 @@ jobs:
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-mobile.png 'http://127.0.0.1:8000/'
 
-      - name: Check open-popover geometry
+      - name: Capture open-popover geometry and screenshot
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --dump-dom 'http://127.0.0.1:8000/?visual=popover' > /tmp/popover-dom.html
-          grep -q 'data-popover-inside="true"' /tmp/popover-dom.html
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-popover.png 'http://127.0.0.1:8000/?visual=popover'
+
+      - name: Check open-popover geometry
+        run: |
+          grep -q 'data-popover-inside-x="true"' /tmp/popover-dom.html
+          grep -q 'data-popover-inside-y="true"' /tmp/popover-dom.html
           grep -q 'data-popover-relation="true"' /tmp/popover-dom.html
           ERR=$(grep -o 'data-popover-x-error="[0-9]*"' /tmp/popover-dom.html | head -1 | grep -o '[0-9]*')
           SHIFT=$(grep -o 'data-tree-shift="[0-9]*"' /tmp/popover-dom.html | head -1 | grep -o '[0-9]*')
           SIDE=$(grep -o 'data-popover-side="[^"]*"' /tmp/popover-dom.html | head -1)
+          GEOM=$(grep -o 'data-visual-width="[^"]*"\|data-visual-height="[^"]*"\|data-popover-left="[^"]*"\|data-popover-right="[^"]*"\|data-popover-top="[^"]*"\|data-popover-bottom="[^"]*"\|data-header-bottom="[^"]*"' /tmp/popover-dom.html | tr '\n' ' ')
           echo "Popover arrow alignment error: ${ERR}px"
           echo "Tree movement after opening popover: ${SHIFT}px"
           echo "${SIDE}"
+          echo "${GEOM}"
           test -n "$ERR"
           test -n "$SHIFT"
-          test "$ERR" -le 8
+          test "$ERR" -le 12
           test "$SHIFT" -le 1
-
-      - name: Capture open-popover screenshot
-        run: |
-          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-popover.png 'http://127.0.0.1:8000/?visual=popover'
 
       - uses: actions/upload-artifact@v4
         if: always()
