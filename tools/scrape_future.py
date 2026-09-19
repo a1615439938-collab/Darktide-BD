@@ -731,8 +731,15 @@ def attach_info(trees):
                     n['descCn'] = ''
                     n['descSource'] = 'base-english-only'
                 pair_safe = safe_paired_text(pair_en, pair_cn)
-                n['advancedEn'] = pair_en if pair_safe else ''
-                n['advancedCn'] = pair_cn if pair_safe else ''
+                # Enhanced Descriptions follows the live mechanics and can lag behind
+                # a pre-release balance preview. Never retain a stale enhanced layer
+                # when an explicit Fatshark future override is active.
+                if official_override:
+                    n['advancedEn'] = ''
+                    n['advancedCn'] = ''
+                else:
+                    n['advancedEn'] = pair_en if pair_safe else ''
+                    n['advancedCn'] = pair_cn if pair_safe else ''
                 if name_key(en) == 'just a dream':
                     # Fatshark's official Bound by Duty notes give the user-facing effect.
                     # Decompiled game source confirms the actual threshold (97%) and that
