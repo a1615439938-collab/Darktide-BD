@@ -111,6 +111,13 @@ function descriptionPair(n){
     :"No reliable preview effect text is available for this node yet.");
   const baseEn=formatEnglishDescription(stripGameMarkup(fallbackEn));
 
+  if(n.cat==="root"&&(n.mechanicsCn||n.mechanicsEn)){
+    return {
+      cn:"未来版本的职业基础属性与招牌被动请查看下方“机制核对”。",
+      en:"See Mechanics check below for future class baseline stats and Iconic Passives.",
+      source:"class-preview"
+    };
+  }
   if(TALENT_CN_OVERRIDES[enName]){
     return {cn:TALENT_CN_OVERRIDES[enName],en:baseEn,source:"curated-base"};
   }
@@ -442,7 +449,7 @@ function iconFor(n){
 function loadTalentIcons(){
   if(iconsLoaded||document.querySelector('script[data-tree-icons]'))return;
   const s=document.createElement("script");
-  s.src="./tree-icons.js?v=gl25";
+  s.src="./tree-icons.js?v=gl27";
   s.async=true;
   s.dataset.treeIcons="1";
   s.onload=()=>{
@@ -905,16 +912,23 @@ function showInfo(n,focus=false){
       "games-lantern":"Games Lantern",
       "fatshark-official-preview":"Fatshark 官方更新预览 / official preview",
       "fatshark-official-bound-by-duty":"Fatshark 官方 Bound by Duty",
-      "syuantsai-glossary":"Darktide 中文术语表 / translation glossary",
+      "syuantsai-glossary":"Darktide 中文术语表 / maintained Chinese glossary",
       "enhanced-translation-table":"Enhanced Descriptions 翻译表",
-      "syuantsai-fatshark-preview-translation":"更新预览中文整理 / preview translation",
+      "syuantsai-fatshark-preview-translation":"Fatshark 更新预览的维护中文整理 / maintained Chinese preview transcription",
+      "community-aligned":"Enhanced Descriptions 维护简中 / maintained zh-CN",
+      "manual-reviewed":"无现成维护译文，逐条人工对照英文 / manually reviewed fallback",
+      "fatshark-preview-zh":"Fatshark 更新预览 + 维护中文整理",
+      "stat-source-missing":"数据源未提供具体数值 / exact value unavailable",
       "manual-name-fallback":"缺少现成译名 / no maintained title",
-      "source-name-untranslated":"保留原名 / source name retained"
+      "source-name-untranslated":"保留原名 / source name retained",
+      "darktide-game-source+fatshark-official":"Darktide 游戏实现 + Fatshark 官方说明",
+      "fatshark-official-preview+syuantsai-preview-translation":"Fatshark 官方更新预览 + 维护中文整理"
     };
     const bits=[];
     if(n.descSourceEn)bits.push("EN: "+(labels[n.descSourceEn]||n.descSourceEn));
     if(n.nameSourceCn)bits.push("中文名: "+(labels[n.nameSourceCn]||n.nameSourceCn));
     if(n.descSource)bits.push("中文说明: "+(labels[n.descSource]||n.descSource));
+    if(n.mechanicsSource)bits.push("机制: "+(labels[n.mechanicsSource]||n.mechanicsSource));
     provenance.textContent=bits.length?"来源 / Sources · "+bits.join(" · "):"";
   }
 
@@ -1568,7 +1582,7 @@ try{
   if("requestIdleCallback" in window)requestIdleCallback(()=>loadTalentIcons(),{timeout:1200});
   else setTimeout(loadTalentIcons,250);
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl26").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl27").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
