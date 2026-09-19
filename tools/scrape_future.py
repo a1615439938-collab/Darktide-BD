@@ -288,7 +288,15 @@ def translation_map():
 
 def numeric_multiset(s):
     vals = re.findall(r'[-+]?\d+(?:\.\d+)?%?', s or '')
-    return sorted(v.lstrip('+') for v in vals)
+    # Sign can be expressed linguistically in Chinese ("降低 10%") rather than as "-10%".
+    return sorted(v.lstrip('+-') for v in vals)
+
+def safe_paired_text(en, cn):
+    if not en or not cn:
+        return False
+    if re.search(r'\{[A-Za-z0-9_]+(?::%s)?\}|\{#|CKWord\(|CNumb\(|CPhrs\(|CNote\(|Dot_[A-Za-z_]+', en + ' ' + cn):
+        return False
+    return numeric_multiset(en) == numeric_multiset(cn)
 
 def word_set(s):
     stop={'the','a','an','and','or','of','to','for','in','on','your','you','is','are','with','by','from','this','that'}
@@ -450,8 +458,9 @@ def attach_info(trees):
                 else:
                     n['descCn'] = ''
                     n['descSource'] = 'base-english-only'
-                n['advancedEn'] = pair_en if pair_en and pair_cn else ''
-                n['advancedCn'] = pair_cn if pair_en and pair_cn else ''
+                pair_safe = safe_paired_text(pair_en, pair_cn)
+                n['advancedEn'] = pair_en if pair_safe else ''
+                n['advancedCn'] = pair_cn if pair_safe else ''
             n.pop('slug', None)
 
 attach_info(future_classes)
