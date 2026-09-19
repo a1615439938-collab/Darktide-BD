@@ -8,6 +8,7 @@ import concurrent.futures
 import os
 import sys
 from pathlib import Path
+from enhanced_zh import load_chinese_descriptions, normalize_name
 
 UA = {'User-Agent':'Mozilla/5.0 (Darktide-BD bilingual planner)'}
 BASE = 'https://darktide.gameslantern.com'
@@ -303,6 +304,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
         DESC[slug] = info
 
 TR = translation_map()
+ZH_DESC, ZH_DESC_META = load_chinese_descriptions()
+print('community zh-cn descriptions', len(ZH_DESC))
 
 def dl_icon(item):
     key, url = item
@@ -327,6 +330,7 @@ def attach_info(trees):
                 n['cn'] = cl['cn']
                 n['type'] = 'Class'
                 n['desc'] = ''
+                n['descCn'] = ''
             else:
                 canonical = n['slug'].split('/')[-1]
                 info = DESC.get(canonical, {})
@@ -335,10 +339,15 @@ def attach_info(trees):
                 n['cn'] = TR.get(en, en)
                 n['type'] = info.get('t','')
                 n['desc'] = info.get('d','')
+                n['descCn'] = ZH_DESC.get(normalize_name(en), '')
             n.pop('slug', None)
 
 attach_info(future_classes)
 attach_info(live_classes)
+
+all_nodes=[n for tree in (future_classes+live_classes) for n in tree['nodes'] if n.get('cat')!='root']
+zh_hits=sum(1 for n in all_nodes if n.get('descCn'))
+print('zh-cn description coverage', zh_hits, 'of', len(all_nodes))
 
 out = {
     'version': 'Depths of the Damned Future update',
