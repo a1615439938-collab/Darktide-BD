@@ -7,6 +7,7 @@ on:
       - "tools/scrape_future.py"
       - "tools/enhanced_zh.py"
       - "tools/manual_zh.json"
+      - "tools/manual_current_cn.json"
       - "tools/split_tree_data.py"
       - ".github/workflows/refresh-trees.yml"
   schedule:
