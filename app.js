@@ -190,6 +190,7 @@ let actionHistory=[];
 let toastTimer=null;
 
 const $=q=>document.querySelector(q);
+const VISUAL_POPOVER_TEST=new URLSearchParams(location.search).get("visual")==="popover";
 
 const LOADOUT_FIELDS=[
   "meleeWeapon","meleeBlessing1","meleeBlessing2","meleePerk1","meleePerk2",
@@ -1019,6 +1020,7 @@ function bind(){
     treeVp.addEventListener("pointerup",()=>{treeGesture=false;},{passive:true});
     treeVp.addEventListener("pointercancel",()=>{treeGesture=false;},{passive:true});
     treeVp.addEventListener("scroll",()=>{
+      if(VISUAL_POPOVER_TEST)return;
       if(!$("#nodePopover").classList.contains("hidden"))hideInfo();
     },{passive:true});
   }
@@ -1035,6 +1037,7 @@ function bind(){
   });
   let popoverScrollRaf=0;
   addEventListener("scroll",()=>{
+    if(VISUAL_POPOVER_TEST)return;
     const card=$("#nodePopover");
     const n=hotSlug?nodeMap[hotSlug]:null;
     if(!card||card.classList.contains("hidden")||!n)return;
@@ -1076,7 +1079,7 @@ function selfCheck(){
 }
 
 function runVisualPopoverTest(){
-  if(new URLSearchParams(location.search).get("visual")!=="popover")return;
+  if(!VISUAL_POPOVER_TEST)return;
   setTimeout(()=>{
     try{
       const candidate=CUR.nodes
@@ -1203,7 +1206,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl18").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl19").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
