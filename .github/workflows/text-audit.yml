@@ -1,0 +1,28 @@
+name: Talent text audit
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "tree-data.js"
+      - "app.js"
+      - "tools/audit_text.py"
+      - "tools/scrape_future.py"
+      - "tools/enhanced_zh.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run bilingual text audit
+        run: python tools/audit_text.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: talent-text-audit
+          path: text-audit.json
