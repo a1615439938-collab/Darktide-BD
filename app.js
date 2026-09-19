@@ -51,8 +51,10 @@ function formatChineseDescription(text){
   return lines
     .map(x=>x.replace(/\s+/g," ").trim())
     .join(" ")
+    .replace(/\s*[•·▪●◦]\s*/g," ")
     .replace(/\s+([，。；：！？])/g,"$1")
     .replace(/([，。；：！？])\s+/g,"$1 ")
+    .replace(/\s{2,}/g," ")
     .trim();
 }
 function formatEnglishDescription(text){
@@ -488,12 +490,26 @@ function renderNode(svg,defs,n){
   title.textContent=(n.cn&&n.cn!==n.en?n.cn+" / ":"")+(n.en||"");
   g.appendChild(title);
 
-  g.addEventListener("pointerdown",()=>g.classList.add("pressed"),{passive:true});
+  let pressX=0,pressY=0,dragged=false;
+  g.addEventListener("pointerdown",e=>{
+    pressX=e.clientX;pressY=e.clientY;dragged=false;
+    g.classList.add("pressed");
+  },{passive:true});
+  g.addEventListener("pointermove",e=>{
+    if(Math.hypot(e.clientX-pressX,e.clientY-pressY)>8){
+      dragged=true;
+      g.classList.remove("pressed");
+    }
+  },{passive:true});
   for(const evt of ["pointerup","pointercancel","pointerleave"]){
     g.addEventListener(evt,()=>g.classList.remove("pressed"),{passive:true});
   }
   g.addEventListener("click",e=>{
     e.stopPropagation();
+    if(dragged){
+      dragged=false;
+      return;
+    }
     const pop=$("#nodePopover");
     if(hotSlug===n.s&&pop&&!pop.classList.contains("hidden")){
       hideInfo();
@@ -1118,7 +1134,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl14").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl15").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
