@@ -32,34 +32,44 @@ jobs:
       - name: Install converter
         run: pip install opencc-python-reimplemented
 
-      - name: Sync latest source and regenerate
+      - name: Generate talent artifacts once
         run: |
           git fetch origin main
           git reset --hard origin/main
           python tools/scrape_future.py
           python tools/split_tree_data.py
+          mkdir -p /tmp/darktide-generated
+          cp tree-data.js tree-core.js tree-icons.js /tmp/darktide-generated/
 
-      - name: Commit refreshed tree data
+      - name: Commit refreshed tree data without re-scraping
         run: |
+          set -u
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tree-data.js tree-core.js tree-icons.js
-          if git diff --cached --quiet; then
-            echo "tree-data.js is already current"
-            exit 0
-          fi
-          git commit -m "Refresh Depths of the Damned talent trees"
-          if ! git push origin HEAD:main; then
-            echo "main changed while scraping; regenerating once on top of latest main"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            echo "Push attempt $ATTEMPT"
             git fetch origin main
             git reset --hard origin/main
-            python tools/scrape_future.py
-            python tools/split_tree_data.py
+            cp /tmp/darktide-generated/tree-data.js .
+            cp /tmp/darktide-generated/tree-core.js .
+            cp /tmp/darktide-generated/tree-icons.js .
             git add tree-data.js tree-core.js tree-icons.js
+
             if git diff --cached --quiet; then
-              echo "Latest main already contains current tree-data.js"
+              echo "Latest main already contains the generated talent data"
               exit 0
             fi
+
             git commit -m "Refresh Depths of the Damned talent trees"
-            git push origin HEAD:main
-          fi
+            if git push origin HEAD:main; then
+              echo "Talent data pushed successfully"
+              exit 0
+            fi
+
+            echo "main changed during push; retrying the same generated artifacts on latest main"
+            sleep $((ATTEMPT * 2))
+          done
+
+          echo "Failed to push generated talent data after 5 attempts"
+          exit 1
