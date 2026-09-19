@@ -8,7 +8,8 @@
 */
 
 const DATA=window.TREE_DATA;
-const ICONS=(DATA&&DATA.icons)||{};
+let ICONS=(DATA&&DATA.icons)||window.TREE_ICONS||{};
+let iconsLoaded=Object.keys(ICONS).length>0;
 const NS="http://www.w3.org/2000/svg";
 const STORE="darktide-bilingual-editor-gl10";
 const BASE_TREE_TOP=20;
@@ -438,6 +439,26 @@ function initials(n){
 function iconFor(n){
   return ICONS[n.s]||null;
 }
+function loadTalentIcons(){
+  if(iconsLoaded||document.querySelector('script[data-tree-icons]'))return;
+  const s=document.createElement("script");
+  s.src="./tree-icons.js?v=gl25";
+  s.async=true;
+  s.dataset.treeIcons="1";
+  s.onload=()=>{
+    ICONS=window.TREE_ICONS||{};
+    iconsLoaded=Object.keys(ICONS).length>0;
+    if(iconsLoaded&&CUR){
+      const keepLeft=$("#treeViewport")?.scrollLeft||0;
+      buildTree();
+      requestAnimationFrame(()=>{const vp=$("#treeViewport");if(vp)vp.scrollLeft=keepLeft;});
+    }
+    document.body.dataset.iconsLoaded=String(iconsLoaded);
+  };
+  s.onerror=()=>{document.body.dataset.iconsLoaded="false";};
+  document.head.appendChild(s);
+}
+
 function buildExclusiveGroups(){
   exclusiveGroups={};
   for(const cat of EXCLUSIVE){
@@ -1314,7 +1335,7 @@ function selfCheck(){
   if(!DATA||!Array.isArray(DATA.classes)||DATA.classes.filter(c=>!c.parent).length<7) throw new Error("all seven class trees are not loaded");
   if(!DATA.classes.find(c=>c.key==="hivescum-stimm")) throw new Error("Hive Scum Stimm Lab is not loaded");
   if(!Array.isArray(DATA.liveClasses)||DATA.liveClasses.filter(c=>!c.parent).length<7) throw new Error("live patch trees are not loaded");
-  if(!DATA.icons||Object.keys(DATA.icons).length<50) throw new Error("talent icons are missing");
+  if(!DATA) throw new Error("talent data is missing");
   if(!CUR||CUR.nodes.length<40) throw new Error("talent tree data is incomplete");
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
@@ -1512,8 +1533,11 @@ try{
   runAutomatedSelfTest();
   runDesktopSelfTest();
   runVisualPopoverTest();
+  // Render the tree from the light core payload first; icon art follows after interaction is ready.
+  if("requestIdleCallback" in window)requestIdleCallback(()=>loadTalentIcons(),{timeout:1200});
+  else setTimeout(loadTalentIcons,250);
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl24").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl25").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
