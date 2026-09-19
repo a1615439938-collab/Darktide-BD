@@ -661,7 +661,6 @@ function showInfo(n,focus=false){
     pop.classList.remove("hidden");
     pop.setAttribute("aria-hidden","false");
   }
-  if(treeTop!==BASE_TREE_TOP)setTreeTop(BASE_TREE_TOP);
   const cat=CAT[n.cat]||CAT.passive;
   $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
   $("#infoCn").textContent=(n.cn&&n.cn!==n.en)?n.cn:(n.en||"");
@@ -697,15 +696,15 @@ function showInfo(n,focus=false){
   updateInfoAction(n);
   placePopover(n,focus);
 }
-function setTreeTop(px){
-  treeTop=Math.max(BASE_TREE_TOP,Math.round(px));
+function setTreeTop(){
+  treeTop=BASE_TREE_TOP;
   const canvas=$("#treeCanvas"),svg=$("#treeSvg");
   if(!canvas||!svg||!CUR)return;
   const vw=CUR.viewbox[2],vh=CUR.viewbox[3];
   const height=svg.clientWidth*vh/vw;
-  canvas.style.height=(treeTop+height+28)+"px";
-  canvas.style.setProperty("--tree-top",treeTop+"px");
-  svg.style.top=treeTop+"px";
+  canvas.style.height=(BASE_TREE_TOP+height+28)+"px";
+  canvas.style.setProperty("--tree-top",BASE_TREE_TOP+"px");
+  svg.style.top=BASE_TREE_TOP+"px";
 }
 function updateInfoAction(n){
   const b=$("#infoAction");
@@ -725,58 +724,56 @@ function updateInfoAction(n){
     b.disabled=true;
   }
 }
-function placePopover(n,focus=false,allowAdjust=true){
-  const pop=$("#nodePopover"),canvas=$("#treeCanvas"),vp=$("#treeViewport");
-  const nodeEl=nodeEls[n.s];
-  if(!pop||!canvas||!vp||!nodeEl||!CUR)return;
+function placePopover(n,focus=false){
+  const pop=$("#nodePopover"),nodeEl=nodeEls[n.s];
+  if(!pop||!nodeEl||!CUR)return;
 
   requestAnimationFrame(()=>{
     const nr=nodeEl.getBoundingClientRect();
-    const cr=canvas.getBoundingClientRect();
-    const pw=pop.offsetWidth,ph=pop.offsetHeight,cw=canvas.clientWidth;
-    const px=nr.left-cr.left+nr.width/2;
-    const nodeTop=nr.top-cr.top;
-    let top=nodeTop-ph-12;
+    const header=document.querySelector(".site-head");
+    const hb=header?header.getBoundingClientRect().bottom:0;
+    const vw=window.innerWidth;
+    const vh=window.innerHeight;
+    const margin=10;
+    const gap=12;
 
-    // Only reserve space while the card is actually open, and only as much as needed.
-    if(allowAdjust&&top<8){
-      const needed=treeTop+(8-top);
-      if(needed>treeTop+1){
-        setTreeTop(needed);
-        requestAnimationFrame(()=>placePopover(n,focus,false));
-        return;
-      }
-    }
+    // Keep the floating card inside the visible screen, independent of tree layout.
+    pop.style.maxWidth="calc(100vw - 20px)";
+    pop.style.width=Math.min(330,Math.max(260,vw-20))+"px";
 
-    const left=Math.max(8,Math.min(cw-pw-8,px-pw/2));
-    top=Math.max(8,top);
-    const arrow=Math.max(18,Math.min(pw-18,px-left));
+    const natural=Math.min(pop.scrollHeight||430,430);
+    const above=Math.max(0,nr.top-hb-gap-margin);
+    const below=Math.max(0,vh-nr.bottom-gap-margin);
+
+    let side;
+    if(above>=Math.min(natural,220)) side="above";
+    else if(below>=Math.min(natural,220)) side="below";
+    else side=above>=below?"above":"below";
+
+    const available=Math.max(100,side==="above"?above:below);
+    pop.style.maxHeight=Math.min(430,available)+"px";
+
+    const pr=pop.getBoundingClientRect();
+    const pw=pr.width;
+    const ph=pr.height;
+    const nodeX=nr.left+nr.width/2;
+    const left=Math.max(margin,Math.min(vw-pw-margin,nodeX-pw/2));
+    const top=side==="above"
+      ?Math.max(hb+margin,nr.top-gap-ph)
+      :Math.min(vh-margin-ph,nr.bottom+gap);
+    const arrow=Math.max(18,Math.min(pw-18,nodeX-left));
+
+    pop.dataset.side=side;
     pop.style.left=left+"px";
     pop.style.top=top+"px";
     pop.style.setProperty("--arrow-left",arrow+"px");
 
+    // No automatic page/tree movement. The surface adapts to the node, not vice versa.
     if(focus){
-      const vr=vp.getBoundingClientRect();
-      const nr=nodeEl.getBoundingClientRect();
-      const margin=28;
-      let targetLeft=vp.scrollLeft;
-      if(nr.left<vr.left+margin){
-        targetLeft=Math.max(0,vp.scrollLeft-(vr.left+margin-nr.left));
-      }else if(nr.right>vr.right-margin){
-        targetLeft=Math.max(0,vp.scrollLeft+(nr.right-(vr.right-margin)));
+      const vr=$("#treeViewport")?.getBoundingClientRect();
+      if(vr&&(nr.right<vr.left||nr.left>vr.right||nr.bottom<vr.top||nr.top>vr.bottom)){
+        hideInfo();
       }
-      if(Math.abs(targetLeft-vp.scrollLeft)>2){
-        vp.scrollTo({left:targetLeft,behavior:"smooth"});
-      }
-      requestAnimationFrame(()=>{
-        const pr=pop.getBoundingClientRect();
-        const nodeRect=nodeEl.getBoundingClientRect();
-        const hb=document.querySelector(".site-head").getBoundingClientRect().bottom;
-        let dy=0;
-        if(pr.top<hb+8)dy=pr.top-(hb+8);
-        else if(nodeRect.bottom>innerHeight-18)dy=nodeRect.bottom-(innerHeight-18);
-        if(Math.abs(dy)>2)scrollBy({top:dy,behavior:"smooth"});
-      });
     }
   });
 }
@@ -786,7 +783,6 @@ function hideInfo(redrawTree=true){
     pop.classList.add("hidden");
     pop.setAttribute("aria-hidden","true");
   }
-  if(treeTop!==BASE_TREE_TOP)setTreeTop(BASE_TREE_TOP);
   if(hotSlug!==null){
     hotSlug=null;
     if(redrawTree&&CUR)redraw();
@@ -814,7 +810,7 @@ function applyZoom(){
   canvas.style.width=width+"px";
   svg.style.width=width+"px";
   svg.style.height=height+"px";
-  setTreeTop(treeTop||BASE_TREE_TOP);
+  setTreeTop();
   const n=hotSlug?nodeMap[hotSlug]:null;
   if(n&&!$("#nodePopover").classList.contains("hidden"))placePopover(n,false);
 }
@@ -999,6 +995,22 @@ function bind(){
 
   const pop=$("#nodePopover");
   if(pop)pop.addEventListener("pointerdown",e=>e.stopPropagation());
+
+  const treeVp=$("#treeViewport");
+  if(treeVp){
+    let treeGesture=false;
+    treeVp.addEventListener("pointerdown",e=>{
+      treeGesture=!(e.target instanceof Element&&e.target.closest(".node"));
+    },{passive:true});
+    treeVp.addEventListener("pointermove",()=>{
+      if(treeGesture&&!$("#nodePopover").classList.contains("hidden"))hideInfo();
+    },{passive:true});
+    treeVp.addEventListener("pointerup",()=>{treeGesture=false;},{passive:true});
+    treeVp.addEventListener("pointercancel",()=>{treeGesture=false;},{passive:true});
+    treeVp.addEventListener("scroll",()=>{
+      if(!$("#nodePopover").classList.contains("hidden"))hideInfo();
+    },{passive:true});
+  }
   document.addEventListener("pointerdown",e=>{
     const card=$("#nodePopover");
     if(!card||card.classList.contains("hidden"))return;
@@ -1010,8 +1022,15 @@ function bind(){
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape")hideInfo();
   });
+  addEventListener("scroll",()=>{
+    if(!$("#nodePopover").classList.contains("hidden"))hideInfo();
+  },{passive:true});
 
-  addEventListener("resize",()=>{applyZoom();requestAnimationFrame(centerTree);});
+  addEventListener("resize",()=>{
+    hideInfo();
+    applyZoom();
+    requestAnimationFrame(centerTree);
+  });
   addEventListener("hashchange",()=>{
     const raw=location.hash.startsWith("#b=")?location.hash.slice(3):"";
     if(raw){
@@ -1028,7 +1047,7 @@ function selfCheck(){
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
   if(!$("#nodePopover")) throw new Error("node popover is missing");
-  if(treeTop>40&&$("#nodePopover").classList.contains("hidden")) throw new Error("hidden tree has excessive top spacing");
+  if(treeTop!==BASE_TREE_TOP) throw new Error("tree top shifted unexpectedly");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
 }
 
@@ -1036,27 +1055,38 @@ function runVisualPopoverTest(){
   if(new URLSearchParams(location.search).get("visual")!=="popover")return;
   setTimeout(()=>{
     try{
-      const candidate=CUR.nodes.find(n=>n.en==="Mettle")
-        ||CUR.nodes.find(n=>n.descCn&&n.cat!=="root"&&n.y>CUR.viewbox[1]+200)
+      const candidate=CUR.nodes
+        .filter(n=>n.cat!=="root"&&n.desc)
+        .sort((a,b)=>a.y-b.y)[0]
         ||CUR.nodes.find(n=>n.cat!=="root");
       if(!candidate)return;
+      const node=nodeEls[candidate.s];
+      const before=node.getBoundingClientRect().top;
       hotSlug=candidate.s;
       redraw();
       showInfo(candidate,false);
       setTimeout(()=>{
-        const pop=$("#nodePopover"),node=nodeEls[candidate.s];
+        const pop=$("#nodePopover");
         if(!pop||!node)return;
-        const pr=pop.getBoundingClientRect(),nr=node.getBoundingClientRect();
+        const pr=pop.getBoundingClientRect();
+        const nr=node.getBoundingClientRect();
+        const headerBottom=document.querySelector(".site-head").getBoundingClientRect().bottom;
         const arrow=parseFloat(pop.style.getPropertyValue("--arrow-left")||"0");
         const arrowX=pr.left+arrow;
         const nodeX=nr.left+nr.width/2;
+        const side=pop.dataset.side||"";
+        const relation=side==="above"?pr.bottom<=nr.top+16:pr.top>=nr.bottom-16;
+        const inside=pr.left>=8&&pr.right<=innerWidth-8&&pr.top>=headerBottom+6&&pr.bottom<=innerHeight-6;
         document.body.dataset.popoverXError=String(Math.round(Math.abs(arrowX-nodeX)));
-        document.body.dataset.popoverAbove=String(pr.bottom<=nr.top+16);
-      },80);
+        document.body.dataset.popoverInside=String(inside);
+        document.body.dataset.popoverRelation=String(relation);
+        document.body.dataset.popoverSide=side;
+        document.body.dataset.treeShift=String(Math.round(Math.abs(nr.top-before)));
+      },120);
     }catch(e){
       document.body.dataset.popoverVisualError=String(e.message||e);
     }
-  },120);
+  },150);
 }
 
 function runAutomatedSelfTest(){
@@ -1134,7 +1164,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl15").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl16").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
