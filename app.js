@@ -732,18 +732,24 @@ function placePopover(n,focus=false){
     const nr=nodeEl.getBoundingClientRect();
     const header=document.querySelector(".site-head");
     const hb=header?header.getBoundingClientRect().bottom:0;
-    const vw=window.innerWidth;
-    const vh=window.innerHeight;
+    const vv=window.visualViewport;
+    const vLeft=vv?vv.offsetLeft:0;
+    const vTop=vv?vv.offsetTop:0;
+    const vw=vv?vv.width:window.innerWidth;
+    const vh=vv?vv.height:window.innerHeight;
+    const vRight=vLeft+vw;
+    const vBottom=vTop+vh;
     const margin=10;
     const gap=12;
+    const minTop=Math.max(vTop+margin,hb+margin);
 
-    // Keep the floating card inside the visible screen, independent of tree layout.
-    pop.style.maxWidth="calc(100vw - 20px)";
-    pop.style.width=Math.min(330,Math.max(260,vw-20))+"px";
+    // Keep the floating card inside the current visual viewport, including iOS browser chrome.
+    pop.style.maxWidth=Math.max(240,vw-20)+"px";
+    pop.style.width=Math.min(330,Math.max(240,vw-20))+"px";
 
     const natural=Math.min(pop.scrollHeight||430,430);
-    const above=Math.max(0,nr.top-hb-gap-margin);
-    const below=Math.max(0,vh-nr.bottom-gap-margin);
+    const above=Math.max(0,nr.top-minTop-gap);
+    const below=Math.max(0,vBottom-nr.bottom-gap-margin);
 
     let side;
     if(above>=Math.min(natural,220)) side="above";
@@ -757,10 +763,10 @@ function placePopover(n,focus=false){
     const pw=pr.width;
     const ph=pr.height;
     const nodeX=nr.left+nr.width/2;
-    const left=Math.max(margin,Math.min(vw-pw-margin,nodeX-pw/2));
+    const left=Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
     const top=side==="above"
-      ?Math.max(hb+margin,nr.top-gap-ph)
-      :Math.min(vh-margin-ph,nr.bottom+gap);
+      ?Math.max(minTop,nr.top-gap-ph)
+      :Math.min(vBottom-margin-ph,nr.bottom+gap);
     const arrow=Math.max(18,Math.min(pw-18,nodeX-left));
 
     pop.dataset.side=side;
@@ -1075,13 +1081,25 @@ function runVisualPopoverTest(){
         const arrowX=pr.left+arrow;
         const nodeX=nr.left+nr.width/2;
         const side=pop.dataset.side||"";
+        const vv=window.visualViewport;
+        const vl=vv?vv.offsetLeft:0,vt=vv?vv.offsetTop:0;
+        const vr=vl+(vv?vv.width:innerWidth),vb=vt+(vv?vv.height:innerHeight);
         const relation=side==="above"?pr.bottom<=nr.top+16:pr.top>=nr.bottom-16;
-        const inside=pr.left>=8&&pr.right<=innerWidth-8&&pr.top>=headerBottom+6&&pr.bottom<=innerHeight-6;
+        const insideX=pr.left>=vl+8&&pr.right<=vr-8;
+        const insideY=pr.top>=Math.max(vt+6,headerBottom+6)&&pr.bottom<=vb-6;
         document.body.dataset.popoverXError=String(Math.round(Math.abs(arrowX-nodeX)));
-        document.body.dataset.popoverInside=String(inside);
+        document.body.dataset.popoverInsideX=String(insideX);
+        document.body.dataset.popoverInsideY=String(insideY);
         document.body.dataset.popoverRelation=String(relation);
         document.body.dataset.popoverSide=side;
         document.body.dataset.treeShift=String(Math.round(Math.abs(nr.top-before)));
+        document.body.dataset.visualWidth=String(Math.round(vr-vl));
+        document.body.dataset.visualHeight=String(Math.round(vb-vt));
+        document.body.dataset.popoverLeft=String(Math.round(pr.left));
+        document.body.dataset.popoverRight=String(Math.round(pr.right));
+        document.body.dataset.popoverTop=String(Math.round(pr.top));
+        document.body.dataset.popoverBottom=String(Math.round(pr.bottom));
+        document.body.dataset.headerBottom=String(Math.round(headerBottom));
       },120);
     }catch(e){
       document.body.dataset.popoverVisualError=String(e.message||e);
@@ -1164,7 +1182,7 @@ try{
   runAutomatedSelfTest();
   runVisualPopoverTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl16").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl17").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
