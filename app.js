@@ -1565,12 +1565,24 @@ function runAutomatedSelfTest(){
     state.classKey="psyker";
     renderAll(false);
     const battle=CUR.nodes.find(n=>displayTalentEn(n)==="Battle Meditation");
-    if(battle&&getChineseDescription(battle)!=="危机值生成降低10%。击杀敌人时有10%几率平息10%危机值。")throw new Error("Battle Meditation base translation mismatch");
+    if(battle){
+      const battlePair=descriptionPair(battle);
+      if(!/降低\s*10%|10%[^。；]*降低/.test(battlePair.cn||""))throw new Error("Battle Meditation reduction meaning missing");
+      if(!/平息\s*10%/.test(battlePair.cn||""))throw new Error("Battle Meditation Quell terminology mismatch");
+      if(!/10%/.test(battlePair.en||""))throw new Error("Battle Meditation English pair missing");
+    }
     const smite=CUR.nodes.find(n=>displayTalentEn(n)==="Smite");
     if(smite){
-      const smiteZh=getChineseDescription(smite);
-      if(/\{#|16米|8\.5%|100%/.test(smiteZh))throw new Error("Smite enhanced/raw text leaked into base translation");
+      const smitePair=descriptionPair(smite);
+      if(/\{#|\{[A-Za-z0-9_]+(?::%s)?\}/.test(smitePair.cn||""))throw new Error("Smite raw markup leaked into displayed Chinese");
+      if(smitePair.source==="paired-enhanced"&&(!/16/.test(smitePair.cn||"")||!/16/.test(smitePair.en||"")))throw new Error("Smite maintained pair lost range mechanics");
     }
+    const dream=CUR.nodes.find(n=>displayTalentEn(n)==="Just a Dream");
+    if(!dream)throw new Error("Just a Dream node missing");
+    const dreamPair=descriptionPair(dream);
+    if(!/25%/.test(dreamPair.en||"")||!/25%/.test(dreamPair.cn||""))throw new Error("Just a Dream 25% conversion missing");
+    if(!/97%/.test(dreamPair.en||"")||!/97%/.test(dreamPair.cn||""))throw new Error("Just a Dream 97% threshold missing");
+    if(/提高.*最大(?:生命|韧性)|最大(?:生命|韧性).*提高/.test(dreamPair.cn||""))throw new Error("Just a Dream incorrectly claims a max-stat increase");
     const statNode=CUR.nodes.find(n=>n.cat==="stat");
     if(statNode&&/[A-F0-9]{8,}$/i.test(displayTalentEn(statNode)))throw new Error("stat node internal id leaked");
 
