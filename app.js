@@ -459,7 +459,7 @@ function loadTalentIconsForClass(base=baseClassKey()){
   const attr=CSS.escape(base);
   if(document.querySelector('script[data-tree-icon-pack="'+attr+'"]'))return;
   const s=document.createElement("script");
-  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl30";
+  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl31";
   s.async=true;
   s.dataset.treeIconPack=base;
   s.onload=()=>{
@@ -1627,7 +1627,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl30").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl31").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
