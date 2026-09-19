@@ -249,13 +249,23 @@ def translation_map():
             zh = m.group(2).strip().strip('*_ ')
             if en and zh:
                 raw.setdefault(name_key(en), zh)
+
     announcement = get(announcement_url) or ''
     for line in announcement.splitlines():
-        # Future preview uses Chinese title followed by the English name in full-width parentheses.
         m = re.search(r'^\s*[-*]\s+([^（(]+?)\s*[（(]([^()（）]+)[)）]', line)
         if not m:
             continue
-        zh = re.sub(r'[－—-]\s*\*.*
+        zh = m.group(1).strip().strip('*_ ')
+        en = m.group(2).strip()
+        if en and zh:
+            raw.setdefault(name_key(en), zh)
+
+    try:
+        from opencc import OpenCC
+        cc = OpenCC('t2s')
+        raw = {k: cc.convert(v) for k, v in raw.items()}
+    except Exception:
+        pass
 
     curated = {
         'cleave boost':'顺劈提升',
