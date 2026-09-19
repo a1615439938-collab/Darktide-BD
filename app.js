@@ -816,6 +816,14 @@ function runAutomatedSelfTest(){
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
 
     saveSelection();
+    state.classKey="psyker";
+    renderAll(false);
+    const warp=CUR.nodes.find(n=>n.en==="Warp Expenditure");
+    if(!warp||!warp.descCn||!/[\u4e00-\u9fff]/.test(warp.descCn))throw new Error("Warp Expenditure Chinese description missing");
+    showInfo(warp,false);
+    if(!/[\u4e00-\u9fff]/.test($("#infoCnDesc").textContent||""))throw new Error("Chinese description not rendered");
+
+    saveSelection();
     state.classKey="hivescum-stimm";
     renderAll(false);
     if(!CUR||CUR.key!=="hivescum-stimm"||CUR.nodes.length<20)throw new Error("Stimm Lab did not render");
