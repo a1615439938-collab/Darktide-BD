@@ -332,6 +332,31 @@ def word_set(s):
     stop={'the','a','an','and','or','of','to','for','in','on','your','you','is','are','with','by','from','this','that'}
     return {w for w in re.findall(r"[a-z0-9']+", (s or '').lower()) if w not in stop}
 
+def numeric_subset(required, candidate):
+    """Every mechanics number in required must appear in candidate with equal multiplicity.
+    Candidate may contain extra implementation/detail numbers.
+    """
+    req=list(numeric_multiset(required))
+    got=list(numeric_multiset(candidate))
+    for value in req:
+        if value not in got:
+            return False
+        got.remove(value)
+    return True
+
+def advanced_matches_base(base_en, enhanced_en):
+    if not base_en or not enhanced_en:
+        return False
+    if not numeric_subset(base_en, enhanced_en):
+        return False
+    bw, ew = word_set(base_en), word_set(enhanced_en)
+    if not bw:
+        return True
+    # Enhanced text may be much longer; require enough shared mechanics vocabulary
+    # to avoid attaching an old description to a reworked talent with the same name.
+    coverage = len(bw & ew) / max(1, len(bw))
+    return coverage >= 0.42
+
 def compatible_base_translation(base_en, enhanced_en):
     if not base_en or not enhanced_en:
         return False
@@ -738,15 +763,16 @@ def attach_info(trees):
                     n['descCn'] = ''
                     n['descSource'] = 'base-english-only'
                 pair_safe = safe_paired_text(pair_en, pair_cn)
-                # Enhanced Descriptions follows the live mechanics and can lag behind
-                # a pre-release balance preview. Never retain a stale enhanced layer
-                # when an explicit Fatshark future override is active.
+                advanced_current = pair_safe and advanced_matches_base(n['desc'], pair_en)
+                # Enhanced Descriptions is valuable for hidden mechanics, but it can lag
+                # behind balance changes. Only retain it when it still contains every
+                # numeric mechanic from the current base tooltip and enough matching terms.
                 if official_override:
                     n['advancedEn'] = ''
                     n['advancedCn'] = ''
                 else:
-                    n['advancedEn'] = pair_en if pair_safe else ''
-                    n['advancedCn'] = pair_cn if pair_safe else ''
+                    n['advancedEn'] = pair_en if advanced_current else ''
+                    n['advancedCn'] = pair_cn if advanced_current else ''
                 if name_key(en) == 'just a dream':
                     # Fatshark's official Bound by Duty notes give the user-facing effect.
                     # Decompiled game source confirms the actual threshold (97%) and that
