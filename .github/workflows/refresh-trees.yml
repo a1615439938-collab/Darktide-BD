@@ -7,6 +7,7 @@ on:
       - "tools/scrape_future.py"
       - "tools/enhanced_zh.py"
       - "tools/manual_zh.json"
+      - "tools/split_tree_data.py"
       - ".github/workflows/refresh-trees.yml"
   schedule:
     - cron: "15 3 * * *"
@@ -36,12 +37,13 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           python tools/scrape_future.py
+          python tools/split_tree_data.py
 
       - name: Commit refreshed tree data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tree-data.js
+          git add tree-data.js tree-core.js tree-icons.js
           if git diff --cached --quiet; then
             echo "tree-data.js is already current"
             exit 0
@@ -52,7 +54,8 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python tools/scrape_future.py
-            git add tree-data.js
+            python tools/split_tree_data.py
+            git add tree-data.js tree-core.js tree-icons.js
             if git diff --cached --quiet; then
               echo "Latest main already contains current tree-data.js"
               exit 0
