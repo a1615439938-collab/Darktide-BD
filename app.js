@@ -910,10 +910,12 @@ function showInfo(n,focus=false){
     if(cnLabel)cnLabel.textContent="中文说明（更新预览） / Chinese preview";
     if(enLabel)enLabel.textContent="英文原文 / English";
     if(source)source.textContent="简中依据更新预览译文，并与当前英文数值核对。 / Preview translation checked against current numeric values.";
-  }else if(pair.source==="manual-reviewed"){
+  }else if(pair.source==="manual-reviewed"||pair.source==="manual-reviewed-current-tooltip"){
     if(cnLabel)cnLabel.textContent="中文说明（人工复核） / Chinese reviewed";
     if(enLabel)enLabel.textContent="英文原文 / English";
-    if(source)source.textContent="逐条对照英文原文人工复核；数值由自动审计再次校验。 / Manually reviewed against the English source; mechanics numbers are re-checked automatically.";
+    if(source)source.textContent=pair.source==="manual-reviewed-current-tooltip"
+      ?"现有维护译文与当前机制不一致或缺失；本条按当前英文逐条复核，并由数字审计校验。 / Existing maintained text is missing or stale; this line is reviewed against the current tooltip and numerically audited."
+      :"逐条对照英文原文人工复核；数值由自动审计再次校验。 / Manually reviewed against the English source; mechanics numbers are re-checked automatically.";
   }else if(pair.source==="stat-source-missing"){
     if(cnLabel)cnLabel.textContent="属性说明 / Stat";
     if(enLabel)enLabel.textContent="数据说明 / Data note";
@@ -948,6 +950,7 @@ function showInfo(n,focus=false){
       "syuantsai-fatshark-preview-translation":"Fatshark 更新预览的维护中文整理 / maintained Chinese preview transcription",
       "community-aligned":"Enhanced Descriptions 维护简中 / maintained zh-CN",
       "manual-reviewed":"无现成维护译文，逐条人工对照英文 / manually reviewed fallback",
+      "manual-reviewed-current-tooltip":"维护译文与当前机制不一致时，按当前英文逐条复核 / exact current-tooltip review",
       "fatshark-preview-zh":"Fatshark 更新预览 + 维护中文整理",
       "stat-source-missing":"数据源未提供具体数值 / exact value unavailable",
       "manual-name-fallback":"缺少现成译名 / no maintained title",
