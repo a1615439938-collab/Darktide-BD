@@ -64,13 +64,13 @@ function classByKey(k){
   return DATA.classes.find(c=>c.key===k)||DATA.classes[0];
 }
 function radius(n){
-  if(n.cat==="keystone")return 35;
-  if(n.cat==="ability")return 34;
-  if(n.cat==="blitz"||n.cat==="aura")return 31;
-  if(n.cat==="root")return 32;
+  if(n.cat==="keystone")return 42;
+  if(n.cat==="ability")return 41;
+  if(n.cat==="blitz"||n.cat==="aura")return 38;
+  if(n.cat==="root")return 39;
   if(n.cat==="stat")return 12;
-  if(n.cat==="keymod"||n.cat==="abilmod")return 25;
-  return 27;
+  if(n.cat==="keymod"||n.cat==="abilmod")return 30;
+  return 34;
 }
 function createSvg(tag,attrs={}){
   const el=document.createElementNS(NS,tag);
@@ -101,7 +101,7 @@ function nodeShape(n,r){
 function clipShape(n,r,id){
   const cp=createSvg("clipPath",{id});
   let sh;
-  const ir=Math.max(5,r-4);
+  const ir=Math.max(5,r-3);
   if(n.shape==="s"){
     sh=createSvg("rect",{x:n.x-ir,y:n.y-ir,width:ir*2,height:ir*2,rx:4});
   }else if(n.shape==="d"){
@@ -210,10 +210,10 @@ function renderNode(svg,defs,n){
     defs.appendChild(clipShape(n,r,id));
     const im=createSvg("image",{
       href:src,
-      x:n.x-r+5,
-      y:n.y-r+5,
-      width:(r-5)*2,
-      height:(r-5)*2,
+      x:n.x-r+3,
+      y:n.y-r+3,
+      width:(r-3)*2,
+      height:(r-3)*2,
       preserveAspectRatio:"xMidYMid slice",
       "clip-path":"url(#"+id+")",
       class:"art"
