@@ -367,6 +367,214 @@ FUTURE_PREVIEW_EN = {
     name_key('Kinetic Repulsion'):'Limit all Health Damage Taken while Integrated Refraction Emitter is active to 50.',
 }
 
+
+# Explicit Sep 18, 2026 Fatshark preview overrides.
+# English mechanics come from Fatshark's official preview; Simplified Chinese is a
+# script-converted form of SyuanTsai's maintained Traditional-Chinese transcription
+# of that official preview, not a free-form machine translation.
+FATSHARK_FUTURE_OVERRIDES = {
+    # Ogryn
+    name_key('Dominate'): {
+        'en': '+15% Rending for 10 s on Elite Kill.',
+        'cn': '击杀精英敌人后获得+15%撕裂，持续10秒。'
+    },
+    name_key('Keep Shooting'): {
+        'en': '+20% Reload Speed when reloading an Empty Clip.',
+        'cn': '空弹匣装填时，装填速度+20%。'
+    },
+    name_key('Soften Them Up'): {
+        'en': 'Enemies damaged by your Melee Attacks take +15% more Damage for 5 s.',
+        'cn': '被你的近战攻击命中的敌人额外受到15%伤害，持续5秒。'
+    },
+    name_key('Go Again!'): {
+        'en': 'Staggering an Enemy replenishes 1.5% Cooldown of Loyal Protector.',
+        'cn': '使敌人踉跄可恢复“忠诚护卫”1.5%的冷却时间。'
+    },
+    name_key('Maximum Firepower'): {
+        'en': '+100% Ability Cooldown Regeneration for 2.5 s when Lucky Bullet triggers.',
+        'cn': '触发“幸运子弹”时，技能冷却恢复速度+100%，持续2.5秒。'
+    },
+    name_key('Bruiser'): {
+        'en': '50% Ability Cooldown Regeneration for 4 s after you or an Ally in Coherency kills an Elite Enemy.',
+        'cn': '你或协同范围内的盟友击杀精英敌人后，技能冷却恢复速度+50%，持续4秒。'
+    },
+    name_key('Indomitable'): {
+        'en': 'Charge forward with great force, knocking back and Staggering Enemies. Gain +25% Attack Speed and +25% Movement Speed for 5 s. The charge stops on collision with Monstrosities. Base Cooldown: 25 s. This is an augmented version of Bull Rush with +100% charge distance.',
+        'cn': '向前强力冲锋，击退并使敌人踉跄。获得+25%攻击速度和+25%移动速度，持续5秒。撞上巨兽时会停止冲锋。基础冷却时间25秒。该技能是“蛮牛冲撞”的强化版本，冲锋距离提高100%。'
+    },
+
+    # Zealot
+    name_key('Faithful Frenzy'): {
+        'en': '+10% Melee Attack Speed and +5% Movement Speed.',
+        'cn': '近战攻击速度+10%，移动速度+5%。'
+    },
+    name_key('Until Death'): {
+        'en': 'Fatal Damage instead makes you Unkillable for 8 s. Occurs every 120 s.',
+        'cn': '受到致命伤害时改为进入8秒不会死亡状态。每120秒最多触发一次。'
+    },
+    name_key('Holy Revenant'): {
+        'en': 'Triggering Until Death knocks back nearby Enemies. While Unkillable, dealing Damage restores Health, up to 25% of Max Health. Mutually exclusive with Zealous Pilgrim.',
+        'cn': '触发“死战到底”时会击退附近敌人。在不会死亡状态持续期间，造成伤害可恢复生命值，最多恢复至最大生命值的25%。无法与“狂热朝圣者”同时选择。'
+    },
+    name_key('The Voice of Terra'): {
+        'en': 'While Shooting, replenish 10% Toughness per second.',
+        'cn': '射击期间每秒恢复10%韧性。'
+    },
+    name_key('Out of Pocket'): {
+        'en': 'Melee Kills replenish 10% of the missing Ammo in your current Magazine.',
+        'cn': '近战击杀时，补回当前弹匣已消耗弹药的10%。'
+    },
+    name_key('Unseen Blade'): {
+        'en': '+20% Damage vs Enemies not targeting you.',
+        'cn': '对未锁定你的敌人造成的伤害+20%。'
+    },
+    name_key("Retributor's Stance"): {
+        'en': 'During its Duration, replenish 0.5% Toughness per second per spent Stack of Momentum, up to 10%.',
+        'cn': '效果持续期间，每消耗1层“势能”每秒恢复0.5%韧性，最高10%。'
+    },
+    name_key('Chorus of Spiritual Fortitude'): {
+        'en': 'Wield a holy relic that releases 5 energy pulses every 0.8 s. While channeling, Allies in Coherency are Stun Immune and Unkillable. Each pulse Replenishes 45% Toughness and also grants +15 Max Toughness, up to +75 total. After the first pulse, only Enemies within 8 m are Staggered or Suppressed by later pulses. Base Cooldown: 60 s.',
+        'cn': '挥舞圣物，每0.8秒释放一次能量脉冲，共5次。引导期间，协同范围内的盟友免疫眩晕且不会死亡。每次脉冲恢复45%韧性，并额外提供+15最大韧性，最多累计+75。第一次脉冲后，后续脉冲只会使8米内的敌人踉跄或受到压制。基础冷却时间60秒。'
+    },
+    name_key('Holy Cause'): {
+        'en': 'Each pulse grants +8% Toughness Damage Reduction to you and Allies in Coherency, stacking up to 5 times. Lasts 10 s.',
+        'cn': '每次脉冲为你和协同范围内的盟友提供+8%韧性伤害减免，最多叠加5层，持续10秒。'
+    },
+    name_key("Ecclesiarch's Call"): {
+        'en': 'Each pulse grants +6% Damage to you and Allies in Coherency, stacking up to 5 times. Lasts 10 s.',
+        'cn': '每次脉冲为你和协同范围内的盟友提供+6%伤害，最多叠加5层，持续10秒。'
+    },
+
+    # Psyker
+    name_key('Mind in Motion'): {
+        'en': 'Your Movement Speed is not reduced while Quelling Peril or Reloading. Gain +5% Movement Speed.',
+        'cn': '平息危机值或装填时移动速度不会降低，并获得+5%移动速度。'
+    },
+    name_key("Psykinetic's Aura"): {
+        'en': 'Gain 50% Ability Cooldown Regeneration for 3 s when you kill an Elite or Specialist Enemy.',
+        'cn': '你击杀精英或专家敌人时，技能冷却恢复速度+50%，持续3秒。'
+    },
+    name_key('Perilous Combustion'): {
+        'en': 'Killing an Elite or Specialist Enemy applies 2 stacks of Soulblaze to nearby Enemies, causing Damage over time.',
+        'cn': '击杀精英或专家敌人时，对附近敌人施加2层灵魂烈焰，持续造成伤害。'
+    },
+    name_key('Surety of Arms'): {
+        'en': '30% Reload Speed while below 80% Peril. On Reload generate up to 15% Peril based on the Percentage of the Clip Restored.',
+        'cn': '危机值低于80%时，装填速度+30%。装填时根据恢复的弹匣比例最多生成15%危机值。'
+    },
+
+    # Veteran
+    name_key('Duck and Dive'): {
+        'en': '+30% Stamina on avoiding Ranged Attacks by Dodging, Sprinting or Sliding. Gain +5% Movement Speed.',
+        'cn': '通过闪避、疾跑或滑铲躲开远程攻击时恢复30%耐力，并获得+5%移动速度。'
+    },
+    name_key('Survivalist'): {
+        'en': 'Replenish 0.5% Ammo for you and Allies in Coherency whenever any of you Kill an Elite or Specialist Enemy. This can only occur once every 5 s. This is the improved version of the Aura; its base value is 0.25%.',
+        'cn': '你或协同范围内的盟友击杀精英或专家敌人时，为你和盟友补充0.5%弹药；每5秒最多触发一次。该数值为强化后的光环效果，基础值为0.25%。'
+    },
+    name_key('Close and Kill'): {
+        'en': '+7.5% Movement Speed for you and Allies in Coherency.',
+        'cn': '你和协同范围内的盟友获得+7.5%移动速度。'
+    },
+    name_key('Duty and Honour'): {
+        'en': 'Voice of Command also provides you and Allies in Coherency with +75 Toughness for 10 s. This can exceed maximum Toughness.',
+        'cn': '“发号施令”还会为你和协同范围内的盟友提供+75韧性，持续10秒；该效果可以超过最大韧性。'
+    },
+
+    # Arbites
+    name_key('Nuncio-Aquila'): {
+        'en': 'Deploy a Nuncio-Aquila in the target direction. After a tap / quick deploy, it now slowly follows the Arbites. Allies within 7.5 m Replenish 7.5% Toughness per second, gain +30% Suppression Dealt, +30% Impact and -25% Recoil, and are Immune to Stun, Slowdown and Suppression. Enemies within 7.5 m have +15% Damage Taken. Lasts 20 s. 60 s Cooldown.',
+        'cn': '向目标方向部署“天鹰使节”。点按或快速部署后，它现在会缓慢跟随法务官。7.5米内的盟友每秒恢复7.5%韧性，获得+30%压制效果、+30%冲击、-25%后坐力，并免疫眩晕、减速与压制。7.5米内的敌人受到的伤害+15%。持续20秒，冷却60秒。'
+    },
+    name_key('Lone Wolf'): {
+        'en': 'You are no longer accompanied by your Cyber-Mastiff. Gain +15% Toughness Damage Reduction, +10% Attack Speed, +20% Damage, and +1 Charge on Blitz Abilities. Replenish Arbites Grenade every 45 s or Voltaic Shock Mine every 90 s depending on the chosen Blitz.',
+        'cn': '你将不再有赛博獒随行。获得+15%韧性伤害减免、+10%攻击速度、+20%伤害，并使闪击技能最大充能次数+1。根据所选闪击技能自动恢复充能：“仲裁官手榴弹”每45秒恢复一次，“伏打电击地雷”每90秒恢复一次。'
+    },
+
+    # Hive Scum
+    name_key('Rampage!'): {
+        'en': 'Replenish all Toughness and enter Rampage! for 10 s. For the duration, gain +35% Melee Power, +20% Melee Attack Speed and +25% Damage Reduction, and become Stun and Suppression Immune. Melee Strikes extend the duration by 0.3 s. After 20 s, the duration extension from each hit is reduced. Base Cooldown: 30 s.',
+        'cn': '恢复全部韧性并进入“横冲直撞！”状态10秒。持续期间获得+35%近战威力、+20%近战攻击速度和+25%伤害减免，并免疫眩晕与压制。近战命中可延长0.3秒持续时间；累计持续时间达到20秒后，每次命中提供的延长效果降低。基础冷却时间30秒。'
+    },
+    name_key('Sample Collector'): {
+        'en': 'Kills replenish 0.5 s of Cartel Special Cooldown. Killing Chem Toxin infected Enemies instead replenishes 1 s.',
+        'cn': '击杀敌人恢复0.5秒“帮派特技”冷却时间；击杀感染化学毒素的敌人改为恢复1秒。'
+    },
+
+    # Skitarii
+    name_key('Advanced Combat Doctrines'): {
+        'en': 'Spend 25% Capacitance and Swap to your Secondary Weapon. Your weapon locks onto enemies close to your targeting reticule, granting inhuman accuracy. Gain -90% Spread and -60% Recoil while active. Drain 10% Capacitance per second and 1% per shot; drain pauses while reloading. The Ability ends if you switch away, reach 0% Capacitance with 0 Charges, or reactivate it. Requires at least 1 Charge. No Cooldown. After use, gain +25% Reload Speed for 5 s.',
+        'cn': '消耗25%电容量并切换至副武器。武器会锁定准星附近的敌人，使你获得近乎非人的精准度；持续期间散布降低90%，后坐力降低60%。激活期间每秒消耗10%电容量，每次射击额外消耗1%；装填时暂停消耗。若切离副武器、电容量降至0%且充能次数也为0，或再次激活技能，技能都会结束。至少拥有1次充能时才能使用，无冷却时间。使用后5秒内装填速度+25%。'
+    },
+    name_key('Voltaic Motivator'): {
+        'en': 'When using Voltaic Emitter, gain +5% Attack Speed plus an additional +5% per Charge spent for 15 s.',
+        'cn': '使用“电能发射器”时获得+5%攻击速度，并且每消耗1次充能再额外获得+5%攻击速度，持续15秒。'
+    },
+    name_key('Voltaic Overcharge'): {
+        'en': 'Voltaic Emitter restores 25% Toughness per Charge spent, plus an additional 1% Toughness for each Enemy hit by the Electric Discharge.',
+        'cn': '“电能发射器”每消耗1次充能恢复25%韧性；电能冲击每命中1名敌人，额外恢复1%韧性。'
+    },
+    name_key('Higher Purpose'): {
+        'en': 'Elite and Specialist Kills restore an additional +2.5% Capacitance.',
+        'cn': '击杀精英或专家敌人时，额外恢复2.5%电容量。'
+    },
+    name_key('Noospheric Command'): {
+        'en': 'Ordering your Servo-Skull to attack an Enemy greatly increases its Fire Rate for 2 s. Costs 30% Capacitance.',
+        'cn': '命令伺服头骨攻击敌人时，会大幅提高其射速2秒，消耗30%电容量。'
+    },
+    name_key('Voltaic Burst'): {
+        'en': 'Staggering Enemies with a Push applies Electrocution, dealing Damage and Stunning them. 12 s Cooldown.',
+        'cn': '用推击使敌人踉跄时，会施加电击，造成伤害并眩晕敌人。冷却时间12秒。'
+    },
+    name_key('Ammunition Deposit'): {
+        'en': 'Gain +25 Toughness. You and Allies in Coherency have +15% Ammo Reserve.',
+        'cn': '获得+25韧性。你和协同范围内的盟友获得+15%弹药储备。'
+    },
+    name_key('System Shock'): {
+        'en': 'Electrocuting an Enemy applies 3 Stacks of 2.5% Brittleness.',
+        'cn': '使敌人遭受电击时，对其施加3层、每层2.5%的脆弱。'
+    },
+    name_key('Galvanized Coating'): {
+        'en': 'You are Stun Immune and have +15% Damage Resistance. Taking Melee Damage spends 7.5% Capacitance.',
+        'cn': '你免疫眩晕并获得+15%伤害抗性。受到近战伤害时消耗7.5%电容量。'
+    },
+    name_key('Target-Neutralization Feedback'): {
+        'en': 'Weakspot Kills grant Stun and Suppression Immunity for 5 s.',
+        'cn': '弱点击杀会使你免疫眩晕与压制，持续5秒。'
+    },
+    name_key('Salvation Doctrine'): {
+        'en': 'Gain +25% Damage Resistance while Reviving an Ally. Gain +25% Revive Speed.',
+        'cn': '救起盟友期间获得+25%伤害减免，并获得+25%救援速度。'
+    },
+    name_key('Superior Tracking Litanies'): {
+        'en': '-50% Movement Speed penalty while Bracing or Aiming Down Sights. Additionally, gain -45% Spread.',
+        'cn': '架枪或瞄准时的移动速度惩罚降低50%；此外，散布降低45%。'
+    },
+    name_key('Force Distribution Actuators'): {
+        'en': 'Your Pushes have +75% Impact when at or above 50% Stamina.',
+        'cn': '耐力达到或高于50%时，推击的冲击+75%。'
+    },
+}
+
+FUTURE_ROOT_PASSIVES = {
+    'ogryn': {
+        'en': 'Base Toughness: 125. Iconic Passive — Towering Presence: +50% Coherency Radius.',
+        'cn': '基础韧性：125。招牌被动“卓越气场”：协同半径+50%。'
+    },
+    'zealot': {
+        'en': 'Base Toughness: 125. Iconic Passive — Blood Redemption: +75% Toughness Replenishment from Melee Kills.',
+        'cn': '基础韧性：125。招牌被动“鲜血救赎”：近战击杀的韧性恢复加成+75%。'
+    },
+    'psyker': {
+        'en': 'Base Critical Hit Chance: 10%.',
+        'cn': '基础暴击率：10%。'
+    },
+    'veteran': {
+        'en': 'Iconic Passive — Guardsman: +25% Ranged Damage. Iconic Passive — Sharpshooter: Elite and Specialist Kills restore 1% Ammo, 5 s Cooldown.',
+        'cn': '招牌被动“帝国卫兵”：远程伤害+25%。招牌被动“神射手”：击杀精英或专家敌人时恢复1%弹药，冷却5秒。'
+    },
+}
+
 future_classes = []
 live_classes = []
 all_slugs = set()
@@ -471,6 +679,11 @@ def attach_info(trees):
                 n['advancedEn'] = ''
                 n['advancedCn'] = ''
                 n['descSource'] = 'class'
+                root_passive = FUTURE_ROOT_PASSIVES.get(cl.get('key')) if cl.get('patch') == 'future' else None
+                if root_passive:
+                    n['mechanicsEn'] = root_passive['en']
+                    n['mechanicsCn'] = root_passive['cn']
+                    n['mechanicsSource'] = 'fatshark-official-preview+syuantsai-preview-translation'
             else:
                 canonical = n['slug'].split('/')[-1]
                 info = DESC.get(canonical, {})
@@ -487,6 +700,12 @@ def attach_info(trees):
                 n['type'] = info.get('t','')
                 n['desc'] = info.get('d','')
                 n['descSourceEn'] = 'games-lantern'
+                official_override = FATSHARK_FUTURE_OVERRIDES.get(name_key(en)) if cl.get('patch') == 'future' else None
+                if official_override:
+                    n['desc'] = official_override['en']
+                    n['descCn'] = official_override['cn']
+                    n['descSourceEn'] = 'fatshark-official-preview'
+                    n['descSource'] = 'syuantsai-fatshark-preview-translation'
                 future_en = FUTURE_PREVIEW_EN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
                 if not n['desc'] and future_en:
                     n['desc'] = future_en
@@ -496,9 +715,12 @@ def attach_info(trees):
                 pair_cn = pair.get('cn','')
                 preview_cn = FUTURE_PREVIEW_CN.get(name_key(en), '') if cl.get('patch') == 'future' else ''
                 reviewed_cn = MANUAL_ZH.get(manual_desc_key(en, n['desc']), '')
-                if preview_cn and numeric_multiset(n['desc']) == numeric_multiset(preview_cn):
+                if official_override:
+                    pass
+                elif preview_cn and numeric_multiset(n['desc']) == numeric_multiset(preview_cn):
                     n['descCn'] = preview_cn
                     n['descSource'] = 'fatshark-preview-zh'
+                    n['descSourceEn'] = 'fatshark-official-preview'
                 elif pair_cn and compatible_base_translation(n['desc'], pair_en):
                     n['descCn'] = pair_cn
                     n['descSource'] = 'community-aligned'
