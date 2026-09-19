@@ -40,6 +40,70 @@ const VOCAB=[
   ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
 ];
 
+function translateEffectFallback(text){
+  if(!text)return "暂无可靠的简中预览效果说明。";
+  let s=String(text);
+  const pairs=[
+    [/Melee Weakspot Kills/gi,"近战弱点击杀"],
+    [/Ranged Weakspot Kills/gi,"远程弱点击杀"],
+    [/Weakspot Kills/gi,"弱点击杀"],
+    [/Successful Melee Attacks/gi,"成功的近战攻击"],
+    [/Successful Ranged Attacks/gi,"成功的远程攻击"],
+    [/Melee Attacks/gi,"近战攻击"],
+    [/Ranged Attacks/gi,"远程攻击"],
+    [/Melee Damage/gi,"近战伤害"],
+    [/Ranged Damage/gi,"远程伤害"],
+    [/Toughness Damage Reduction/gi,"韧性伤害减免"],
+    [/Damage Reduction/gi,"伤害减免"],
+    [/Toughness/gi,"韧性"],
+    [/Health/gi,"生命值"],
+    [/Stamina/gi,"耐力"],
+    [/Weakspot/gi,"弱点"],
+    [/Critical Chance/gi,"暴击率"],
+    [/Critical Hit/gi,"暴击"],
+    [/Attack Speed/gi,"攻击速度"],
+    [/Movement Speed/gi,"移动速度"],
+    [/Reload Speed/gi,"装填速度"],
+    [/Combat Ability/gi,"战斗技能"],
+    [/Cooldown/gi,"冷却时间"],
+    [/Coherency/gi,"协同范围"],
+    [/Enemies/gi,"敌人"],
+    [/Enemy/gi,"敌人"],
+    [/Allies/gi,"盟友"],
+    [/Damage/gi,"伤害"],
+    [/Power/gi,"威力"],
+    [/Strength/gi,"强度"],
+    [/Rending/gi,"撕裂"],
+    [/Brittleness/gi,"脆弱"],
+    [/Staggered/gi,"已踉跄"],
+    [/Stagger/gi,"踉跄"],
+    [/Stealth/gi,"隐身"],
+    [/seconds?/gi,"秒"],
+    [/meters?/gi,"米"],
+    [/restores?/gi,"恢复"],
+    [/replenishes?/gi,"恢复"],
+    [/increases?/gi,"提高"],
+    [/reduces?/gi,"降低"],
+    [/for /gi,"持续 "],
+    [/ over /gi,"，在 "],
+    [/ instantly/gi,"，立即生效"],
+    [/ on /gi,"于"],
+    [/ with /gi,"，使用"],
+    [/ your /gi,"你的"],
+    [/ you /gi,"你"],
+    [/ all /gi,"所有"],
+    [/ within /gi,"范围内"],
+    [/ up to /gi,"，最多"],
+    [/ per /gi,"每"],
+  ];
+  for(const [re,zh] of pairs)s=s.replace(re,zh);
+  // If the fallback is still mostly English, mark it clearly as an automatic aid.
+  const latin=(s.match(/[A-Za-z]/g)||[]).length;
+  const total=Math.max(1,s.replace(/\s/g,"").length);
+  if(latin/total>.32)return "自动辅助翻译： "+s;
+  return s;
+}
+
 const GEAR_GUIDE={
   veteran:{
     melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk VI Power Sword"],
@@ -486,13 +550,14 @@ function showInfo(n,focus=false){
   else if(!active.has(n.s))stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
   $("#infoState").textContent=stateText;
 
-  if(n.desc){
-    $("#infoCnDesc").textContent="效果 / Effect";
-    $("#infoDesc").textContent=n.desc;
+  if(n.descCn){
+    $("#infoCnDesc").textContent=n.descCn;
+  }else if(n.desc){
+    $("#infoCnDesc").textContent=translateEffectFallback(n.desc);
   }else{
-    $("#infoCnDesc").textContent="暂无可靠的预览效果说明";
-    $("#infoDesc").textContent="No reliable preview effect text is available for this node yet.";
+    $("#infoCnDesc").textContent="暂无可靠的简中预览效果说明。";
   }
+  $("#infoDesc").textContent=n.desc||"No reliable preview effect text is available for this node yet.";
   const vocab=$("#infoVocab");
   if(vocab){
     const text=n.desc||"";
@@ -775,7 +840,7 @@ try{
   selfCheck();
   runAutomatedSelfTest();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl8").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl9").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
