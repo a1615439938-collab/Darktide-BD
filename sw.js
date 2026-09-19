@@ -1,4 +1,4 @@
-const CACHE="darktide-bd-tree-v1";
+const CACHE="darktide-bd-tree-v2";
 const ASSETS=["./","./index.html","./styles.css","./tree-data.js","./app.js","./manifest.webmanifest"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>{e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))]))});
