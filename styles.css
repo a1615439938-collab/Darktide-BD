@@ -40,6 +40,16 @@ button{touch-action:manipulation}
   border-color:#deb44d;box-shadow:0 3px 13px rgba(217,173,66,.16)
 }
 
+.subtree-strip{display:none;gap:7px;justify-content:center;padding:0 1px 8px}
+.subtree-strip.show{display:flex}
+.subtree-strip button{
+  border:1px solid #40505a;background:#0f1820;color:#aeb7bd;border-radius:8px;
+  padding:7px 11px;font-size:11px
+}
+.subtree-strip button.on{
+  border-color:#8a6d29;background:#2a2414;color:#e4c263;font-weight:700
+}
+
 .section-title{position:relative;text-align:center;margin:16px 0 11px;padding:0 18px}
 .section-title:before,.section-title:after{
   content:"";position:absolute;top:58%;height:1px;
