@@ -296,7 +296,7 @@ def translation_map():
         'https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/Referneces/Translation.md',
         'https://raw.githubusercontent.com/xsSplater/Darktide_Enhanced_Descriptions_BETA/xss0/AI%20Document/Translation%20Table%20-%20zh-tw.md',
     ]
-    announcement_url = 'https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/%E5%85%AC%E5%91%8A/%E8%A9%9B%E5%92%92%E6%B7%B1%E6%B7%B5%E5%B9%B3%E8%A1%A1%E6%80%A7%E6%9B%B4%E6%96%B0_%E7%B9%81%E4%B8%AD%E7%BF%BB%E8%AD%AF.md'
+    announcement_url = 'https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/%E5%85%AC%E5%91%8A/2026-09-18_%E8%A9%9B%E5%92%92%E6%B7%B1%E6%B7%B5%E5%B9%B3%E8%A1%A1%E6%80%A7%E6%9B%B4%E6%96%B0_%E7%B9%81%E4%B8%AD%E7%BF%BB%E8%AD%AF.md'
     raw = {}
     for source_index, url in enumerate(urls):
         source_label = 'syuantsai-glossary' if source_index == 0 else 'enhanced-translation-table'
@@ -333,17 +333,23 @@ def translation_map():
     except Exception:
         pass
 
-    # Names verified in SyuanTsai's maintained Enhanced Descriptions name table.
+    # High-confidence name corrections. These override the older formal glossary only
+    # where a later maintained name table explicitly corrected a typo/stale translation,
+    # or where the old glossary contains an unambiguous typo.
     maintained_curated = {
         'cleave boost':'顺劈增幅',
         'impact boost':'冲击增幅',
         'critical chance boost':'暴击率增幅',
         'ranged damage boost':'远程伤害增幅',
+        'superiority complex':'优越情结',
+        'precision strikes':'精准打击',
+        'malocator':'生化武器官',
+        'coated weaponry':'涂毒武装',
+        'a tertium welcome':'特提恩式欢迎',
     }
     for en, zh in maintained_curated.items():
-        if en not in raw:
-            raw[en] = zh
-            TRANSLATION_SOURCE[en] = 'enhanced-translation-table'
+        raw[en] = zh
+        TRANSLATION_SOURCE[en] = 'maintained-name-correction'
 
     # Fallbacks only where no maintained display-name entry was found.
     curated = {
@@ -746,6 +752,70 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=20) as ex:
 
 print('icons downloaded', len(ICONS), 'of', len(all_icon_urls))
 
+# English talent/ability titles that are safe to localize when they appear inside
+# Chinese mechanics text. This deliberately excludes generic category words that
+# could be enemy/weapon terminology in another context.
+INLINE_TALENT_NAMES = {
+    "Martyrdom","Telekine Shield","Scrier's Gaze","Castigator's Stance","Rampage!",
+    "Infiltrate","Fury of the Faithful","Blazing Piety","Assail","Venting Shriek",
+    "Empowered Psionics","Feel No Pain","Indomitable","Adrenaline Frenzy","Stimm Supply",
+    "Voice of Command","Loyal Protector","Executioner's Stance","Smoke Grenade",
+    "Krak Grenade","Frag Grenade","Shroudfield","Brain Rupture","Smite","Break the Line",
+    "Desperado","Enhanced Desperado","Until Death","Chastise the Wicked",
+    "Chorus of Spiritual Fortitude"
+}
+
+def normalize_cn_display(text, class_key=''):
+    """Normalize maintained Traditional-Chinese-derived text for this zh-CN UI."""
+    if not text:
+        return text
+    s = str(text)
+    # Darktide glossary terminology / Mainland Simplified register.
+    if class_key == 'psyker':
+        s = s.replace('亚空间危机', '亚空间反噬')
+        s = s.replace('臨界危機', '临界反噬').replace('临界危机', '临界反噬')
+        s = s.replace('危机值', '反噬').replace('危機值', '反噬')
+        # Remaining Psyker "危机" occurrences in these talent texts refer to Peril.
+        s = s.replace('危机', '反噬').replace('危機', '反噬')
+    s = s.replace('硬壳护甲', '甲壳护甲').replace('硬壳', '甲壳护甲')
+    s = s.replace('甲壳甲', '甲壳护甲').replace('防弹甲', '防弹护甲')
+    s = s.replace('灵魂烈焰', '灵魂之火')
+    s = s.replace('连携', '协同').replace('連攜', '协同')
+    s = s.replace('机率', '几率').replace('機率', '几率')
+    s = s.replace('公尺', '米')
+    s = s.replace('您', '你')
+    s = s.replace('作战技能', '战斗技能')
+    s = s.replace('暴击命中几率', '暴击率').replace('暴击几率', '暴击率')
+    s = s.replace('暴擊命中機率', '暴击率').replace('暴擊機率', '暴击率')
+    s = re.sub(r'(\d+(?:\.\d+)?)\s*-\s*-\s*(\d+(?:\.\d+)?)', r'\1–\2', s)
+    # Common spacing artifacts from concatenated Enhanced Descriptions fragments.
+    s = s.replace('协同 盟友', '协同范围内的盟友')
+    s = s.replace('协同范围内盟友', '协同范围内的盟友')
+    s = s.replace('韧性 伤害', '韧性伤害').replace('腐败 抗性', '腐败抗性')
+    s = s.replace('反噬 等级', '反噬')
+    s = re.sub(r'([\u4e00-\u9fff])\s+([，。；：！？])', r'\1\2', s)
+    return s
+
+def localize_inline_talent_names(trees):
+    # Build the map from the same canonical display names already selected for nodes.
+    title_map = {}
+    for cl in trees:
+        for n in cl.get('nodes', []):
+            en, cn = n.get('en',''), n.get('cn','')
+            if en in INLINE_TALENT_NAMES and cn and cn != en:
+                title_map[en] = cn
+    pairs = sorted(title_map.items(), key=lambda kv: len(kv[0]), reverse=True)
+    for cl in trees:
+        class_key = cl.get('parent') or cl.get('key','')
+        for n in cl.get('nodes', []):
+            for field in ('descCn','advancedCn','mechanicsCn'):
+                text = n.get(field,'')
+                if not text:
+                    continue
+                for en, cn in pairs:
+                    text = re.sub(r'(?<![A-Za-z])' + re.escape(en) + r'(?![A-Za-z])', cn, text, flags=re.I)
+                n[field] = normalize_cn_display(text, class_key)
+
 def attach_info(trees):
     for cl in trees:
         for n in cl['nodes']:
@@ -864,6 +934,10 @@ def attach_info(trees):
 
 attach_info(future_classes)
 attach_info(live_classes)
+
+# Normalize terminology only after both trees have their final display names, so
+# inline English talent titles can be replaced consistently in live and future text.
+localize_inline_talent_names(future_classes + live_classes)
 
 all_nodes=[n for tree in (future_classes+live_classes) for n in tree['nodes'] if n.get('cat')!='root']
 zh_hits=sum(1 for n in all_nodes if n.get('descCn'))
