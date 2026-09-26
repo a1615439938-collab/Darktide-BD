@@ -2204,6 +2204,96 @@ function isAvail(slug){
   }
   return false;
 }
+function unlockPathFor(slug){
+  const target=nodeMap[slug];
+  if(!target||active.has(slug)||isAvail(slug)||currentGroupConflict(target))return [];
+  const prev=new Map([[slug,null]]);
+  const q=[slug];
+  let found="";
+  while(q.length&&!found){
+    const cur=q.shift();
+    for(const nb of adj[cur]||[]){
+      if(prev.has(nb))continue;
+      if(active.has(nb)){
+        prev.set(nb,cur);
+        found=nb;
+        break;
+      }
+      const candidate=nodeMap[nb];
+      if(!candidate)continue;
+      if(currentGroupConflict(candidate))continue;
+      prev.set(nb,cur);
+      q.push(nb);
+    }
+  }
+  if(!found)return [];
+  const path=[found];
+  let cur=found;
+  while(cur!==slug){
+    cur=prev.get(cur);
+    if(!cur)return [];
+    path.push(cur);
+  }
+  return path;
+}
+function clearUnlockPathHighlight(){
+  for(const el of Object.values(nodeEls))el?.classList.remove("path-hint");
+  for(const e of edgeEls)e.el.classList.remove("path-hint");
+}
+function highlightUnlockPath(path){
+  clearUnlockPathHighlight();
+  if(!Array.isArray(path)||path.length<2)return;
+  for(const slug of path.slice(1))nodeEls[slug]?.classList.add("path-hint");
+  for(let i=0;i<path.length-1;i++){
+    const a=path[i],b=path[i+1];
+    const edge=edgeEls.find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
+    edge?.el.classList.add("path-hint");
+  }
+}
+function renderUnlockPathHint(n){
+  const hint=$("#infoPathHint");
+  if(!hint)return;
+  hint.hidden=true;
+  hint.textContent="";
+  clearUnlockPathHighlight();
+  if(!n||n.s===ROOT||active.has(n.s))return;
+
+  const conflict=currentGroupConflict(n);
+  if(conflict){
+    hint.hidden=false;
+    hint.textContent=uiText(
+      "与“"+displayTalentCn(conflict)+"”互斥；需要先调整同组选择。",
+      "Exclusive with “"+displayTalentEn(conflict)+"”; change the current choice in this group first."
+    );
+    return;
+  }
+
+  if(isAvail(n.s)){
+    hint.hidden=false;
+    hint.textContent=uiText("✓ 路径已连接，选择将消耗 1 点。","✓ Path connected. Selecting this talent costs 1 point.");
+    return;
+  }
+
+  const path=unlockPathFor(n.s);
+  if(path.length<2){
+    hint.hidden=false;
+    hint.textContent=uiText("暂时找不到可连接路径。","No reachable path is available from the current build.");
+    return;
+  }
+  const missing=path.slice(1);
+  const names=missing.map(slug=>{
+    const node=nodeMap[slug];
+    return uiText(displayTalentCn(node),displayTalentEn(node));
+  });
+  const remain=Math.max(0,CUR.budget-points());
+  const enough=missing.length<=remain;
+  hint.hidden=false;
+  hint.textContent=uiText(
+    "还需 "+missing.length+" 点："+names.join(" → ")+(enough?"":"；当前剩余点数不足"),
+    missing.length+" more point"+(missing.length===1?"":"s")+" needed: "+names.join(" → ")+(enough?"":"; not enough points remain")
+  );
+  highlightUnlockPath(path);
+}
 function points(){
   return Math.max(0,active.size-1);
 }
@@ -2561,7 +2651,7 @@ function redraw(){
   for(const n of CUR.nodes){
     const g=nodeEls[n.s];
     if(!g) continue;
-    g.classList.remove("active","avail","locked","hot");
+    g.classList.remove("active","avail","locked","hot","path-hint");
     if(active.has(n.s)) g.classList.add("active");
     else if(isAvail(n.s)) g.classList.add("avail");
     else g.classList.add("locked");
@@ -2572,6 +2662,7 @@ function redraw(){
 
   for(const e of edgeEls){
     e.el.classList.toggle("on",active.has(e.a)&&active.has(e.b));
+    e.el.classList.remove("path-hint");
   }
 
   $("#pts").textContent=`${points()} / ${CUR.budget}`;
@@ -2596,19 +2687,31 @@ function showInfo(n,focus=false){
     pop.setAttribute("aria-hidden","false");
   }
   const cat=CAT[n.cat]||CAT.passive;
-  $("#infoType").textContent=`${cat.cn} / ${cat.en}`;
-  $("#infoCn").textContent=displayTalentCn(n);
+  $("#infoType").textContent=uiText(cat.cn,cat.en);
+  const mode=uiLanguage();
+  $("#infoCn").textContent=mode==="en"?displayTalentEn(n):displayTalentCn(n);
   $("#infoEn").textContent=displayTalentEn(n);
+  $("#infoEn").hidden=mode!=="bi";
 
-  let stateText="已选择 / Selected";
-  if(n.s===ROOT)stateText="职业起点 / Root";
-  else if(!active.has(n.s))stateText=isAvail(n.s)?"可选择 / Available":"未连接 / Locked";
+  let stateText=uiText("已选择","Selected");
+  if(n.s===ROOT)stateText=uiText("职业起点","Root");
+  else if(!active.has(n.s)){
+    const conflict=currentGroupConflict(n);
+    stateText=conflict?uiText("互斥","Exclusive"):isAvail(n.s)?uiText("可选择","Available"):uiText("未连接","Locked");
+  }
   $("#infoState").textContent=stateText;
+  const more=$("#infoMore");
+  if(more)more.open=false;
+  renderUnlockPathHint(n);
 
   const pair=descriptionPair(n);
   $("#infoCnDesc").textContent=pair.cn;
   $("#infoDesc").textContent=pair.en;
   const cnLabel=$("#infoCnLabel"),enLabel=$("#infoEnLabel"),source=$("#infoSource");
+  $("#infoCnDesc").hidden=mode==="en";
+  $("#infoDesc").hidden=mode==="zh";
+  if(cnLabel)cnLabel.hidden=mode==="en";
+  if(enLabel)enLabel.hidden=mode==="zh";
   if(pair.source==="paired-enhanced"){
     if(cnLabel)cnLabel.textContent="中文详细机制 / Chinese enhanced";
     if(enLabel)enLabel.textContent="英文详细机制 / English enhanced";
@@ -2640,6 +2743,8 @@ function showInfo(n,focus=false){
       mechanics.hidden=false;
       $("#infoMechanicsCn").textContent=n.mechanicsCn||"";
       $("#infoMechanicsEn").textContent=n.mechanicsEn||"";
+      $("#infoMechanicsCn").hidden=mode==="en";
+      $("#infoMechanicsEn").hidden=mode==="zh";
     }else{
       mechanics.hidden=true;
       $("#infoMechanicsCn").textContent="";
@@ -2707,13 +2812,20 @@ function updateInfoAction(n){
   b.disabled=false;
   if(n.s===ROOT)return;
   if(active.has(n.s)){
-    b.textContent="移除天赋 / Remove";
+    b.textContent=uiText("移除天赋","Remove talent");
     b.dataset.mode="remove";
+    return;
+  }
+  const conflict=currentGroupConflict(n);
+  if(conflict){
+    b.textContent=uiText("与当前选择互斥","Exclusive choice");
+    b.dataset.mode="conflict";
+    b.disabled=true;
   }else if(isAvail(n.s)){
-    b.textContent="选择天赋 / Select";
+    b.textContent=uiText("选择天赋","Select talent");
     b.dataset.mode="select";
   }else{
-    b.textContent="需要前置节点 / Requires path";
+    b.textContent=uiText("需要前置节点","Requires path");
     b.dataset.mode="locked";
     b.disabled=true;
   }
@@ -2787,6 +2899,9 @@ function placePopover(n,focus=false){
   });
 }
 function hideInfo(redrawTree=true){
+  clearUnlockPathHighlight();
+  const hint=$("#infoPathHint");
+  if(hint)hint.hidden=true;
   const pop=$("#nodePopover");
   if(pop){
     pop.classList.add("hidden");
@@ -2923,6 +3038,8 @@ function bind(){
       renderSubtreeBar();
       renderLoadoutCards();
       redraw();
+      const openNode=hotSlug?nodeMap[hotSlug]:null;
+      if(openNode&&!$("#nodePopover").classList.contains("hidden"))showInfo(openNode,false);
       writeStorage();
     });
   });
@@ -3158,6 +3275,7 @@ function selfCheck(){
   if(!ROOT||!nodeMap[ROOT]) throw new Error("class root is missing");
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
   if(!$("#nodePopover")) throw new Error("node popover is missing");
+  if(!$("#infoPathHint")||!$("#infoMore")) throw new Error("talent path guidance UI is missing");
   if(treeTop!==BASE_TREE_TOP) throw new Error("tree top shifted unexpectedly");
   if(!$("#buildSelect")||!Array.isArray(state.builds)||!state.builds.length) throw new Error("build library is missing");
   if(document.querySelectorAll("[data-workspace-panel]").length!==3) throw new Error("three workspace panels are missing");
@@ -3284,6 +3402,16 @@ function runAutomatedSelfTest(){
     const before=points();
     const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
     if(!firstAvail)throw new Error("no selectable first node");
+    const lockedCandidate=CUR.nodes.find(n=>n.s!==ROOT&&!active.has(n.s)&&!isAvail(n.s)&&!currentGroupConflict(n)&&unlockPathFor(n.s).length>1);
+    if(lockedCandidate){
+      hotSlug=lockedCandidate.s;
+      redraw();
+      showInfo(lockedCandidate,false);
+      if($("#infoPathHint").hidden||!$("#infoPathHint").textContent.trim())throw new Error("locked talent path hint did not render");
+      if(!document.querySelector(".node.path-hint"))throw new Error("locked talent path was not highlighted");
+      if(uiLanguage()==="zh"&&!$("#infoDesc").hidden)throw new Error("Chinese mode still shows the English talent paragraph");
+      hideInfo();
+    }
 
     nodeEls[firstAvail.s].dispatchEvent(new MouseEvent("click",{bubbles:true}));
     if(points()!==before)throw new Error("preview tap changed talent points");
@@ -3428,7 +3556,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl48").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl49").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");

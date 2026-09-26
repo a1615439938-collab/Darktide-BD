@@ -915,3 +915,27 @@ html[data-lang="en"] .gear-head>b{display:block}
   .curio-progress{margin-left:auto}
   .equipment-filters{padding-left:10px;padding-right:10px}
 }
+
+
+/* ===== Talent guidance + progressive disclosure v3 ===== */
+.path-hint-card{
+  margin:8px 0;padding:8px 9px;border-left:3px solid #b6994f;
+  background:rgba(129,104,47,.13);color:#dfd2a7;font-size:9.5px;line-height:1.48
+}
+.node.path-hint{opacity:.9!important}
+.node.path-hint .shape{
+  stroke:#e2bf58!important;stroke-width:4.4!important;
+  filter:drop-shadow(0 0 7px rgba(222,184,72,.48))
+}
+.edge.path-hint{
+  stroke:#d8af48!important;stroke-width:3.2!important;opacity:.92!important;
+  stroke-dasharray:7 5
+}
+.info-more{
+  margin-top:9px;border-top:1px solid rgba(205,216,202,.12);padding-top:7px
+}
+.info-more summary{
+  cursor:pointer;color:#aebba8;font-size:9px;font-weight:800;user-select:none
+}
+.info-more[open] summary{margin-bottom:7px;color:#e2d7af}
+.info-more .effect-source,.info-more .provenance,.info-more .vocab{margin-top:6px}
