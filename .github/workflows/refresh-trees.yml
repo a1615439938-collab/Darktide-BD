@@ -5,19 +5,13 @@ name: Refresh future talent trees
 # 2) Do NOT move this job to Cloudflare, Supabase, Vercel, Netlify, external CI,
 #    server cron, webhook runners, polling services, or any other platform for
 #    automatic execution.
-# 3) External-platform execution must remain manual unless the user explicitly
+# 3) This workflow itself is manual-only. Do not restore a push trigger while
+#    GitHub quota conservation is required.
+# 4) External-platform execution must remain manual unless the user explicitly
 #    changes this policy.
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/scrape_future.py"
-      - "tools/enhanced_zh.py"
-      - "tools/manual_zh.json"
-      - "tools/manual_current_cn.json"
-      - "tools/split_tree_data.py"
-      - ".github/workflows/refresh-trees.yml"
 
 permissions:
   contents: write

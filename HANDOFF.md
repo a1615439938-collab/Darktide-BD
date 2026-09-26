@@ -143,3 +143,13 @@
 
 根目录 `AGENTS.md` 也记录了同一约束。修改任何 workflow 前必须先阅读该文件和本交接文档。
 
+## 10. GitHub Actions 额度安全模式 / Quota-safe mode
+
+用户在 2026-09-27 明确说明 GitHub Actions 额度已经用光。后续开发需要遵守：
+
+1. 日常开发先在非 `main` 分支完成，避免每个小提交反复触发 `main` 的 Pages / UI 自检。
+2. `refresh-trees.yml` 只允许 `workflow_dispatch` 手动运行，不再因脚本文件 push 自动刷新。
+3. `Talent text audit` 只在真正影响天赋文本数据 / 审计脚本的文件变化时自动运行；普通 `app.js` UI 改动不再触发它，因为现有三个审计脚本实际读取的是 `tree-data.js`。
+4. `Mobile UI self-check` 和 Pages 只对会影响运行时网站的文件变化自动触发；纯 README / HANDOFF / 文档提交不应消耗 Actions。
+5. 当前继续开发的额度安全工作分支：`work/ux-polish-quota-safe-20260927`。额度恢复前不要为了部署预览频繁合并到 `main`。
+6. 合并到 `main` 前集中做一次最终检查即可；不要为了每个小改动反复触发完整 CI。
