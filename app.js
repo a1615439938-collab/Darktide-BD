@@ -1390,10 +1390,19 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
 }
 let equipmentEditor={action:"",field:"",index:-1,tier:"4",flow:[],flowIndex:-1,filter:"all"};
 
+function parseEquipmentFlowStep(step){
+  const raw=String(step||"");
+  const pos=raw.lastIndexOf("@");
+  if(pos<0)return {field:raw,index:-1};
+  return {field:raw.slice(0,pos),index:Number(raw.slice(pos+1))};
+}
 function equipmentActionForField(field){
   if(/Weapon$/.test(field))return "weapon";
   if(/Blessing[12]$/.test(field))return "blessing";
   if(/Perk[12]$/.test(field))return "perk";
+  if(/^curio\d+Main$/.test(field))return "curioMain";
+  if(/^curio\d+Perks$/.test(field))return "curioPerk";
+  if(/^curio\d+Type$/.test(field))return "curioType";
   return "";
 }
 function weaponFlowFor(field){
@@ -1406,13 +1415,31 @@ function weaponFlowFor(field){
     slot+"Perk2"
   ];
 }
-function equipmentFlowLabel(field){
+function curioFlowFor(fieldOrIndex){
+  const match=String(fieldOrIndex||"").match(/curio(\d+)/);
+  const index=match?Number(match[1]):Number(fieldOrIndex);
+  return [
+    "curio"+index+"Main",
+    "curio"+index+"Perks@0",
+    "curio"+index+"Perks@1",
+    "curio"+index+"Perks@2"
+  ];
+}
+function equipmentFlowLabel(step){
+  const {field,index}=parseEquipmentFlowStep(step);
   if(/Weapon$/.test(field))return uiText("武器","Weapon");
   if(/Blessing1$/.test(field))return uiText("祝福 1","Blessing 1");
   if(/Blessing2$/.test(field))return uiText("祝福 2","Blessing 2");
   if(/Perk1$/.test(field))return uiText("词条 1","Perk 1");
   if(/Perk2$/.test(field))return uiText("词条 2","Perk 2");
+  if(/Main$/.test(field)&&/^curio/.test(field))return uiText("主属性","Main");
+  if(/^curio\d+Perks$/.test(field))return uiText("词条 "+(index+1),"Perk "+(index+1));
   return field;
+}
+function equipmentFlowStepDone(step){
+  const {field,index}=parseEquipmentFlowStep(step);
+  if(index>=0&&/^curio\d+Perks$/.test(field))return Boolean(curioPerks(field)[index]);
+  return Boolean(loadoutFieldValue(field));
 }
 function renderEquipmentFlow(){
   const host=document.getElementById("equipmentFlow");
@@ -1421,13 +1448,14 @@ function renderEquipmentFlow(){
   host.hidden=flow.length<2;
   host.innerHTML="";
   if(flow.length<2)return;
-  flow.forEach((field,i)=>{
+  flow.forEach((step,i)=>{
+    const {field,index}=parseEquipmentFlowStep(step);
     const b=document.createElement("button");
     b.type="button";
-    b.textContent=equipmentFlowLabel(field);
+    b.textContent=equipmentFlowLabel(step);
     b.classList.toggle("active",i===equipmentEditor.flowIndex);
-    b.classList.toggle("done",Boolean(loadoutFieldValue(field)));
-    b.onclick=()=>openEquipmentDialog(equipmentActionForField(field),field,-1,{steps:flow,index:i});
+    b.classList.toggle("done",equipmentFlowStepDone(step));
+    b.onclick=()=>openEquipmentDialog(equipmentActionForField(field),field,index,{steps:flow,index:i});
     host.appendChild(b);
   });
 }
@@ -1439,8 +1467,8 @@ function advanceEquipmentFlow(){
     if(flow.length)notify(uiText("这把武器的配置已完成","Weapon setup complete"));
     return;
   }
-  const nextField=flow[nextIndex];
-  openEquipmentDialog(equipmentActionForField(nextField),nextField,-1,{steps:flow,index:nextIndex});
+  const next=parseEquipmentFlowStep(flow[nextIndex]);
+  openEquipmentDialog(equipmentActionForField(next.field),next.field,next.index,{steps:flow,index:nextIndex});
 }
 
 function splitBilingualLabel(value){
@@ -1600,11 +1628,46 @@ function setSectionProgress(host,done,total){
   }
   if(badge)badge.textContent=done===total?uiText("✓ 完成","✓ Complete"):done+" / "+total;
 }
+function nextIncompleteLoadoutStep(){
+  for(const slot of ["melee","ranged"]){
+    const flow=weaponFlowFor(slot+"Weapon");
+    for(let i=0;i<flow.length;i++){
+      if(!equipmentFlowStepDone(flow[i])){
+        const parsed=parseEquipmentFlowStep(flow[i]);
+        return {flow,flowIndex:i,...parsed,action:equipmentActionForField(parsed.field)};
+      }
+    }
+  }
+  for(let i=1;i<=3;i++){
+    const flow=curioFlowFor(i);
+    for(let p=0;p<flow.length;p++){
+      if(!equipmentFlowStepDone(flow[p])){
+        const parsed=parseEquipmentFlowStep(flow[p]);
+        return {flow,flowIndex:p,...parsed,action:equipmentActionForField(parsed.field),curioIndex:i};
+      }
+    }
+  }
+  return null;
+}
+function openNextIncompleteLoadout(){
+  const next=nextIncompleteLoadoutStep();
+  if(!next){
+    notify(uiText("配装已经完整","Loadout is complete"));
+    return;
+  }
+  if(next.curioIndex){
+    const card=document.querySelector('[data-curio-index="'+next.curioIndex+'"]');
+    card?.classList.remove("collapsed");
+    syncCurioToggle(card);
+  }
+  openEquipmentDialog(next.action,next.field,next.index,{steps:next.flow,index:next.flowIndex});
+}
 function renderLoadoutProgress(){
   const p=loadoutProgress();
   const completion=$("#loadoutCompletion");
   const hint=$("#loadoutCompletionHint");
   const bar=$("#loadoutProgressBar");
+  const continueBtn=$("#loadoutContinue");
   if(completion)completion.textContent=uiLanguage()==="en"
     ?"Loadout "+p.done+" / "+p.total
     :uiLanguage()==="bi"
@@ -1614,6 +1677,11 @@ function renderLoadoutProgress(){
     ?uiText("✓ 配装已完整","✓ Loadout complete")
     :uiText("还差 "+(p.total-p.done)+" 项；珍品外观不计入完成度",""+(p.total-p.done)+" required slots remaining; curio cosmetics are optional");
   if(bar)bar.style.width=Math.round(p.done/p.total*100)+"%";
+  if(continueBtn){
+    const next=nextIncompleteLoadoutStep();
+    continueBtn.disabled=!next;
+    continueBtn.textContent=next?uiText("继续配装","Continue setup"):uiText("✓ 配装完成","✓ Complete");
+  }
 }
 function renderLoadoutCards(){
   const lo=currentLoadout();
@@ -1879,6 +1947,12 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
   if(action==="weapon"&&!flow.length){
     flow=weaponFlowFor(field);
     flowIndex=0;
+  }else if(action==="curioMain"&&!flow.length){
+    const perkField=field.replace(/Main$/,"Perks");
+    if(curioPerks(perkField).length===0){
+      flow=curioFlowFor(field);
+      flowIndex=0;
+    }
   }
   equipmentEditor={action,field,index,tier:"4",flow,flowIndex,filter:"all"};
   if(action==="blessing"){
@@ -1916,6 +1990,11 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
       hint.textContent=uiText(
         "仅显示当前职业可用武器；更换武器会自动移除不兼容祝福。",
         "Only weapons available to this class are shown; incompatible blessings are removed when the weapon changes."
+      );
+    }else if(action==="curioMain"&&flow.length>1){
+      hint.textContent=uiText(
+        "选完主属性后会继续配置 3 个词条，不需要反复退出再点开。",
+        "After the main stat, setup continues through all 3 perks without reopening the editor."
       );
     }else{
       hint.textContent=uiText("点击一个选项即可写入当前 BD。","Choose an option to save it to this build.");
@@ -2008,6 +2087,7 @@ function setupEquipmentPickers(){
       renderLoadoutCards();
     });
   });
+  document.getElementById("loadoutContinue")?.addEventListener("click",openNextIncompleteLoadout);
   document.getElementById("equipmentDialogClose")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
   document.getElementById("equipmentClear")?.addEventListener("click",clearEquipmentEditorSlot);
   document.getElementById("equipmentDone")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
@@ -2360,6 +2440,42 @@ function renderUnlockPathHint(n){
     missing.length+" more point"+(missing.length===1?"":"s")+" needed: "+names.join(" → ")+(enough?"":"; not enough points remain")
   );
   highlightUnlockPath(path);
+}
+function applyUnlockPath(n){
+  if(!n||n.s===ROOT||active.has(n.s))return false;
+  if(currentGroupConflict(n))return false;
+  if(isAvail(n.s)){
+    toggleNode(n);
+    return active.has(n.s);
+  }
+  const path=unlockPathFor(n.s);
+  const missing=path.slice(1);
+  if(!missing.length||points()+missing.length>CUR.budget)return false;
+
+  const original=active;
+  active=new Set(original);
+  let valid=true;
+  for(const slug of missing){
+    const node=nodeMap[slug];
+    if(!node||!isAvail(slug)||currentGroupConflict(node)){
+      valid=false;
+      break;
+    }
+    active.add(slug);
+  }
+  if(!valid){
+    active=original;
+    redraw();
+    return false;
+  }
+  const completed=active;
+  active=original;
+  pushUndo();
+  active=completed;
+  saveSelection();
+  persist();
+  redraw();
+  return true;
 }
 function points(){
   return Math.max(0,active.size-1);
@@ -2892,9 +3008,20 @@ function updateInfoAction(n){
     b.textContent=uiText("选择天赋","Select talent");
     b.dataset.mode="select";
   }else{
-    b.textContent=uiText("需要前置节点","Requires path");
-    b.dataset.mode="locked";
-    b.disabled=true;
+    const path=unlockPathFor(n.s);
+    const need=Math.max(0,path.length-1);
+    const remain=Math.max(0,CUR.budget-points());
+    if(need>0&&need<=remain){
+      b.textContent=uiText("补齐路径并选择 · "+need+" 点","Fill path & select · "+need+" pt"+(need===1?"":"s"));
+      b.dataset.mode="fillpath";
+      b.disabled=false;
+    }else{
+      b.textContent=need>remain
+        ?uiText("剩余点数不足","Not enough points")
+        :uiText("需要前置节点","Requires path");
+      b.dataset.mode="locked";
+      b.disabled=true;
+    }
   }
 }
 function placePopover(n,focus=false){
@@ -3144,6 +3271,18 @@ function bind(){
     const n=hotSlug?nodeMap[hotSlug]:null;
     if(!n||n.s===ROOT)return;
     const wasActive=active.has(n.s);
+    const actionMode=$("#infoAction")?.dataset.mode||"";
+    if(actionMode==="fillpath"){
+      const path=unlockPathFor(n.s);
+      const needed=Math.max(0,path.length-1);
+      if(applyUnlockPath(n)){
+        showInfo(n,false);
+        notify(uiText("已补齐路径并选择目标天赋，共 "+needed+" 点","Path filled and target selected · "+needed+" points"));
+      }else{
+        notify(uiText("无法安全补齐这条路径","This path cannot be filled safely"));
+      }
+      return;
+    }
     toggleNode(n);
     redraw();
     showInfo(n,false);
@@ -3357,7 +3496,7 @@ function selfCheck(){
   if(document.querySelectorAll("[data-workspace-panel]").length!==3) throw new Error("three workspace panels are missing");
   if(!$("#saveState")||!$("#pointsRemaining")) throw new Error("autosave or points-remaining status is missing");
   if(!document.querySelector('[data-workspace-tab="loadout"]')) throw new Error("workspace navigation is missing");
-  if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")) throw new Error("loadout completion UI is missing");
+  if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")||!$("#loadoutContinue")) throw new Error("loadout completion UI is missing");
   if(!$("#equipmentFilters")) throw new Error("equipment filter bar is missing");
   if(!document.querySelector("[data-curio-copy-all]")||document.querySelectorAll("[data-curio-copy-prev]").length!==2) throw new Error("curio copy shortcuts are missing");
   if(document.querySelectorAll("[data-curio-toggle]").length!==3||document.querySelectorAll(".curio-body").length!==3) throw new Error("curio disclosure controls are missing");
@@ -3488,6 +3627,8 @@ function runAutomatedSelfTest(){
       showInfo(lockedCandidate,false);
       if($("#infoPathHint").hidden||!$("#infoPathHint").textContent.trim())throw new Error("locked talent path hint did not render");
       if(!document.querySelector(".node.path-hint"))throw new Error("locked talent path was not highlighted");
+      const pathNeed=Math.max(0,unlockPathFor(lockedCandidate.s).length-1);
+      if(pathNeed>0&&pathNeed<=CUR.budget-points()&&$("#infoAction")?.dataset.mode!=="fillpath")throw new Error("locked path is not directly actionable");
       if(uiLanguage()==="zh"&&!$("#infoDesc").hidden)throw new Error("Chinese mode still shows the English talent paragraph");
       hideInfo();
     }
@@ -3636,7 +3777,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl54").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl55").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");

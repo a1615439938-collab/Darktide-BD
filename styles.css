@@ -979,3 +979,22 @@ html[data-lang="zh"] .brand-sub{display:none}
   .curio-toolbar button{padding:5px 6px}
   .curio-card.collapsed{padding-bottom:8px}
 }
+
+
+/* ===== Guided completion v6 ===== */
+.loadout-progress-card{
+  grid-template-columns:minmax(0,1fr) minmax(130px,30%) auto;
+}
+.loadout-continue{
+  align-self:stretch;min-width:92px;border:1px solid #8a7440;border-radius:8px;
+  background:linear-gradient(180deg,#2a2718,#19190f);color:#edd78c;
+  padding:7px 10px;font-size:9px;font-weight:900;white-space:nowrap
+}
+.loadout-continue:hover:not(:disabled){border-color:#b59a51;background:#302b19}
+.loadout-continue:disabled{opacity:.5;color:#9aa49a;border-color:#3c4842;background:#101817}
+@media(max-width:560px){
+  .loadout-progress-card{grid-template-columns:1fr auto;gap:7px}
+  .loadout-progress-copy{grid-column:1 / -1}
+  .loadout-progress-track{align-self:center}
+  .loadout-continue{min-width:104px}
+}
