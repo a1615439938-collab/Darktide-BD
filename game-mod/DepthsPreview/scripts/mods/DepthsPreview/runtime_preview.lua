@@ -58,6 +58,7 @@ local NODE = {
   },
   ogryn = {
     found_some_more = "dp_found_some_more",
+    toughness_damage_reduction = "dp_toughness_damage_reduction_e9803f5f",
   },
 }
 
@@ -301,6 +302,12 @@ local function apply_preview_stats(self)
   elseif class == "psyker" then
     if State.has_node(class, NODE.psyker.focused_warp) then
       add_stat(stats, stat_buffs.warp_damage, 0.15)
+    end
+  elseif class == "ogryn" then
+    if State.has_node(class, NODE.ogryn.toughness_damage_reduction) then
+      -- Native node already contributes 5% TDR (x0.95). Scale it to the
+      -- preview's 10% total (x0.90) without disturbing other TDR sources.
+      multiply_stat(stats, stat_buffs.toughness_damage_taken_multiplier, 0.90 / 0.95)
     end
   end
 end
