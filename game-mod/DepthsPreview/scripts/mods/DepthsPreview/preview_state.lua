@@ -41,6 +41,12 @@ function State.set_enabled(value)
   mod:set("_preview_enabled", State._enabled, false)
 end
 
+function State.has_node(class_key, widget_name)
+  local selected = State._selections[class_key]
+  local tier = selected and selected[widget_name]
+  return tier ~= nil and tier > 0
+end
+
 function State.selection(class_key)
   return clone(State._selections[class_key] or {})
 end
