@@ -14,6 +14,7 @@ let iconsLoaded=Object.keys(ICONS).length>0;
 const NS="http://www.w3.org/2000/svg";
 const STORE="darktide-bilingual-editor-gl10";
 const BASE_TREE_TOP=20;
+const ICON_ART_SCALE=1.18; // Source talent art has transparent padding; zoom artwork inside the existing node clip.
 let treeTop=BASE_TREE_TOP;
 
 const QUERY=new URLSearchParams(location.search);
@@ -632,22 +633,24 @@ function renderNode(svg,defs,n){
   const hit=createSvg("circle",{cx:n.x,cy:n.y,r:Math.max(24,r+10),class:"hit-target"});
   g.appendChild(hit);
   g.appendChild(nodeShape(n,r));
+
+  let inner=null;
   if(n.cat!=="stat"){
-    const inner=nodeShape(n,Math.max(7,r-4));
+    inner=nodeShape(n,Math.max(7,r-4));
     inner.setAttribute("class","inner-frame");
-    g.appendChild(inner);
   }
 
   const src=iconFor(n);
   if(src&&n.cat!=="stat"){
     const id="clip_"+n.s.replace(/[^a-z0-9]/gi,"_");
     defs.appendChild(clipShape(n,r,id));
+    const artRadius=(r-3)*ICON_ART_SCALE;
     const im=createSvg("image",{
       href:src,
-      x:n.x-r+3,
-      y:n.y-r+3,
-      width:(r-3)*2,
-      height:(r-3)*2,
+      x:n.x-artRadius,
+      y:n.y-artRadius,
+      width:artRadius*2,
+      height:artRadius*2,
       preserveAspectRatio:"xMidYMid slice",
       "clip-path":"url(#"+id+")",
       class:"art"
@@ -658,6 +661,7 @@ function renderNode(svg,defs,n){
     tx.textContent=n.cat==="stat"?"•":initials(n);
     g.appendChild(tx);
   }
+  if(inner)g.appendChild(inner);
 
   g.setAttribute("role","button");
   g.setAttribute("tabindex","0");
