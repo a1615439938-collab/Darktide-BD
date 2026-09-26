@@ -469,11 +469,38 @@ function TalentUI.set_enabled(value)
   end
 end
 
+local function select_talent_panel(view)
+  if not view or not view._views_settings or not view._top_panel then
+    return false
+  end
+
+  for index = 1, #view._views_settings do
+    local settings = view._views_settings[index]
+    if settings and settings.view_name == "talent_builder_view" then
+      view:_force_select_panel_index(index)
+      return true
+    end
+  end
+
+  return false
+end
+
 function TalentUI.open()
   if not State.enabled() then
     TalentUI.set_enabled(true)
   end
-  if Managers.ui and not Managers.ui:view_active("inventory_background_view") then
+
+  if not Managers.ui then
+    return
+  end
+
+  if Managers.ui:view_active("inventory_background_view") then
+    local view = Managers.ui:view_instance("inventory_background_view")
+    if not select_talent_panel(view) then
+      TalentUI._open_talent_when_ready = true
+    end
+  else
+    TalentUI._open_talent_when_ready = true
     Managers.ui:open_view("inventory_background_view", nil, nil, nil, nil, nil)
   end
 end
@@ -544,6 +571,12 @@ function TalentUI.install()
       end
     end
     return func(self)
+  end)
+
+  mod:hook_safe(InventoryBackgroundView, "_setup_inventory", function(self)
+    if TalentUI._open_talent_when_ready and select_talent_panel(self) then
+      TalentUI._open_talent_when_ready = nil
+    end
   end)
 
   mod:hook(InventoryBackgroundView, "_save_current_talents_to_profile_preset", function(func, self)
