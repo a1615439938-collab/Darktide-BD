@@ -34,10 +34,10 @@ local CATEGORY_TO_TYPE = {
 }
 
 local GENERIC_ICONS = {
-  veteran = "content/ui/textures/icons/talents/veteran/veteran_default_general_talent",
+  veteran = "content/ui/textures/icons/talents/veteran/veteran_aura_elite_kills_restore_grenade",
   zealot = "content/ui/textures/icons/talents/zealot/zealot_default_general_talent",
-  psyker = "content/ui/textures/icons/talents/psyker/psyker_default_general_talent",
-  ogryn = "content/ui/textures/icons/talents/ogryn/ogryn_default_general_talent",
+  psyker = "content/ui/textures/icons/talents/psyker/psyker_2_tier_1_name_2",
+  ogryn = "content/ui/textures/icons/talents/ogryn/ogryn_multi_heavy_toughness",
 }
 
 -- Same-name live talents whose September 29 behavior is structurally different.
