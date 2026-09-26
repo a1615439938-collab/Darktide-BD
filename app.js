@@ -710,7 +710,7 @@ function blessingTierSummary(label,inputId){
   const weapon=weaponField?(document.getElementById(weaponField)?.value||""):"";
   const rows=Array.isArray(meta.rows)?meta.rows:[];
   let matched=weapon?rows.filter(r=>tierRowMatchesWeapon(r,weapon)):[];
-  let row=matched[0]||(rows.length===1?rows[0]:null);
+  let row=matched[0]||(!weapon&&rows.length===1?rows[0]:null);
   const metricCn=tierMetricCn(meta.metric);
   const metric=String(meta.metric||"Tier value");
   if(row){
@@ -1112,8 +1112,8 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
         b.className="picker-option"+(item.recommended?" recommended":"");
         b.textContent=item.label;
         if(BLESSING_INPUT_IDS.has(id)){
-          b.addEventListener("mouseenter",()=>showBlessingTooltip(item.label,b));
-          b.addEventListener("focus",()=>showBlessingTooltip(item.label,b));
+          b.addEventListener("mouseenter",()=>showBlessingTooltip(item.label,b,id));
+          b.addEventListener("focus",()=>showBlessingTooltip(item.label,b,id));
           b.addEventListener("mouseleave",scheduleHideBlessingTooltip);
           b.addEventListener("blur",scheduleHideBlessingTooltip);
         }
