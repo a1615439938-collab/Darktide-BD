@@ -2,7 +2,7 @@ local mod = get_mod("DepthsPreview")
 
 local Archetypes = require("scripts/settings/archetype/archetypes")
 local FixedFrame = require("scripts/utilities/fixed_frame")
-local InventoryBackgroundView = require("scripts/ui/views/inventory_background_view/inventory_background_view")
+local InventoryBackgroundView = require("scripts/ui/views/inventory_background_view/inventory_background_view")\nlocal MatchmakingConstants = require("scripts/settings/network/matchmaking_constants")
 local LocalizationManager = require("scripts/managers/localization/localization_manager")
 local TalentBuilderView = require("scripts/ui/views/talent_builder_view/talent_builder_view")
 local TalentLayoutParser = require("scripts/ui/views/talent_builder_view/utilities/talent_layout_parser")
@@ -42,7 +42,7 @@ local GENERIC_ICONS = {
 local original_layouts = {}
 local preview_layouts = {}
 local localization = {}
-local installed = false
+local installed = false\nlocal HOST_TYPES = MatchmakingConstants.HOST_TYPES
 
 local function deep_copy(value, seen)
   if type(value) ~= "table" then
@@ -350,6 +350,19 @@ local function local_player()
   return Managers.player and Managers.player:local_player(1) or nil
 end
 
+local function local_gameplay_authority()
+  local multiplayer_session = Managers.multiplayer_session
+  if not multiplayer_session then
+    return false
+  end
+  local host_type = multiplayer_session:host_type()
+  if host_type ~= HOST_TYPES.singleplay and host_type ~= HOST_TYPES.player then
+    return false
+  end
+  local game_session = Managers.state and Managers.state.game_session
+  return game_session and game_session:is_server() or false
+end
+
 local function selected_talents(class_key, node_tiers)
   local archetype = Archetypes[class_key]
   local layout = preview_layouts[class_key]
@@ -359,7 +372,7 @@ local function selected_talents(class_key, node_tiers)
 end
 
 function TalentUI.apply_selection(class_key, node_tiers)
-  if not State.enabled() then
+  if not State.enabled() or not local_gameplay_authority() then
     return false
   end
 
