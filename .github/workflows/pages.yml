@@ -3,6 +3,16 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "*.js"
+      - "manifest.webmanifest"
+      - "assets/**"
+      - "*.png"
+      - "*.webp"
+      - "*.ico"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:

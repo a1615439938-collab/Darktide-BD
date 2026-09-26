@@ -3,6 +3,20 @@ name: Mobile UI self-check
 on:
   push:
     branches: ["main"]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "tree-core.js"
+      - "tree-data.js"
+      - "tree-icons-*.js"
+      - "blessing-effects.js"
+      - "blessing-tier-values.js"
+      - "weapon-blessing-overrides.js"
+      - "tools/scrape_future.py"
+      - ".github/workflows/self-check.yml"
   workflow_dispatch:
 
 permissions:
