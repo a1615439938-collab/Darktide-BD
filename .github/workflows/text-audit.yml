@@ -36,4 +36,6 @@ jobs:
         if: always()
         with:
           name: talent-text-audit
-          path: text-audit.json
+          path: |
+            text-audit.json
+            translation-audit.json
