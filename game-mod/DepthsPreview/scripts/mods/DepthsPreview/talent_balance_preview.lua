@@ -3,6 +3,7 @@ local mod = get_mod("DepthsPreview")
 local BuffSettings = require("scripts/settings/buff/buff_settings")
 local BuffTemplates = require("scripts/settings/buff/buff_templates")
 local PlayerAbilities = require("scripts/settings/ability/player_abilities/player_abilities")
+local ZealotRelic = require("scripts/settings/equipment/weapon_templates/combat_abilities/zealot_relic")
 local TalentSettings = require("scripts/settings/talent/talent_settings")
 
 local stat_buffs = BuffSettings.stat_buffs
@@ -100,6 +101,17 @@ end
 local function patch_zealot()
   local base = TalentSettings.zealot
   local t = TalentSettings.zealot_2
+
+  -- Chorus of Spiritual Fortitude: 7 -> 5 pulses.
+  -- Current action math is ceil((total_time - 0.5) / 0.8), so 4.5s = 5 pulses.
+  local chorus_action = ZealotRelic.actions and ZealotRelic.actions.action_zealot_channel
+  if chorus_action then
+    set_value(chorus_action, "total_time", 4.5)
+    -- Later pulses in the preview are limited to 8m. This also constrains
+    -- the live broadphase stagger radius while the preview is enabled.
+    set_value(chorus_action, "radius", 8)
+    set_value(chorus_action, "radius_time_in_action_multiplier", 0)
+  end
 
   -- Until Death: 5s -> 8s, keeping the 120s cooldown.
   set_value(t.passive_2, "active_duration", 8)
