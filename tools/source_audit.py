@@ -38,6 +38,10 @@ for tree in (data.get("classes") or [])+(data.get("liveClasses") or []):
         if not n.get("nameSourceEn"): issues.append(("high","missing_en_name_source",tree.get("patch"),tree.get("key"),n.get("s"),en))
         if cn and cn!=en and not n.get("nameSourceCn"): issues.append(("high","missing_cn_name_source",tree.get("patch"),tree.get("key"),n.get("s"),en))
         if n.get("desc") and not n.get("descSourceEn"): issues.append(("high","missing_en_desc_source",tree.get("patch"),tree.get("key"),n.get("s"),en))
+        if tree.get("patch")=="future" and n.get("cat")=="stat":
+            desc=(n.get("desc") or "")
+            if n.get("descSource")=="stat-source-missing" or "Exact stat value is not available" in desc:
+                issues.append(("high","future_stat_value_missing","future",tree.get("key"),n.get("s"),desc))
 
 # Official Sep 18 2026 Depths of the Damned preview expectations.
 # Values below are explicit in Fatshark's preview. For baseline/Iconic passives that
