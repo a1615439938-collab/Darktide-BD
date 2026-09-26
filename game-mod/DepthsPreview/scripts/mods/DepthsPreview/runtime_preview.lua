@@ -188,7 +188,7 @@ local function handle_out_of_pocket(self, params)
     return
   end
 
-  local slot = unit_data:read_component("slot_secondary")
+  local slot = unit_data:write_component("slot_secondary")
   if not slot then
     return
   end
