@@ -1384,7 +1384,7 @@ function renderLoadoutCards(){
       const bi=splitBilingualLabel(typeValue);
       cardSetText(typeCard,bi.cn,bi.en,false);
     }else{
-      cardSetText(typeCard,"选择珍品 "+i,"Select curio type",true);
+      cardSetText(typeCard,"外观（可选）","不影响 BD / Cosmetic only",true);
     }
 
     const mainField="curio"+i+"Main";
@@ -1541,7 +1541,7 @@ function openEquipmentDialog(action,field,index=-1){
     dialog.dataset.field=field;
     if(!dialog.open)dialog.showModal();
   }
-  requestAnimationFrame(()=>search?.focus());
+  requestAnimationFrame(()=>{if(isDesktopInteraction())search?.focus();});
 }
 function clearEquipmentEditorSlot(){
   const {action,field,index}=equipmentEditor;
@@ -3015,7 +3015,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl43").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl44").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
