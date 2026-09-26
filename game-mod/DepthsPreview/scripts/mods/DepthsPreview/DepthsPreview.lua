@@ -8,6 +8,7 @@ local Equipment = mod:io_dofile("DepthsPreview/scripts/mods/DepthsPreview/previe
 local Balance = mod:io_dofile("DepthsPreview/scripts/mods/DepthsPreview/balance_preview")
 local Blessings = mod:io_dofile("DepthsPreview/scripts/mods/DepthsPreview/blessing_preview")
 local TalentBalance = mod:io_dofile("DepthsPreview/scripts/mods/DepthsPreview/talent_balance_preview")
+local RuntimePreview = mod:io_dofile("DepthsPreview/scripts/mods/DepthsPreview/runtime_preview")
 
 local function current_class()
   local player = Managers.player and Managers.player:local_player(1)
@@ -32,6 +33,7 @@ end
 
 local function apply_mode()
   TalentUI.install()
+RuntimePreview.install()
   Equipment.install()
 
   if State.enabled() then
