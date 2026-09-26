@@ -1257,14 +1257,14 @@ function createSavedBuild(copyCurrent=false){
   renderAll(true);
   writeStorage();
   queueCurrentIconPack();
-  notify(copyCurrent?"已复制为新 BD / Build duplicated":"已新建空白 BD / New build created");
+  notify(copyCurrent?uiText("已复制为新 BD","Build duplicated"):uiText("已新建空白 BD","New build created"));
 }
 function deleteSavedBuild(){
   const builds=state.builds||[];
   const i=builds.findIndex(b=>b.id===state.activeBuildId);
   if(i<0)return;
   const title=(builds[i].name||"未命名 BD / Untitled").trim();
-  if(!confirm("删除“"+title+"”？此操作只删除本机保存的数据。\nDelete this locally saved build?"))return;
+  if(!confirm(uiText("删除“"+title+"”？此操作只删除本机保存的数据。","Delete “"+title+"”? This only removes the locally saved build.")))return;
   builds.splice(i,1);
   if(!builds.length)builds.push(blankBuild());
   const next=builds[Math.min(i,builds.length-1)];
@@ -1274,7 +1274,7 @@ function deleteSavedBuild(){
   renderAll(true);
   writeStorage();
   queueCurrentIconPack();
-  notify("已删除 BD / Build deleted");
+  notify(uiText("已删除 BD","Build deleted"));
 }
 
 const pickerRegistry=[];
@@ -1539,7 +1539,7 @@ function clearInvalidBlessingsAfterWeaponChange(slot){
       const t=document.getElementById(blessingTierField(field)); if(t)t.value="";
     }
   }
-  if(cleared.length)notify("已移除与新武器不兼容的祝福："+cleared.join("、")+" / Incompatible blessings removed");
+  if(cleared.length)notify(uiText("已移除与新武器不兼容的祝福："+cleared.join("、"),"Incompatible blessings removed: "+cleared.join(", ")));
 }
 function curioPerks(field){
   return String(loadoutFieldValue(field)||"").split("|").map(x=>x.trim()).filter(Boolean);
@@ -2026,7 +2026,7 @@ function selectEquipmentOption(value){
 }
 function openEquipmentDialog(action,field,index=-1,flowState=null){
   if(action==="blessing"&&!loadoutFieldValue(blessingWeaponField(field))){
-    notify("请先选择武器，再选择该武器可用的祝福 / Choose a weapon first");
+    notify(uiText("请先选择武器，再选择该武器可用的祝福","Choose a weapon first, then select a compatible blessing"));
     return;
   }
   let flow=flowState?.steps||[];
@@ -2869,7 +2869,7 @@ function undoLast(){
   redraw();
   hideInfo(false);
   updateUndoButton();
-  notify("已撤销上一步 / Undone");
+  notify(uiText("已撤销上一步","Undone"));
 }
 function toggleNode(n){
   if(n.s===ROOT) return;
@@ -2891,23 +2891,23 @@ function toggleNode(n){
     }
 
     if([...trial].some(s=>s!==ROOT&&!seen.has(s))){
-      notify("不能移除：后续天赋仍依赖这个节点 / Downstream talents still depend on it");
+      notify(uiText("不能移除：后续天赋仍依赖这个节点","Cannot remove: downstream talents still depend on this node"));
       return;
     }
     pushUndo();
     active.delete(n.s);
   }else{
     if(!isAvail(n.s)){
-      notify("该节点尚未连接到已选择路径 / This node is not connected yet");
+      notify(uiText("该节点尚未连接到已选择路径","This node is not connected to the selected path yet"));
       return;
     }
     if(points()>=CUR.budget){
-      notify("30 点已用完 / All 30 talent points are spent");
+      notify(uiText("30 点已用完","All 30 talent points are spent"));
       return;
     }
     const conflict=currentGroupConflict(n);
     if(conflict){
-      notify(`同一组只能选一个：${conflict.cn||conflict.en} / Only one choice in this group`);
+      notify(uiText("同一组只能选一个："+displayTalentCn(conflict),"Only one choice in this group: "+displayTalentEn(conflict)));
       return;
     }
     pushUndo();
@@ -3387,16 +3387,16 @@ function bind(){
   $("#undoBtn").onclick=undoLast;
   $("#resetBtn").onclick=()=>{
     if(points()===0){
-      notify("当前天赋树已经是空的 / This tree is already empty");
+      notify(uiText("当前天赋树已经是空的","This talent tree is already empty"));
       return;
     }
-    if(confirm("重置当前职业的天赋？ / Reset this class tree?")){
+    if(confirm(uiText("重置当前职业的天赋？","Reset this class talent tree?"))){
       pushUndo();
       state.selected[selectionKey(state.classKey)]=[];
       hotSlug=null;
       persist();
       renderAll(false);
-      notify("已重置当前天赋树 / Current tree reset");
+      notify(uiText("已重置当前天赋树","Current talent tree reset"));
     }
   };
   $("#infoAction").onclick=()=>{
@@ -3420,11 +3420,11 @@ function bind(){
     redraw();
     showInfo(n,false);
     if(wasActive&&active.has(n.s)){
-      notify("该天赋仍被后续节点依赖 / Downstream nodes still depend on it");
+      notify(uiText("该天赋仍被后续节点依赖","Downstream talents still depend on it"));
     }else if(wasActive){
-      notify("已移除天赋 / Talent removed");
+      notify(uiText("已移除天赋","Talent removed"));
     }else if(active.has(n.s)){
-      notify("已选择天赋 / Talent selected");
+      notify(uiText("已选择天赋","Talent selected"));
     }
   };
   $("#futurePatchBtn").onclick=()=>switchPatch("future");
@@ -3463,7 +3463,7 @@ function bind(){
   };
   $("#importBtn").onclick=()=>{
     $("#codeBox").value="";
-    $("#dialogMsg").textContent="粘贴 BD 数据后点击“载入” / Paste build data, then tap Load.";
+    $("#dialogMsg").textContent=uiText("粘贴 BD 数据后点击“载入”。","Paste build data, then tap Load.");
     $("#codeDialog").showModal();
   };
   $("#copyBtn").onclick=async()=>{
@@ -3479,7 +3479,7 @@ function bind(){
   $("#loadBtn").onclick=()=>{
     try{
       importData($("#codeBox").value);
-      $("#dialogMsg").textContent="载入成功 / Loaded ✓";
+      $("#dialogMsg").textContent=uiText("载入成功 ✓","Loaded ✓");
       setTimeout(()=>$("#codeDialog").close(),450);
     }catch(e){
       $("#dialogMsg").textContent=e.message;
@@ -3920,9 +3920,9 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl62").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl63").catch(()=>{}));
   }
 }catch(e){
-  setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
+  setStatus(uiText("天赋树启动失败："+e.message,"Talent tree failed to start: "+e.message),"err");
 }
 })();
