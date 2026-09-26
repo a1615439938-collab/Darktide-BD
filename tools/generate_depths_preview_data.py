@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Generate the compact DepthsPreview runtime data table from tree-core.js.
+"""Generate compact DepthsPreview runtime data from tree-core.js.
 
-The runtime table intentionally marks a node as "reuse" only when the future
-node has the same slug, category, description, and advanced description as the
-live node. Changed/new nodes remain "custom" until a Lua implementation exists.
+A future node is reusable only when:
+1. the same live slug has exactly the same category, description and advanced
+   description; or
+2. another live node in the SAME archetype has exactly the same category and
+   effect text (safe effect-equivalent reuse, mainly relocated stat nodes).
+
+Everything else remains "custom" until explicitly implemented in Lua.
 """
 from __future__ import annotations
 import json
@@ -23,6 +27,9 @@ def lua_string(value):
     value = value.replace("\\", "\\\\").replace('"', '\\"').replace("\r", "\\r").replace("\n", "\\n")
     return f'"{value}"'
 
+def signature(node):
+    return (node.get("cat"), norm(node.get("desc")), norm(node.get("advancedEn")))
+
 def main():
     text = SOURCE.read_text(encoding="utf-8-sig").strip()
     if not text.startswith("window.TREE_DATA="):
@@ -40,7 +47,6 @@ def main():
         f"  source_version = {lua_string(data.get('version', ''))},",
         "  classes = {",
     ]
-
     live_classes = {c["key"]: c for c in data.get("liveClasses", [])}
     future_classes = {c["key"]: c for c in data.get("classes", [])}
 
@@ -48,6 +54,9 @@ def main():
         live = live_classes[key]
         future = future_classes[key]
         live_by_slug = {n["s"]: n for n in live["nodes"]}
+        live_by_effect = {}
+        for node in live["nodes"]:
+            live_by_effect.setdefault(signature(node), []).append(node)
 
         ordinal_count = {}
         live_ordinal = {}
@@ -56,30 +65,36 @@ def main():
             ordinal_count[name] = ordinal_count.get(name, 0) + 1
             live_ordinal[node["s"]] = ordinal_count[name]
 
-        reuse = custom = 0
-        out.extend([
-            f"    {key} = {{",
-            f"      key = {lua_string(key)},",
-            "      nodes = {",
-        ])
+        reuse = custom = effect_reuse = 0
+        out.extend([f"    {key} = {{", f"      key = {lua_string(key)},", "      nodes = {"])
+
         for index, node in enumerate(future["nodes"], 1):
             stripped = re.sub(r"^depths-of-the-damned/", "", node["s"])
-            live_node = live_by_slug.get(stripped)
-            exact = bool(
-                live_node
-                and norm(live_node.get("desc")) == norm(node.get("desc"))
-                and norm(live_node.get("advancedEn")) == norm(node.get("advancedEn"))
-                and live_node.get("cat") == node.get("cat")
-            )
-            reuse += int(exact)
-            custom += int(not exact)
+            same_slug = live_by_slug.get(stripped)
+            live_node = same_slug
+            match_kind = None
+
+            if same_slug and signature(same_slug) == signature(node):
+                match_kind = "slug"
+            else:
+                effect_matches = live_by_effect.get(signature(node), [])
+                if effect_matches:
+                    live_node = effect_matches[0]
+                    match_kind = "effect"
+
+            reusable = match_kind is not None
+            reuse += int(reusable)
+            custom += int(not reusable)
+            effect_reuse += int(match_kind == "effect")
+
             parts = [
                 f"index = {index}",
                 f"slug = {lua_string(node.get('s'))}",
                 f"en = {lua_string(node.get('en'))}",
                 f"cn = {lua_string(node.get('cn'))}",
                 f"cat = {lua_string(node.get('cat'))}",
-                f"mode = {lua_string('reuse' if exact else 'custom')}",
+                f"mode = {lua_string('reuse' if reusable else 'custom')}",
+                f"match = {lua_string(match_kind or 'none')}",
             ]
             if live_node:
                 parts += [
@@ -89,9 +104,10 @@ def main():
                     f"live_ordinal = {live_ordinal.get(live_node['s'], 1)}",
                 ]
             out.append("        { " + ", ".join(parts) + " },")
+
         out.extend([
             "      },",
-            f"      stats = {{ total = {len(future['nodes'])}, reuse = {reuse}, custom = {custom} }},",
+            f"      stats = {{ total = {len(future['nodes'])}, reuse = {reuse}, effect_reuse = {effect_reuse}, custom = {custom} }},",
             "    },",
         ])
 
