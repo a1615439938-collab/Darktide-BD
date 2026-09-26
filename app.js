@@ -978,12 +978,19 @@ function renderSaveState(kind="saved"){
       ?(mode==="en"?"Save failed":mode==="bi"?"保存失败 / Save failed":"保存失败")
       :(mode==="en"?"✓ Autosaved":mode==="bi"?"✓ 已自动保存 / Autosaved":"✓ 已自动保存");
   el.textContent=copy;
+  el.setAttribute("aria-label",copy.replace(/^✓\s*/,""));
+  el.title=copy.replace(/^✓\s*/,"");
 }
 function setWorkspaceView(view,persistChoice=true){
   const next=["talent","loadout","meta"].includes(view)?view:"talent";
   state.view=next;
   document.querySelectorAll("[data-workspace-panel]").forEach(p=>p.classList.toggle("active",p.dataset.workspacePanel===next));
-  document.querySelectorAll("[data-workspace-tab]").forEach(b=>b.classList.toggle("active",b.dataset.workspaceTab===next));
+  document.querySelectorAll("[data-workspace-tab]").forEach(b=>{
+    b.classList.toggle("active",b.dataset.workspaceTab===next);
+    const names={talent:[ "天赋","Talents"],loadout:["装备","Loadout"],meta:["BD 信息","Build info"]};
+    const pair=names[b.dataset.workspaceTab]||["",""];
+    if(pair[0])b.setAttribute("aria-label",uiText(pair[0],pair[1]));
+  });
   if(persistChoice)writeStorage();
   if(next==="talent"&&CUR){
     requestAnimationFrame(()=>{
@@ -1649,6 +1656,25 @@ function nextIncompleteLoadoutStep(){
   }
   return null;
 }
+function describeLoadoutStep(next){
+  if(!next)return "";
+  const field=next.field||"";
+  if(field==="meleeWeapon")return uiText("近战武器","Melee weapon");
+  if(field==="rangedWeapon")return uiText("远程武器","Ranged weapon");
+  if(/^meleeBlessing/.test(field))return equipmentFlowLabel(field);
+  if(/^rangedBlessing/.test(field))return equipmentFlowLabel(field);
+  if(/^meleePerk/.test(field))return equipmentFlowLabel(field);
+  if(/^rangedPerk/.test(field))return equipmentFlowLabel(field);
+  const curioMatch=field.match(/^curio(\d+)(Main|Perks)$/);
+  if(curioMatch){
+    const number=curioMatch[1];
+    const suffix=curioMatch[2]==="Main"
+      ?uiText("主属性","Main")
+      :uiText("词条 "+(Number(next.index)+1),"Perk "+(Number(next.index)+1));
+    return uiText("珍品 "+number+" · ","Curio "+number+" · ")+suffix;
+  }
+  return equipmentFlowLabel(field);
+}
 function openNextIncompleteLoadout(){
   const next=nextIncompleteLoadoutStep();
   if(!next){
@@ -1726,7 +1752,16 @@ function renderLoadoutProgress(){
   if(continueBtn){
     const next=nextIncompleteLoadoutStep();
     continueBtn.disabled=!next;
-    continueBtn.textContent=next?uiText("继续配装","Continue setup"):uiText("✓ 配装完成","✓ Complete");
+    if(next){
+      const target=describeLoadoutStep(next);
+      continueBtn.textContent=uiText("继续："+target,"Continue: "+target);
+      continueBtn.setAttribute("aria-label",uiText("继续配置："+target,"Continue setup: "+target));
+      continueBtn.title=uiText("下一步："+target,"Next: "+target);
+    }else{
+      continueBtn.textContent=uiText("✓ 配装完成","✓ Complete");
+      continueBtn.setAttribute("aria-label",uiText("配装已完成","Loadout complete"));
+      continueBtn.title=uiText("配装已完成","Loadout complete");
+    }
   }
   renderBuildReadiness();
 }
@@ -3880,7 +3915,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl60").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl61").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
