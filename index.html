@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl59">
+  <link rel="stylesheet" href="./styles.css?v=gl63">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -42,29 +42,31 @@
       <div class="build-library-hint" id="buildLibraryHint">当前修改自动保存</div>
     </div>
 
-    <div class="toolbar-control patch-control">
-      <span class="toolbar-label" data-cn="版本" data-en="Patch">版本</span>
-      <div class="patch-grid patch-compact">
-        <button class="patch active" id="futurePatchBtn" data-patch="future" type="button">
-          <span data-cn="诅咒深渊" data-en="Depths of the Damned">诅咒深渊</span>
-        </button>
-        <button class="patch" id="livePatchBtn" data-patch="live" type="button">
-          <span data-cn="正式服" data-en="Live">正式服</span>
-        </button>
+    <div class="toolbar-secondary">
+      <div class="toolbar-control patch-control">
+        <span class="toolbar-label" data-cn="版本" data-en="Patch">版本</span>
+        <div class="patch-grid patch-compact">
+          <button class="patch active" id="futurePatchBtn" data-patch="future" type="button">
+            <span data-cn="诅咒深渊" data-en="Depths of the Damned">诅咒深渊</span>
+          </button>
+          <button class="patch" id="livePatchBtn" data-patch="live" type="button">
+            <span data-cn="正式服" data-en="Live">正式服</span>
+          </button>
+        </div>
+        <p class="patch-note">各版本分别保存加点</p>
       </div>
-      <p class="patch-note">各版本分别保存加点</p>
-    </div>
 
-    <div class="toolbar-control language-control">
-      <span class="toolbar-label" data-cn="显示语言" data-en="Language">显示语言</span>
-      <div class="language-switch" role="group" aria-label="显示语言 / Display language">
-        <button id="langZh" type="button" data-lang-mode="zh">中文</button>
-        <button id="langBi" type="button" data-lang-mode="bi">中英</button>
-        <button id="langEn" type="button" data-lang-mode="en">EN</button>
+      <div class="toolbar-control language-control">
+        <span class="toolbar-label" data-cn="显示语言" data-en="Language">显示语言</span>
+        <div class="language-switch" role="group" aria-label="显示语言 / Display language">
+          <button id="langZh" type="button" data-lang-mode="zh">中文</button>
+          <button id="langBi" type="button" data-lang-mode="bi">中英</button>
+          <button id="langEn" type="button" data-lang-mode="en">EN</button>
+        </div>
       </div>
-    </div>
 
-    <div class="save-state" id="saveState" role="status" aria-live="polite">✓ 已自动保存</div>
+      <div class="save-state" id="saveState" role="status" aria-live="polite">✓ 已自动保存</div>
+    </div>
 
     <div class="toolbar-control class-control">
       <span class="toolbar-label" data-cn="职业" data-en="Class">职业</span>
@@ -502,6 +504,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl59"></script>
+<script src="./app.js?v=gl63"></script>
 </body>
 </html>
