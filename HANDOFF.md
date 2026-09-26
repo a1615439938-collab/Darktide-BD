@@ -123,16 +123,17 @@
 
 `https://a1615439938-collab.github.io/Darktide-BD/`
 
-## 9. GitHub Actions 额度政策 / Scheduled automation policy
+## 9. 自动化硬约束 / Automation policy
 
 这是仓库级硬约束，后续接手的 AI、Codex 或其他自动化代理必须遵守：
 
 1. **禁止在本仓库的 GitHub Actions 中新增任何定时触发器。** 不得在 `.github/workflows/*.yml` 中加入 `schedule:`、`cron:` 或等价的周期性 GitHub Actions 机制。
 2. **不得恢复已删除的定时刷新。** `.github/workflows/refresh-trees.yml` 原来的每日 `cron: "15 3 * * *"` 已于 2026-09-27 按用户要求移除，不得自行恢复。
-3. 需要刷新未来天赋树时，使用现有 `workflow_dispatch` 手动运行，或由明确的代码变更事件触发；不要为了“保持数据新鲜”而轮询。
-4. 如果未来确实需要周期性后台任务，应优先迁移到不会消耗 GitHub Actions 额度的外部调度平台，并在实施前向用户说明；**不得由接手 AI 自行决定重新启用 GitHub cron。**
-5. GitHub Pages、测试和审计可以继续按代码 push 等事件运行；本条政策针对的是“按时间自动周期运行”的 Actions。
-6. 除非用户在新的明确指令中撤销本政策，否则把它视为长期约束，而不是临时的额度不足措施。
+3. **禁止把本仓库的自动运行迁移到任何其他平台。** Cloudflare、Supabase、Vercel、Netlify、外部 CI/CD、服务器 cron、托管调度器、轮询服务、Webhook Runner 等均不得自动执行本仓库任务。
+4. 上述“其他平台禁止自动运行”同时包括：定时任务、轮询任务、push/webhook 触发任务、后台 Worker、自动刷新、自动部署等。不得用“不会消耗 GitHub 额度”作为迁移到外部自动化的理由。
+5. 需要刷新未来天赋树时，可以使用本仓库现有的 GitHub `workflow_dispatch` 手动运行；现有 GitHub 内部由明确代码变更触发的 Pages、测试、审计等可继续保留，但不得新增外部平台自动化链路。
+6. 如果确实需要临时使用外部平台，只能由用户明确手动触发一次性任务；要建立任何自动执行机制，必须先获得用户新的明确指令。
+7. 除非用户在新的明确指令中撤销本政策，否则把它视为长期约束，而不是临时的额度不足措施。
 
 根目录 `AGENTS.md` 也记录了同一约束。修改任何 workflow 前必须先阅读该文件和本交接文档。
 
