@@ -632,3 +632,19 @@ html.desktop-input .provenance{font-size:8px}
 .equipment-copy strong,.modifier-card strong{font-size:12px}
 .equipment-copy small,.modifier-card small{color:#748189}
 .weapon-card .equipment-copy strong{font-size:13px;color:#f2f3ef}
+
+.redesigned-curio{display:flex;flex-direction:column}
+.redesigned-curio::before{
+  content:"饰品 " attr(data-curio-index) " / Curio " attr(data-curio-index);
+  order:0;margin:1px 2px 7px;color:#d8dddf;font-size:10px;font-weight:800
+}
+.redesigned-curio .curio-main-card{order:1}
+.redesigned-curio .curio-perk-stack{order:2}
+.redesigned-curio .curio-type-card{
+  order:3;margin-top:7px;min-height:44px;opacity:.72;background:#0b1419
+}
+.redesigned-curio .curio-type-card .equipment-mark{display:none}
+.redesigned-curio .curio-type-card{grid-template-columns:1fr}
+.redesigned-curio .curio-type-card strong{font-size:9.5px}
+.redesigned-curio .curio-type-card small{font-size:8px}
+.weapon-card .equipment-mark{font-size:9px;letter-spacing:0}
