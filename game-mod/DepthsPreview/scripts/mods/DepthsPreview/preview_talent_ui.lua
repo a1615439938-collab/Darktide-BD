@@ -230,34 +230,25 @@ end
 
 local function exclusive_groups(snapshot)
   local groups = {}
-  local categories = {
-    blitz = "blitz",
-    aura = "aura",
-    ability = "combat",
-    keystone = "keystone",
-  }
 
-  for category, prefix in pairs(categories) do
-    local list = {}
-    for i = 1, #snapshot.nodes do
-      local node = snapshot.nodes[i]
-      if node.cat == category then
-        list[#list + 1] = node
-      end
-    end
-    table.sort(list, function(a, b)
-      return a.y < b.y
-    end)
+  -- Main-choice rows are mutually exclusive even when Fatshark lays one
+  -- choice a little higher/lower for visual routing.
+  for i = 1, #snapshot.nodes do
+    local node = snapshot.nodes[i]
 
-    local group = 0
-    local last_y = -999999
-    for i = 1, #list do
-      local node = list[i]
-      if node.y - last_y > 90 then
-        group = group + 1
+    if node.cat == "blitz" then
+      groups[node.slug] = "depths_preview_blitz_choice"
+    elseif node.cat == "aura" then
+      groups[node.slug] = "depths_preview_aura_choice"
+    elseif node.cat == "ability" then
+      groups[node.slug] = "depths_preview_combat_ability_choice"
+    elseif node.cat == "keystone" then
+      -- The September 29 trees keep the late-tree keystones mutually
+      -- exclusive. Zealot's Until Death is a mid-tree keystone-style node,
+      -- so it must not be grouped with Martyrdom / Piety / Judgement.
+      if node.y >= 1400 then
+        groups[node.slug] = "depths_preview_main_keystone_choice"
       end
-      last_y = node.y
-      groups[node.slug] = "depths_preview_" .. prefix .. "_" .. tostring(group)
     end
   end
 
