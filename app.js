@@ -3008,6 +3008,27 @@ function base64urlDecode(text){
 function exportData(){
   return "DTB3."+base64urlEncode(JSON.stringify(buildPayload()));
 }
+
+const DEPTHS_PREVIEW_SCHEMA="20260929a";
+const DEPTHS_PREVIEW_CLASSES=new Set(["veteran","zealot","psyker","ogryn"]);
+function exportPreviewModData(){
+  saveSelection();
+  persist();
+  if(state.patch!=="future"){
+    throw new Error("请先切换到 Depths of the Damned 未来树 / Switch to the future tree first");
+  }
+  if(!DEPTHS_PREVIEW_CLASSES.has(state.classKey)){
+    throw new Error("当前试玩 Mod Alpha 只支持老兵、狂信徒、灵能者和欧格林 / Alpha supports Veteran, Zealot, Psyker and Ogryn");
+  }
+  const futureClass=(DATA.classes||[]).find(c=>c.key===state.classKey);
+  if(!futureClass)throw new Error("找不到当前职业的未来树 / Future tree not found");
+  const selected=new Set(state.selected["future:"+state.classKey]||[]);
+  const indexes=[];
+  futureClass.nodes.forEach((node,index)=>{
+    if(node.cat!=="root"&&selected.has(node.s))indexes.push(index+1);
+  });
+  return `DTP1:${DEPTHS_PREVIEW_SCHEMA}:${state.classKey}:${indexes.join(",")}`;
+}
 function shareURL(){
   const u=new URL(location.href);
   u.search="";
@@ -3130,6 +3151,24 @@ function bind(){
     $("#codeBox").value=exportData();
     $("#dialogMsg").textContent="";
     $("#codeDialog").showModal();
+  };
+  $("#previewModBtn").onclick=async()=>{
+    try{
+      const text=exportPreviewModData();
+      $("#codeBox").value=text;
+      $("#codeDialog").showModal();
+      try{
+        await navigator.clipboard.writeText(text);
+        $("#dialogMsg").textContent="试玩代码已复制；游戏内使用 /depths_import 粘贴此代码 / Preview code copied";
+      }catch(_){
+        $("#codeBox").select();
+        $("#dialogMsg").textContent="请复制此代码，并在游戏内输入 /depths_import 后粘贴 / Copy this code into /depths_import";
+      }
+    }catch(e){
+      $("#codeBox").value="";
+      $("#dialogMsg").textContent=e.message;
+      $("#codeDialog").showModal();
+    }
   };
   $("#importBtn").onclick=()=>{
     $("#codeBox").value="";
