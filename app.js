@@ -1661,17 +1661,22 @@ function describeLoadoutStep(next){
   const field=next.field||"";
   if(field==="meleeWeapon")return uiText("近战武器","Melee weapon");
   if(field==="rangedWeapon")return uiText("远程武器","Ranged weapon");
-  if(/^meleeBlessing/.test(field))return equipmentFlowLabel(field);
-  if(/^rangedBlessing/.test(field))return equipmentFlowLabel(field);
-  if(/^meleePerk/.test(field))return equipmentFlowLabel(field);
-  if(/^rangedPerk/.test(field))return equipmentFlowLabel(field);
+
+  let m=field.match(/^meleeBlessing([12])$/);
+  if(m)return uiText("近战 · 祝福 "+m[1],"Melee · Blessing "+m[1]);
+  m=field.match(/^rangedBlessing([12])$/);
+  if(m)return uiText("远程 · 祝福 "+m[1],"Ranged · Blessing "+m[1]);
+  m=field.match(/^meleePerk([12])$/);
+  if(m)return uiText("近战 · 词条 "+m[1],"Melee · Perk "+m[1]);
+  m=field.match(/^rangedPerk([12])$/);
+  if(m)return uiText("远程 · 词条 "+m[1],"Ranged · Perk "+m[1]);
+
   const curioMatch=field.match(/^curio(\d+)(Main|Perks)$/);
   if(curioMatch){
     const number=curioMatch[1];
-    const suffix=curioMatch[2]==="Main"
-      ?uiText("主属性","Main")
-      :uiText("词条 "+(Number(next.index)+1),"Perk "+(Number(next.index)+1));
-    return uiText("珍品 "+number+" · ","Curio "+number+" · ")+suffix;
+    if(curioMatch[2]==="Main")return uiText("珍品 "+number+" · 主属性","Curio "+number+" · Main");
+    const perkNo=Math.max(1,Number(next.index)+1);
+    return uiText("珍品 "+number+" · 词条 "+perkNo,"Curio "+number+" · Perk "+perkNo);
   }
   return equipmentFlowLabel(field);
 }
@@ -3915,7 +3920,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl61").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl62").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
