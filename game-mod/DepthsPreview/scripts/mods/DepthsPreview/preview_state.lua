@@ -1,7 +1,7 @@
 local mod = get_mod("DepthsPreview")
 
 local State = {
-  _enabled = true,
+  _enabled = false,
   _selections = {},
   _loadout = {},
 }
@@ -19,7 +19,7 @@ end
 
 function State.load()
   local enabled = mod:get("_preview_enabled")
-  State._enabled = enabled == nil and true or enabled ~= false
+  State._enabled = enabled ~= nil and enabled ~= false
 
   local selections = mod:get("_preview_talent_selections")
   if type(selections) == "table" then
