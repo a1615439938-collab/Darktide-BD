@@ -1560,7 +1560,9 @@ function setSectionProgress(host,done,total){
   if(!host)return;
   host.classList.toggle("complete",done===total);
   host.classList.toggle("partial",done>0&&done<total);
-  let badge=host.querySelector(".section-progress-badge");
+  let badge=host.matches("[data-curio-index]")
+    ?host.querySelector(".curio-progress")
+    :host.querySelector(".section-progress-badge");
   if(!badge){
     badge=document.createElement("span");
     badge.className="section-progress-badge";
@@ -2876,13 +2878,12 @@ function placePopover(n,focus=false){
     const pw=pr.width;
     const ph=pr.height;
     const nodeX=nr.left+nr.width/2;
-    const left=!desktop||vw<=620
-      ?vLeft+(vw-pw)/2
-      :Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
+    const left=Math.max(vLeft+margin,Math.min(vRight-pw-margin,nodeX-pw/2));
     const top=side==="above"
       ?Math.max(minTop,nr.top-gap-ph)
       :Math.min(vBottom-margin-ph,nr.bottom+gap);
-    const arrow=Math.max(18,Math.min(pw-18,nodeX-left));
+    const arrowInset=desktop?18:4;
+    const arrow=Math.max(arrowInset,Math.min(pw-arrowInset,nodeX-left));
 
     pop.dataset.side=side;
     pop.style.left=left+"px";
@@ -3556,7 +3557,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl49").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl50").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
