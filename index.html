@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl53">
+  <link rel="stylesheet" href="./styles.css?v=gl54">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -130,19 +130,19 @@
   </div>
 
   <section class="tree-tools">
-    <button id="undoBtn" type="button" disabled>撤销 <small>Undo</small></button>
-    <button id="resetBtn" type="button">重置 <small>Reset</small></button>
+    <button id="undoBtn" type="button" disabled data-cn="撤销" data-en="Undo">撤销</button>
+    <button id="resetBtn" type="button" data-cn="重置" data-en="Reset">重置</button>
     <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
-    <button id="zoomFit" type="button">适配 <small>Fit</small></button>
+    <button id="zoomFit" type="button" data-cn="适配" data-en="Fit">适配</button>
     <button id="zoomIn" type="button" aria-label="Zoom in">＋</button>
   </section>
 
   <section class="legend">
-    <span><i class="passive"></i>普通 / Passive</span>
-    <span><i class="blitz"></i>闪击 / Blitz</span>
-    <span><i class="aura"></i>光环 / Aura</span>
-    <span><i class="ability"></i>技能 / Ability</span>
-    <span><i class="keystone"></i>关键 / Keystone</span>
+    <span data-cn="普通" data-en="Passive"><i class="passive"></i>普通</span>
+    <span data-cn="闪击" data-en="Blitz"><i class="blitz"></i>闪击</span>
+    <span data-cn="光环" data-en="Aura"><i class="aura"></i>光环</span>
+    <span data-cn="技能" data-en="Ability"><i class="ability"></i>技能</span>
+    <span data-cn="关键" data-en="Keystone"><i class="keystone"></i>关键</span>
   </section>
 
   </section>
@@ -416,8 +416,9 @@
   </section>
 
   <footer>
-    <p>非官方玩家工具 / Unofficial fan tool.</p>
-    <p>树形布局与图标参考 Games Lantern；当前机制优先核对 Fatshark 官方更新说明与 Darktide 游戏数据；中文名称优先采用维护中的 Darktide 中文术语来源。交互实现参考并归因于 LawsonMode 的开源 Darktide Tree Planner。</p>
+    <p data-cn="非官方玩家工具。" data-en="Unofficial fan tool.">非官方玩家工具。</p>
+    <p data-cn="树形布局与图标参考 Games Lantern；机制优先核对 Fatshark 官方更新说明与 Darktide 游戏数据；中文名称优先采用维护中的 Darktide 中文术语来源；交互实现参考并归因于 LawsonMode 的开源 Darktide Tree Planner。"
+       data-en="Tree layout and icons reference Games Lantern; mechanics are checked against Fatshark updates and Darktide game data; interaction implementation references and credits LawsonMode's open-source Darktide Tree Planner.">树形布局与图标参考 Games Lantern；机制优先核对 Fatshark 官方更新说明与 Darktide 游戏数据；中文名称优先采用维护中的 Darktide 中文术语来源；交互实现参考并归因于 LawsonMode 的开源 Darktide Tree Planner。</p>
   </footer>
 
   <nav class="mobile-bottom-nav" aria-label="移动端导航 / Mobile navigation">
@@ -477,6 +478,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl53"></script>
+<script src="./app.js?v=gl54"></script>
 </body>
 </html>

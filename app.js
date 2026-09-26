@@ -999,6 +999,7 @@ function applyLanguageMode(){
     el.textContent=uiText(el.dataset.cn,el.dataset.en);
   });
   document.querySelectorAll("[data-lang-mode]").forEach(b=>b.classList.toggle("active",b.dataset.langMode===state.language));
+  renderBuildLibrary();
   const search=$("#equipmentSearch");
   if(search)search.placeholder=state.language==="en"?"Search equipment, blessings or perks":state.language==="bi"?"搜索中文或英文 / Search Chinese or English":"搜索装备、祝福或词条";
   const buildName=$("#buildName");
@@ -1183,6 +1184,18 @@ function classLabelForBuild(build){
   const c=(list||[]).find(x=>x.key===build.classKey)||(list||[]).find(x=>!x.parent);
   return c?uiText(c.cn,c.name):build.classKey;
 }
+function displayBuildName(name){
+  const raw=String(name||"").trim();
+  if(raw==="我的 BD 1 / My Build 1")return uiText("我的 BD 1","My Build 1");
+  if(raw==="新 BD / New Build")return uiText("新 BD","New Build");
+  if(raw==="未命名 BD / Untitled")return uiText("未命名 BD","Untitled");
+  if(uiLanguage()==="zh"&&raw.endsWith(" · 副本 / Copy"))return raw.slice(0,-" · 副本 / Copy".length)+" · 副本";
+  if(uiLanguage()==="en"&&raw.endsWith(" · 副本 / Copy"))return raw.slice(0,-" · 副本 / Copy".length)+" · Copy";
+  return raw;
+}
+function buildPatchDisplay(build){
+  return build.patch==="live"?uiText("正式服","LIVE"):uiText("预览","FUTURE");
+}
 function renderBuildLibrary(){
   const select=$("#buildSelect");
   if(!select)return;
@@ -1191,8 +1204,8 @@ function renderBuildLibrary(){
   for(const b of state.builds||[]){
     const opt=document.createElement("option");
     opt.value=b.id;
-    const title=(b.name||"未命名 BD / Untitled").trim();
-    opt.textContent=title+"  ·  "+classLabelForBuild(b)+"  ·  "+(b.patch==="live"?"LIVE":"FUTURE");
+    const title=displayBuildName(b.name||uiText("未命名 BD","Untitled"));
+    opt.textContent=title+"  ·  "+classLabelForBuild(b)+"  ·  "+buildPatchDisplay(b);
     select.appendChild(opt);
   }
   select.value=current||"";
@@ -1873,17 +1886,18 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
     equipmentEditor.tier=saved||"4";
   }
   const titles={
-    weapon:"选择武器 / Select Weapon",
-    blessing:"选择祝福 / Select Blessing",
-    perk:"选择武器词条 / Select Weapon Perk",
-    curioType:"选择珍品 / Select Curio",
-    curioMain:"选择主属性 / Select Main Stat",
-    curioPerk:"选择珍品词条 / Select Curio Perk"
+    weapon:["选择武器","Select Weapon"],
+    blessing:["选择祝福","Select Blessing"],
+    perk:["选择武器词条","Select Weapon Perk"],
+    curioType:["选择珍品外观","Select Curio Cosmetic"],
+    curioMain:["选择主属性","Select Main Stat"],
+    curioPerk:["选择珍品词条","Select Curio Perk"]
   };
   const kicker=document.getElementById("equipmentDialogKicker");
   const title=document.getElementById("equipmentDialogTitle");
-  if(kicker)kicker.textContent=action==="blessing"?"当前武器可用项 / Compatible only":"配装编辑 / Loadout Editor";
-  if(title)title.textContent=titles[action]||"选择 / Select";
+  if(kicker)kicker.textContent=action==="blessing"?uiText("当前武器可用项","Compatible only"):uiText("配装编辑","Loadout Editor");
+  const titlePair=titles[action]||["选择","Select"];
+  if(title)title.textContent=uiText(titlePair[0],titlePair[1]);
   const search=document.getElementById("equipmentSearch");
   if(search)search.value="";
   const tier=document.getElementById("equipmentTierPicker");
@@ -1893,11 +1907,18 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
   if(hint){
     if(action==="blessing"){
       const weapon=loadoutFieldValue(blessingWeaponField(field));
-      hint.textContent="仅显示“"+splitBilingualLabel(weapon).cn+"”可用的祝福；默认 IV 级。 / Only blessings valid for the selected weapon are shown.";
+      const bi=splitBilingualLabel(weapon);
+      hint.textContent=uiText(
+        "仅显示“"+bi.cn+"”可用的祝福；默认 IV 级。",
+        "Only blessings valid for “"+bi.en+"” are shown; IV is the default tier."
+      );
     }else if(action==="weapon"){
-      hint.textContent="仅显示当前职业可用武器。更换武器会自动移除不兼容祝福。 / Class-filtered weapons; incompatible blessings are removed on change.";
+      hint.textContent=uiText(
+        "仅显示当前职业可用武器；更换武器会自动移除不兼容祝福。",
+        "Only weapons available to this class are shown; incompatible blessings are removed when the weapon changes."
+      );
     }else{
-      hint.textContent="点击一个选项即可写入当前 BD。 / Choose an option to save it to this build.";
+      hint.textContent=uiText("点击一个选项即可写入当前 BD。","Choose an option to save it to this build.");
     }
   }
   renderEquipmentFlow();
@@ -3615,7 +3636,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl53").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl54").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
