@@ -44,6 +44,16 @@ local function set_proc_stat(template, stat, value)
   set_value(template.proc_stat_buffs, stat, value)
 end
 
+local function set_conditional_stat(template, stat, value)
+  if not template then
+    return
+  end
+  if not template.conditional_stat_buffs then
+    set_value(template, "conditional_stat_buffs", {})
+  end
+  set_value(template.conditional_stat_buffs, stat, value)
+end
+
 local function patch_veteran()
   local t = TalentSettings.veteran_2
 
@@ -175,7 +185,7 @@ local function patch_ogryn()
 
   -- Keep Shooting: 15% -> 20% reload speed on an empty magazine.
   set_value(shared.ogryn_reload_speed_on_empty, "reload_speed", 0.20)
-  set_stat(BuffTemplates.ogryn_reload_speed_on_empty, stat_buffs.reload_speed, 0.20)
+  set_conditional_stat(BuffTemplates.ogryn_reload_speed_on_empty, stat_buffs.reload_speed, 0.20)
 end
 
 function Preview.apply()
