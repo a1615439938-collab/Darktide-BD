@@ -1,14 +1,14 @@
 {
   "name": "Depths Preview",
-  "description": "Standalone local preview environment for the September 29 Depths of the Damned update. Uses Darktide's native talent UI and keeps preview changes out of the official backend.",
+  "description": "Standalone local preview environment for the September 29 Depths of the Damned update: native in-game preview talent trees, local runtime talent effects, blessing changes, and six weapon prototypes without official-backend writes.",
   "homepage": "https://github.com/a1615439938-collab/Darktide-BD/tree/depths-preview-mod/game-mod/DepthsPreview",
   "source": "https://github.com/a1615439938-collab/Darktide-BD/tree/depths-preview-mod/game-mod/DepthsPreview",
-  "version": "0.2.0-alpha.1",
+  "version": "0.3.0-alpha.1",
   "author": "a1615439938-collab",
   "localization": {
     "zh-cn": {
       "name": "Depths 独立体验服",
-      "description": "9 月 29 日 Depths of the Damned 更新的独立本地体验服。直接使用游戏原生天赋 UI，并阻止体验数据写入正式后端。"
+      "description": "9 月 29 日 Depths of the Damned 独立本地体验服：原生游戏内新版天赋树、本地战斗效果、祝福改动和六把新武器原型，不写入正式后端。"
     }
   }
 }
