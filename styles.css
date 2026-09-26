@@ -11,7 +11,7 @@ body{
     radial-gradient(900px 420px at 50% -130px,rgba(66,92,72,.16),transparent 66%),
     linear-gradient(180deg,#071018,#081119 58%,#061017);
 }
-button,input,textarea{font:inherit}
+button,input,textarea,select{font:inherit}
 button{touch-action:manipulation}
 .site-head{
   position:sticky;top:0;z-index:40;
@@ -55,6 +55,29 @@ button{touch-action:manipulation}
 .subtree-strip button.on{
   border-color:#8a6d29;background:#2a2414;color:#e4c263;font-weight:700
 }
+
+
+.build-library{
+  margin:2px 0 12px;padding:10px;
+  border:1px solid #2c3942;border-radius:10px;
+  background:linear-gradient(180deg,#101a21,#0b141a)
+}
+.build-library-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.build-library-head span{display:block;font-size:9px;color:#8c979e}
+.build-library-head b{display:block;margin-top:1px;font-family:Georgia,"Times New Roman",serif;font-size:16px}
+.build-library-head button,.build-library-row button{
+  border:1px solid #3a4852;background:#15212a;color:#e6eaec;border-radius:8px;padding:8px 10px
+}
+.build-library-head button{white-space:nowrap}
+.build-library-head small,.build-library-row small{font-size:8px;color:#9da7ae}
+.build-library-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;margin-top:9px}
+.build-library-row select{
+  min-width:0;width:100%;border:1px solid #34414b;background:#081016;color:#eef1f3;
+  border-radius:8px;padding:9px 10px;outline:none
+}
+.build-library-row select:focus{border-color:#a8893d}
+.build-library-row .danger{border-color:#593b3b;color:#e7b4b0;background:#1d1213}
+.build-library-hint{margin-top:7px;color:#79858c;font-size:8.5px;line-height:1.4}
 
 .section-title{position:relative;text-align:center;margin:16px 0 11px;padding:0 18px}
 .section-title:before,.section-title:after{
@@ -212,6 +235,31 @@ label small{color:#8e989f;font-weight:400}
 input,textarea{width:100%;border:1px solid #34414b;background:#081016;color:#eef1f3;border-radius:8px;padding:9px 10px;outline:none}
 textarea{min-height:88px;resize:vertical}
 input:focus,textarea:focus{border-color:#a8893d}
+
+.picker-host{position:relative}
+.picker-host input{padding-right:38px}
+.picker-toggle{
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);z-index:2;
+  width:30px;height:30px;border:0;border-radius:7px;background:#16222b;color:#aeb9bf;
+  font-size:14px;line-height:1
+}
+.picker-toggle:hover{background:#1d2b35;color:#eef2f4}
+.picker-menu{
+  position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:65;
+  max-height:260px;overflow:auto;padding:5px;
+  border:1px solid #40505b;border-radius:9px;
+  background:#0b141b;box-shadow:0 14px 35px rgba(0,0,0,.42)
+}
+.picker-menu[hidden]{display:none}
+.picker-option{
+  display:block;width:100%;text-align:left;border:0;background:transparent;color:#dfe5e8;
+  border-radius:6px;padding:8px 9px;font-size:11px;line-height:1.35
+}
+.picker-option:hover,.picker-option.active{background:#1c2a33;color:#fff}
+.picker-option.recommended:after{
+  content:"推荐";float:right;margin-left:8px;color:#d9b85d;font-size:8px
+}
+.picker-empty{padding:9px;color:#7d8990;font-size:10px;text-align:center}
 .share-row{display:flex;gap:7px;margin-top:9px}
 .share-row button{flex:1}
 
@@ -229,7 +277,7 @@ input:focus,textarea:focus{border-color:#a8893d}
 .curio-grid{display:grid;grid-template-columns:1fr;gap:7px}
 .curio-card{border:1px solid #26323a;background:#081116;border-radius:8px;padding:9px}
 .curio-card strong{display:block;font-size:11px;color:#d8dddf;margin-bottom:7px}
-.curio-card input+input{margin-top:7px}
+.curio-card .picker-host+.picker-host,.curio-card .picker-host+input,.curio-card input+input{margin-top:7px}
 .meta-hint{
   margin-top:8px;padding:8px 9px;border-left:3px solid #806b37;background:#171811;
   color:#a9b0a2;font-size:9px;line-height:1.45
@@ -239,6 +287,11 @@ input:focus,textarea:focus{border-color:#a8893d}
 @media(min-width:760px){
   .loadout-grid{grid-template-columns:1fr 1fr}
   .curio-grid{grid-template-columns:repeat(3,1fr)}
+  .build-library{max-width:980px;margin-left:auto;margin-right:auto}
+}
+@media(max-width:560px){
+  .build-library-row{grid-template-columns:1fr 1fr}
+  .build-library-row select{grid-column:1 / -1}
 }
 footer{padding:16px 5px 7px;color:#64717a;font-size:8px;line-height:1.5;text-align:center}
 
