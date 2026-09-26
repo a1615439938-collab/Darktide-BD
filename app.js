@@ -50,7 +50,7 @@ const VOCAB=[
   ["Reload Speed","装填速度"],["Critical Chance","暴击率"],["Critical Hit","暴击"],
   ["Weakspot","弱点"],["Weak Spot","弱点"],["Melee Damage","近战伤害"],["Ranged Damage","远程伤害"],
   ["Power","威力"],["Strength","强度"],["Rending","撕裂"],["Brittleness","脆弱"],
-  ["Bleeding","流血"],["Soulblaze","灵魂烈焰"],["Burning","燃烧"],["Toxin","毒素"],
+  ["Bleeding","流血"],["Soulblaze","灵魂之火"],["Burning","燃烧"],["Toxin","毒素"],
   ["Coherency","协同范围"],["Cooldown","冷却"],["Combat Ability","战斗技能"],["Grenade","手雷"],
   ["Elite","精英"],["Specialist","专家"],["Monstrosity","巨兽"],["Carapace","甲壳装甲"],
   ["Flak Armoured","防弹装甲"],["Stagger","踉跄"],["Suppression","压制"],["Stealth","隐身"]
@@ -2196,6 +2196,49 @@ function runAutomatedSelfTest(){
     if(pickerMenu.hidden||!firstWeapon)throw new Error("weapon picker did not open with choices");
     firstWeapon.click();
     if(!melee.value||currentLoadout().meleeWeapon!==melee.value)throw new Error("weapon picker selection did not persist");
+    if(!/[\u4e00-\u9fff]/.test(melee.value)||!melee.value.includes(" / "))throw new Error("weapon picker is not bilingual");
+
+    const blessing=$("#meleeBlessing1");
+    const blessingHost=blessing?.closest(".picker-host");
+    const blessingToggle=blessingHost?.querySelector(".picker-toggle");
+    const blessingMenu=blessingHost?.querySelector(".picker-menu");
+    if(!blessing||!blessingToggle||!blessingMenu)throw new Error("blessing searchable picker missing");
+    blessing.value="";
+    blessing.dispatchEvent(new Event("input",{bubbles:true}));
+    blessingMenu.hidden=true;
+    blessingToggle.click();
+    const firstBlessing=blessingMenu.querySelector(".picker-option");
+    if(!firstBlessing)throw new Error("blessing picker has no choices");
+    firstBlessing.click();
+    if(!/[\u4e00-\u9fff]/.test(blessing.value)||!blessing.value.includes(" / "))throw new Error("blessing picker is not bilingual");
+
+    const perk=$("#meleePerk1");
+    const perkHost=perk?.closest(".picker-host");
+    const perkToggle=perkHost?.querySelector(".picker-toggle");
+    const perkMenu=perkHost?.querySelector(".picker-menu");
+    if(!perk||!perkToggle||!perkMenu)throw new Error("weapon perk searchable picker missing");
+    perk.value="";
+    perk.dispatchEvent(new Event("input",{bubbles:true}));
+    perkMenu.hidden=true;
+    perkToggle.click();
+    const firstPerk=perkMenu.querySelector(".picker-option");
+    if(!firstPerk)throw new Error("weapon perk picker has no choices");
+    firstPerk.click();
+    if(!/[\u4e00-\u9fff]/.test(perk.value)||!perk.value.includes(" / "))throw new Error("weapon perk picker is not bilingual");
+
+    const curio=$("#curio1Main");
+    const curioHost=curio?.closest(".picker-host");
+    const curioToggle=curioHost?.querySelector(".picker-toggle");
+    const curioMenu=curioHost?.querySelector(".picker-menu");
+    if(!curio||!curioToggle||!curioMenu)throw new Error("curio searchable picker missing");
+    curio.value="";
+    curio.dispatchEvent(new Event("input",{bubbles:true}));
+    curioMenu.hidden=true;
+    curioToggle.click();
+    const firstCurio=curioMenu.querySelector(".picker-option");
+    if(!firstCurio)throw new Error("curio picker has no choices");
+    firstCurio.click();
+    if(!/[\u4e00-\u9fff]/.test(curio.value)||!curio.value.includes(" / "))throw new Error("curio picker is not bilingual");
 
     const code=exportData();
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
@@ -2270,7 +2313,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl34").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl35").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
