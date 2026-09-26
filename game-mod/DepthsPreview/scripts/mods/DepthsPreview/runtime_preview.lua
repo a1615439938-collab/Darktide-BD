@@ -2,12 +2,14 @@ local mod = get_mod("DepthsPreview")
 
 local Ammo = require("scripts/utilities/ammo")
 local AttackSettings = require("scripts/settings/damage/attack_settings")
+local Buff = require("scripts/extension_systems/buff/buffs/buff")
 local BuffExtensionBase = require("scripts/extension_systems/buff/buff_extension_base")
 local BuffSettings = require("scripts/settings/buff/buff_settings")
 local DamageCalculation = require("scripts/utilities/attack/damage_calculation")
 local DamageProfileTemplates = require("scripts/settings/damage/damage_profile_templates")
 local DamageSettings = require("scripts/settings/damage/damage_settings")
 local FixedFrame = require("scripts/utilities/fixed_frame")
+local ActionZealotChannel = require("scripts/extension_systems/weapon/actions/action_zealot_channel")
 local Toughness = require("scripts/utilities/toughness/toughness")
 local WarpCharge = require("scripts/utilities/warp_charge")
 
@@ -32,6 +34,11 @@ local NODE = {
     got_your_back = "dp_got_your_back",
     purifying_hatred = "dp_purifying_hatred",
     zealous_pilgrim = "dp_zealous_pilgrim",
+    holy_cause = "dp_holy_cause",
+    ecclesiarchs_call = "dp_ecclesiarchs_call",
+    chorus = "dp_chorus_of_spiritual_fortitude",
+    shroudfield = "dp_shroudfield",
+    fury = "dp_fury_of_the_faithful",
   },
   psyker = {
     focused_warp = "dp_focused_warp",
@@ -124,12 +131,34 @@ for _, name in ipairs({
 end
 
 local function apply_preview_stats(self)
-  if not State.enabled() or not is_local_player(self._player) then
+  if not State.enabled() then
+    return
+  end
+
+  local stats = self._stat_buffs
+  local data = runtime(self._unit)
+  local now = FixedFrame.get_latest_fixed_time()
+
+  -- Chorus pulse buffs may affect allies, not only the local player.
+  if data.holy_cause_until and now < data.holy_cause_until and data.holy_cause_stacks and data.holy_cause_stacks > 0 then
+    multiply_stat(stats, stat_buffs.toughness_damage_taken_multiplier, 0.92 ^ data.holy_cause_stacks)
+  elseif data.holy_cause_until and now >= data.holy_cause_until then
+    data.holy_cause_until = nil
+    data.holy_cause_stacks = nil
+  end
+
+  if data.ecclesiarch_until and now < data.ecclesiarch_until and data.ecclesiarch_stacks and data.ecclesiarch_stacks > 0 then
+    add_stat(stats, stat_buffs.damage, 0.06 * data.ecclesiarch_stacks)
+  elseif data.ecclesiarch_until and now >= data.ecclesiarch_until then
+    data.ecclesiarch_until = nil
+    data.ecclesiarch_stacks = nil
+  end
+
+  if not is_local_player(self._player) then
     return
   end
 
   local class = class_key(self._player)
-  local stats = self._stat_buffs
 
   if class == "zealot" then
     if State.has_node(class, NODE.zealot.wait_in_line) then
@@ -140,8 +169,7 @@ local function apply_preview_stats(self)
       add_stat(stats, stat_buffs.damage_vs_electrocuted, 0.15)
     end
 
-    local data = runtime(self._unit)
-    if data.unkillable_until and FixedFrame.get_latest_fixed_time() < data.unkillable_until then
+    if data.unkillable_until and now < data.unkillable_until then
       self._keywords[keywords.resist_death] = true
     end
   elseif class == "psyker" then
@@ -295,7 +323,10 @@ local function handle_proc_event(self, event, params)
     -- Zealous Pilgrim: use the native combat-ability proc as the authoritative
     -- trigger for Chastise/Fury. Stealth/relic-specific stop events are refined
     -- by dedicated hooks below when available.
-    if event == proc_events.on_combat_ability and State.has_node(class, NODE.zealot.zealous_pilgrim) then
+    if event == proc_events.on_combat_ability
+      and State.has_node(class, NODE.zealot.zealous_pilgrim)
+      and State.has_node(class, NODE.zealot.fury)
+    then
       data.unkillable_until = FixedFrame.get_latest_fixed_time() + 5
     end
   elseif class == "psyker" then
@@ -321,6 +352,66 @@ function Runtime.install()
 
   mod:hook_safe(BuffExtensionBase, "add_proc_event", function(self, event, params)
     handle_proc_event(self, event, params)
+  end)
+
+  mod:hook_safe(ActionZealotChannel, "_on_channel_tick", function(self, dt, in_coherence_units, t)
+    local player = local_player()
+    local class = class_key(player)
+    if not State.enabled() or class ~= "zealot" or self._player_unit ~= (player and player.player_unit) then
+      return
+    end
+
+    local holy_cause = State.has_node(class, NODE.zealot.holy_cause)
+    local ecclesiarch = State.has_node(class, NODE.zealot.ecclesiarchs_call)
+    if not holy_cause and not ecclesiarch then
+      return
+    end
+
+    for unit, _ in pairs(in_coherence_units or {}) do
+      local data = runtime(unit)
+      if holy_cause then
+        data.holy_cause_stacks = math.min(5, (data.holy_cause_stacks or 0) + 1)
+        data.holy_cause_until = t + 10
+      end
+      if ecclesiarch then
+        data.ecclesiarch_stacks = math.min(5, (data.ecclesiarch_stacks or 0) + 1)
+        data.ecclesiarch_until = t + 10
+      end
+    end
+  end)
+
+  mod:hook_safe(ActionZealotChannel, "finish", function(self, reason, data, t)
+    local player = local_player()
+    local class = class_key(player)
+    if State.enabled()
+      and class == "zealot"
+      and self._player_unit == (player and player.player_unit)
+      and State.has_node(class, NODE.zealot.zealous_pilgrim)
+      and State.has_node(class, NODE.zealot.chorus)
+    then
+      runtime(self._player_unit).unkillable_until = t + 5
+    end
+  end)
+
+  mod:hook_safe(Buff, "destroy", function(self)
+    local template_name = self:template_name()
+    if template_name ~= "zealot_invisibility" and template_name ~= "zealot_invisibility_increased_duration" then
+      return
+    end
+
+    local context = self:template_context()
+    local unit = context and context.unit
+    local player = local_player()
+    local class = class_key(player)
+
+    if State.enabled()
+      and class == "zealot"
+      and unit == (player and player.player_unit)
+      and State.has_node(class, NODE.zealot.zealous_pilgrim)
+      and State.has_node(class, NODE.zealot.shroudfield)
+    then
+      runtime(unit).unkillable_until = FixedFrame.get_latest_fixed_time() + 5
+    end
   end)
 
   mod:hook(DamageCalculation, "calculate", function(func, damage_profile, damage_type, target_settings, lerp_values, hit_zone_name, power_level, charge_level, breed_or_nil, attacker_owner_breed_or_nil, attacker_breed_or_nil, is_critical_strike, hit_weakspot, hit_shield, is_backstab, is_flanking, dropoff_scalar, attack_type, attacker_stat_buffs, target_stat_buffs, attacker_buff_extension, target_buff_extension, armor_penetrating, target_health_extension, target_toughness_extension, armor_type, target_stagger_count, num_triggered_staggers, is_attacked_unit_suppressed, distance, target_unit, auto_completed_action, stagger_impact, stagger_impact_bonus, attacking_unit_or_nil, attacking_unit_owner_unit_or_nil, attacker_owner_buff_extension, target_index)
