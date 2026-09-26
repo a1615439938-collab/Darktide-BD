@@ -1684,9 +1684,23 @@ function renderBuildReadiness(){
   if(lv)lv.textContent=gear.done+" / "+gear.total;
   if(th)th.textContent=talentMissing?uiText("还差 "+talentMissing+" 点",""+talentMissing+" points left"):uiText("✓ 已完成","✓ Complete");
   if(lh)lh.textContent=gearMissing?uiText("还差 "+gearMissing+" 项",""+gearMissing+" slots left"):uiText("✓ 已完成","✓ Complete");
-  if(status)status.textContent=complete
-    ?uiText("天赋和配装都已完整，可以直接分享。","Talents and loadout are complete. Ready to share.")
-    :uiText("还差 "+totalMissing+" 项；点击下面对应区域继续。",""+totalMissing+" items remain. Use the section buttons below to continue.");
+  if(status){
+    if(complete){
+      status.textContent=uiText("天赋和配装都已完整，可以直接分享。","Talents and loadout are complete. Ready to share.");
+    }else{
+      const zhParts=[];
+      const enParts=[];
+      if(talentMissing){
+        zhParts.push("天赋还差 "+talentMissing+" 点");
+        enParts.push(talentMissing+" talent point"+(talentMissing===1?"":"s")+" left");
+      }
+      if(gearMissing){
+        zhParts.push("装备还差 "+gearMissing+" 项");
+        enParts.push(gearMissing+" loadout slot"+(gearMissing===1?"":"s")+" left");
+      }
+      status.textContent=uiText(zhParts.join(" · "),enParts.join(" · "));
+    }
+  }
   if(badge){
     badge.textContent=complete?uiText("✓ 可分享","✓ Ready"):uiText("未完成","Incomplete");
     badge.classList.toggle("complete",complete);
@@ -3866,7 +3880,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl58").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl59").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
