@@ -414,13 +414,14 @@ function bilingualLabel(cn,en){
 }
 
 const WEAPON_FAMILY_CN=[
+  // Current Simplified-Chinese game terminology. English full names remain secondary text.
   ["Shock Maul and Suppression Shield","电击锤与压制盾"],
   ["Subductor Shotpistol and Riot Shield","执法霰弹手枪与防暴盾"],
   ["Battle Maul & Slab Shield","作战大槌&板盾"],
   ["Blaze Force Greatsword","烈焰力场巨剑"],
   ["Blaze Force Sword","烈焰力场剑"],
-  ["Paired Transonic Blades","双持跨音速刀刃"],
-  ["Mechanicus Power Sword","机械教动力剑"],
+  ["Paired Transonic Blades","双持超声战刃"],
+  ["Mechanicus Power Sword","机械神教动力剑"],
   ["Heavy Eviscerator","重型开膛剑"],
   ["Double-Barrelled Shotgun","双管霰弹枪"],
   ["Twin-Linked Heavy Stubber","双联重型机枪"],
@@ -429,42 +430,42 @@ const WEAPON_FAMILY_CN=[
   ["Voidstrike Force Staff","虚空打击力场法杖"],
   ["Inferno Force Staff","烈焰力场法杖"],
   ["Purgation Flamer","净化喷火器"],
-  ["Quickdraw Stub Revolver","快拔左轮手枪"],
+  ["Quickdraw Stub Revolver","速发短柄左轮枪"],
   ["Grenadier Gauntlet","掷弹兵臂铠"],
   ["Huntsman's Shotgun","猎手霰弹枪"],
   ["Exterminator Shotgun","灭绝者霰弹枪"],
-  ["Phosphor Blast Pistol","磷火爆破手枪"],
+  ["Phosphor Blast Pistol","磷光爆能手枪"],
   ["Dual Stub Pistols","双持短管手枪"],
   ["Dual Autopistols","双持自动手枪"],
   ["Spearhead Boltgun","矛头爆矢枪"],
-  ["Vigilant Autogun","机动自动枪"],
+  ["Vigilant Autogun","警觉自动枪"],
   ["Infantry Autogun","步兵自动枪"],
   ["Infantry Lasgun","步兵激光枪"],
-  ["Braced Autogun","枪托自动枪"],
+  ["Braced Autogun","支架式自动枪"],
   ["Recon Lasgun","侦查激光枪"],
   ["Helbore Lasgun","冥潮激光枪"],
   ["Heavy Laspistol","重型激光手枪"],
   ["Combat Shotgun","战斗霰弹枪"],
-  ["Shredder Autopistol","撕裂者自动手枪"],
+  ["Shredder Autopistol","粉碎者自动手枪"],
   ["Needle Pistol","针刺手枪"],
-  ["Galvanic Rifle","电流步枪"],
+  ["Galvanic Rifle","流电步枪"],
   ["Arc Rifle","电弧步枪"],
   ["Bolt Pistol","爆弹手枪"],
-  ["Plasma Gun","电浆枪"],
+  ["Plasma Gun","等离子枪"],
   ["Heavy Stubber","重型机枪"],
   ["Ripper Gun","撕裂枪"],
   ["Thunder Hammer","雷锤"],
   ["Relic Blade","上古神刃"],
-  ["Power Falchion","动力弯刀"],
+  ["Power Falchion","能量弯刀"],
   ["Power Sword","动力剑"],
   ["Power Maul","动力锤"],
-  ["Arc Maul","电弧锤"],
+  ["Arc Maul","电弧槌"],
   ["Shock Maul","电击锤"],
   ["Assault Chainaxe","突击链斧"],
   ["Assault Chainsword","突击链锯剑"],
   ["Combat Axe","战斗斧"],
   ["Tactical Axe","战术斧"],
-  ["Devil's Claw Sword","“恶魔之爪”剑"],
+  ["Devil's Claw Sword","『恶魔之爪』剑"],
   ["Duelling Sword","决斗剑"],
   ["Combat Blade","战刃"],
   ["Heavy Sword","重剑"],
@@ -481,12 +482,16 @@ const WEAPON_FAMILY_CN=[
   ["Rumbler","震荡枪"],
   ["Thugshot","暴徒霰弹枪"]
 ];
+function weaponMarkShort(raw){
+  const marks=[...String(raw||"").matchAll(/\b(?:MG\s*)?Mk\s*([IVXLC0-9]+[a-z]?)/gi)].map(m=>m[1]);
+  return marks.length?marks.join("/")+"型":"";
+}
 function weaponBilingualLabel(en){
   const raw=String(en||"").trim();
   for(const [family,cn] of WEAPON_FAMILY_CN){
     if(raw.endsWith(family)){
-      const prefix=raw.slice(0,-family.length).trim();
-      return bilingualLabel((prefix?prefix+" ":"")+cn,raw);
+      const mark=weaponMarkShort(raw);
+      return bilingualLabel(cn+(mark?" · "+mark:""),raw);
     }
   }
   return bilingualLabel(raw,raw);
@@ -953,7 +958,8 @@ function localizedOptionValue(value,options){
   if(!raw)return "";
   const exact=options.find(x=>x===raw);
   if(exact)return exact;
-  const hit=options.find(x=>x.endsWith(" / "+raw));
+  const canonical=raw.includes(" / ")?raw.slice(raw.lastIndexOf(" / ")+3).trim():raw;
+  const hit=options.find(x=>x.endsWith(" / "+canonical));
   return hit||raw;
 }
 function localizedMultiValue(value,options){
@@ -1349,8 +1355,7 @@ function renderLoadoutCards(){
         const bi=splitBilingualLabel(bv);
         const compatible=blessingAllowedForWeapon(bv,bf);
         bc?.classList.toggle("invalid",!compatible);
-        const preview=effectPreview(bv,bf);
-        cardSetText(bc,bi.cn,(bi.en?bi.en+" · ":"")+(compatible?preview:"与当前武器不兼容 / Incompatible with selected weapon"),false);
+        cardSetText(bc,bi.cn,compatible?bi.en:"与当前武器不兼容 / Incompatible with selected weapon",false);
       }else{
         bc?.classList.remove("invalid");
         const hasWeapon=Boolean(lo[field]);
@@ -1531,7 +1536,11 @@ function openEquipmentDialog(action,field,index=-1){
   }
   renderEquipmentOptions();
   const dialog=document.getElementById("equipmentDialog");
-  if(dialog&&!dialog.open)dialog.showModal();
+  if(dialog){
+    dialog.dataset.action=action;
+    dialog.dataset.field=field;
+    if(!dialog.open)dialog.showModal();
+  }
   requestAnimationFrame(()=>search?.focus());
 }
 function clearEquipmentEditorSlot(){
@@ -2758,6 +2767,9 @@ function selfCheck(){
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
   if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
   if(!EXTRA_BLESSINGS["Deadly Frequencies"]||!EXTRA_BLESSINGS["Voltagheist Overload"]) throw new Error("new blessing effect data missing");
+  if(!weaponBilingualLabel("M35 Magnacore Mk II Plasma Gun").startsWith("等离子枪 · II型 / ")) throw new Error("official Simplified-Chinese Plasma Gun label missing");
+  if(!weaponBilingualLabel("Branx Mk XI Paired Transonic Blades").startsWith("双持超声战刃 · XI型 / ")) throw new Error("current Skitarii weapon Chinese label missing");
+  if(weaponBilingualLabel("M35 Magnacore Mk II Plasma Gun").includes("电浆")) throw new Error("Traditional-Chinese weapon term leaked into Simplified-Chinese UI");
   for(const tree of [...DATA.classes,...DATA.liveClasses]){
     for(const n of tree.nodes){
       if(/[A-F0-9]{8,}$/i.test(displayTalentEn(n)))throw new Error("internal talent id leaked into display name");
@@ -3003,7 +3015,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl42").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl43").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
