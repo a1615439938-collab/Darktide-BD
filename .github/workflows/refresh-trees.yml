@@ -1,5 +1,9 @@
 name: Refresh future talent trees
 
+# Repository policy: do NOT add a GitHub Actions schedule/cron trigger here.
+# Scheduled GitHub Actions are intentionally forbidden for this repository.
+# Keep refreshes manual (workflow_dispatch) or event-driven only.
+
 on:
   workflow_dispatch:
   push:
@@ -10,8 +14,6 @@ on:
       - "tools/manual_current_cn.json"
       - "tools/split_tree_data.py"
       - ".github/workflows/refresh-trees.yml"
-  schedule:
-    - cron: "15 3 * * *"
 
 permissions:
   contents: write
