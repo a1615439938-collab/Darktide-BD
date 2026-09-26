@@ -1,0 +1,14 @@
+{
+  "name": "Depths Preview",
+  "description": "Preview selected Depths of the Damned talent builds in local SoloPlay / Realms-hosted games. Alpha: unchanged live-compatible talents are applied first; changed/new talents are explicitly reported as pending.",
+  "homepage": "https://github.com/a1615439938-collab/Darktide-BD/tree/depths-preview-mod/game-mod/DepthsPreview",
+  "source": "https://github.com/a1615439938-collab/Darktide-BD/tree/depths-preview-mod/game-mod/DepthsPreview",
+  "version": "0.1.0-alpha.1",
+  "author": "a1615439938-collab",
+  "localization": {
+    "zh-cn": {
+      "name": "Depths 新天赋试玩",
+      "description": "在 SoloPlay / Realms 本地主机中试玩 Depths of the Damned 构筑。Alpha 先应用与当前客户端完全一致的天赋；改动/新增天赋会明确标记为待实现。"
+    }
+  }
+}
