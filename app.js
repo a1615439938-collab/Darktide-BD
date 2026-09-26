@@ -586,7 +586,16 @@ function uniqueStrings(arr){
 }
 
 const BLESSING_EFFECTS=window.BLESSING_EFFECTS||{};
+const BLESSING_TIER_VALUES=window.BLESSING_TIER_VALUES||{};
 const BLESSING_INPUT_IDS=new Set(["meleeBlessing1","meleeBlessing2","rangedBlessing1","rangedBlessing2"]);
+const BLESSING_TIER_FIELD={
+  meleeBlessing1:"meleeBlessing1Tier",meleeBlessing2:"meleeBlessing2Tier",
+  rangedBlessing1:"rangedBlessing1Tier",rangedBlessing2:"rangedBlessing2Tier"
+};
+const BLESSING_WEAPON_FIELD={
+  meleeBlessing1:"meleeWeapon",meleeBlessing2:"meleeWeapon",
+  rangedBlessing1:"rangedWeapon",rangedBlessing2:"rangedWeapon"
+};
 let blessingTooltipHideTimer=null;
 
 function blessingEnglishName(label){
@@ -609,6 +618,111 @@ function blessingDisplayName(label){
   const all=[...MELEE_BLESSINGS,...RANGED_BLESSINGS];
   return all.find(x=>x.endsWith(" / "+en))||raw;
 }
+function tierMetricCn(metric){
+  let x=String(metric||"Tier value");
+  const pairs=[
+    [/Max Hit Mass Increase per stack/gi,"每层最大打击质量提升"],
+    [/Max Hit Mass Increase/gi,"最大打击质量提升"],
+    [/Melee Weakspot Damage/gi,"近战弱点伤害"],
+    [/Ranged Weakspot Damage/gi,"远程弱点伤害"],
+    [/Melee Finesse Bonus per stack/gi,"每层近战灵巧加成"],
+    [/Finesse Bonus per stack/gi,"每层灵巧加成"],
+    [/Finesse Bonus/gi,"灵巧加成"],
+    [/Melee Power per stack/gi,"每层近战强度"],
+    [/Ranged Power per stack/gi,"每层远程强度"],
+    [/Power per stack/gi,"每层强度"],
+    [/Crit Chance per stack/gi,"每层暴击率"],
+    [/Critical Chance per stack/gi,"每层暴击率"],
+    [/Brittleness Stacks/gi,"脆弱层数"],
+    [/Bleed Stacks/gi,"流血层数"],
+    [/Rending per stack/gi,"每层撕裂"],
+    [/Rending vs Staggered/gi,"对踉跄敌人的撕裂"],
+    [/Max Toughness Percentage/gi,"韧性恢复"],
+    [/Toughness Restored/gi,"韧性恢复"],
+    [/Melee Crit Chance/gi,"近战暴击率"],
+    [/Ranged Crit Chance/gi,"远程暴击率"],
+    [/Crit Chance/gi,"暴击率"],
+    [/Critical Chance/gi,"暴击率"],
+    [/Reload Speed/gi,"装弹速度"],
+    [/Movement Speed/gi,"移动速度"],
+    [/Attack Speed/gi,"攻击速度"],
+    [/Charge Time/gi,"蓄力时间"],
+    [/Cooldown/gi,"冷却时间"],
+    [/Duration/gi,"持续时间"],
+    [/Melee Stagger Strength/gi,"近战踉跄强度"],
+    [/Stagger Strength/gi,"踉跄强度"],
+    [/Stagger Duration/gi,"踉跄持续时间"],
+    [/Instakill Chance/gi,"即死几率"],
+    [/Backstab Rending/gi,"背刺撕裂"],
+    [/Explosion Radius/gi,"爆炸范围"],
+    [/Melee Power/gi,"近战强度"],
+    [/Ranged Power/gi,"远程强度"],
+    [/Power/gi,"强度"],
+    [/Damage/gi,"伤害"],
+    [/Toughness/gi,"韧性"],
+    [/Ammo/gi,"弹药"],
+    [/Heat/gi,"热量"],
+    [/Peril/gi,"反噬"],
+    [/Cleave/gi,"劈裂"],
+    [/Spread Reduction/gi,"散布降低"],
+    [/Stack Interval/gi,"叠层间隔"],
+    [/Tier value/gi,"等级数值"],
+    [/\band\b/gi," + "]
+  ];
+  for(const [re,zh] of pairs)x=x.replace(re,zh);
+  return x.replace(/\s{2,}/g," ").trim();
+}
+function weaponMatchTokens(text){
+  const singular={
+    staves:"staff",axes:"axe",knives:"knife",swords:"sword",greatswords:"greatsword",
+    pistols:"pistol",laspistols:"laspistol",revolvers:"revolver",shotguns:"shotgun",
+    autoguns:"autogun",lasguns:"lasgun",stubbers:"stubber",boltguns:"boltgun",
+    guns:"gun",blades:"blade",shovels:"shovel",pickaxes:"pickaxe",mauls:"maul",
+    hammers:"hammer",clubs:"club",cleavers:"cleaver",eviscerators:"eviscerator",
+    falchions:"falchion",shivs:"shiv"
+  };
+  return String(text||"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").trim()
+    .split(/\s+/).filter(x=>x&&x!=="and"&&!/^mk$/.test(x)&&!/^m?g?\d+[a-z]*$/.test(x))
+    .map(x=>singular[x]||x);
+}
+function tierRowMatchesWeapon(row,weaponLabel){
+  const weapon=weaponMatchTokens(String(weaponLabel||"").split(" / ").pop());
+  if(!weapon.length)return false;
+  const set=new Set(weapon);
+  for(const family of String(row?.weapons||"").split(",")){
+    const tokens=weaponMatchTokens(family);
+    if(tokens.length&&tokens.every(t=>set.has(t)))return true;
+  }
+  return false;
+}
+function blessingTierSummary(label,inputId){
+  const en=blessingEnglishName(label);
+  const meta=BLESSING_TIER_VALUES[en];
+  if(!meta)return "";
+  const tierField=BLESSING_TIER_FIELD[inputId]||"";
+  const tierRaw=tierField?(document.getElementById(tierField)?.value||""):"";
+  const tier=Number(tierRaw);
+  if(!tier||tier<1||tier>4){
+    return "请选择祝福等级 I–IV，以显示准确数值。 / Select blessing tier I–IV for exact values.";
+  }
+  const roman=["","I","II","III","IV"][tier];
+  const weaponField=BLESSING_WEAPON_FIELD[inputId]||"";
+  const weapon=weaponField?(document.getElementById(weaponField)?.value||""):"";
+  const rows=Array.isArray(meta.rows)?meta.rows:[];
+  let matched=weapon?rows.filter(r=>tierRowMatchesWeapon(r,weapon)):[];
+  let row=matched[0]||(rows.length===1?rows[0]:null);
+  const metricCn=tierMetricCn(meta.metric);
+  const metric=String(meta.metric||"Tier value");
+  if(row){
+    let out=roman+" 级 · "+metricCn+" / "+metric+"： "+(row.tiers?.[tier-1]||"—");
+    if(row.extra?.length)out+="\n固定附加 / Extra: "+row.extra.join(" · ");
+    if(row.notes?.length)out+="\n备注 / Note: "+row.notes.join("；");
+    if(rows.length>1)out+="\n武器匹配 / Weapon family: "+row.weapons;
+    return out;
+  }
+  const candidates=rows.slice(0,5).map(r=>r.weapons+"： "+(r.tiers?.[tier-1]||"—"));
+  return roman+" 级 · "+metricCn+" / "+metric+"\n当前武器未可靠匹配，按武器家族候选： / Weapon-specific values:\n"+candidates.join("\n");
+}
 function ensureBlessingTooltip(){
   let tip=document.getElementById("blessingTooltip");
   if(tip)return tip;
@@ -616,17 +730,15 @@ function ensureBlessingTooltip(){
   tip.id="blessingTooltip";
   tip.className="blessing-tooltip hidden";
   tip.setAttribute("role","tooltip");
-  tip.innerHTML='<div class="blessing-tooltip-title"></div><div class="blessing-tooltip-cn"></div><div class="blessing-tooltip-en"></div><div class="blessing-tooltip-note"></div>';
+  tip.innerHTML='<div class="blessing-tooltip-title"></div><div class="blessing-tooltip-tier"></div><div class="blessing-tooltip-cn"></div><div class="blessing-tooltip-en"></div><div class="blessing-tooltip-note"></div>';
   document.body.appendChild(tip);
-  tip.addEventListener("mouseenter",()=>clearTimeout(blessingTooltipHideTimer));
-  tip.addEventListener("mouseleave",scheduleHideBlessingTooltip);
   return tip;
 }
 function positionBlessingTooltip(anchor){
   const tip=ensureBlessingTooltip();
   const r=anchor.getBoundingClientRect();
   const pad=10,gap=7;
-  const width=Math.min(390,window.innerWidth-pad*2);
+  const width=Math.min(410,window.innerWidth-pad*2);
   tip.style.width=width+"px";
   tip.style.left=Math.max(pad,Math.min(window.innerWidth-width-pad,r.left))+"px";
   tip.style.top="0px";
@@ -639,7 +751,7 @@ function positionBlessingTooltip(anchor){
   tip.style.top=Math.max(pad,Math.min(window.innerHeight-h-pad,top))+"px";
   tip.style.visibility="visible";
 }
-function showBlessingTooltip(label,anchor){
+function showBlessingTooltip(label,anchor,inputId=""){
   clearTimeout(blessingTooltipHideTimer);
   const effect=blessingEffectForLabel(label);
   const tip=ensureBlessingTooltip();
@@ -647,13 +759,22 @@ function showBlessingTooltip(label,anchor){
     tip.classList.add("hidden");
     return;
   }
+  const sourceId=inputId||anchor.id||"";
+  const tierSummary=blessingTierSummary(label,sourceId);
   tip.querySelector(".blessing-tooltip-title").textContent=blessingDisplayName(label);
+  const tierEl=tip.querySelector(".blessing-tooltip-tier");
+  tierEl.textContent=tierSummary;
+  tierEl.hidden=!tierSummary;
   tip.querySelector(".blessing-tooltip-cn").textContent=effect.cn||"暂无中文效果说明。";
   tip.querySelector(".blessing-tooltip-en").textContent=effect.en||"No English effect text available.";
+  const tierField=BLESSING_TIER_FIELD[sourceId];
+  const tierSelected=Boolean(tierField&&document.getElementById(tierField)?.value);
   const hasVars=/\{[a-zA-Z0-9_]+\}/.test((effect.cn||"")+" "+(effect.en||""));
-  tip.querySelector(".blessing-tooltip-note").textContent=hasVars
-    ?"{} 中的数值会随祝福等级或武器变化；当前 BD 编辑器尚未选择祝福等级。 / Values in {} vary by blessing tier or weapon."
-    :"效果文本来自维护中的 Darktide 祝福数据。 / Effect text from maintained Darktide blessing data.";
+  tip.querySelector(".blessing-tooltip-note").textContent=tierSelected&&tierSummary
+    ?"上方为当前祝福等级的精确等级数值；正文中的 {} 保留用于说明完整机制。 / Exact tier values are shown above; {} remains in the mechanism text."
+    :(hasVars
+      ?"{} 中的数值会随祝福等级或武器变化；选择 I–IV 后，上方会显示精确等级数值。 / Select I–IV to show exact tier values above."
+      :"效果文本来自维护中的 Darktide 祝福数据。 / Effect text from maintained Darktide blessing data.");
   positionBlessingTooltip(anchor);
 }
 function hideBlessingTooltip(){
@@ -667,12 +788,27 @@ function scheduleHideBlessingTooltip(){
 function bindBlessingTooltipInput(input){
   if(!input||input.dataset.blessingTooltipReady==="1")return;
   input.dataset.blessingTooltipReady="1";
-  const show=()=>showBlessingTooltip(input.value,input);
+  const show=()=>showBlessingTooltip(input.value,input,input.id);
   input.addEventListener("mouseenter",show);
   input.addEventListener("focus",show);
   input.addEventListener("input",show);
   input.addEventListener("mouseleave",scheduleHideBlessingTooltip);
   input.addEventListener("blur",scheduleHideBlessingTooltip);
+}
+function bindBlessingTierSelect(inputId){
+  const input=document.getElementById(inputId);
+  const select=document.getElementById(BLESSING_TIER_FIELD[inputId]||"");
+  if(!input||!select||select.dataset.tierReady==="1")return;
+  select.dataset.tierReady="1";
+  const show=()=>showBlessingTooltip(input.value,select,inputId);
+  select.addEventListener("mouseenter",show);
+  select.addEventListener("focus",show);
+  select.addEventListener("change",()=>{
+    persist();
+    show();
+  });
+  select.addEventListener("mouseleave",scheduleHideBlessingTooltip);
+  select.addEventListener("blur",scheduleHideBlessingTooltip);
 }
 
 let state={
@@ -703,8 +839,8 @@ const $=q=>document.querySelector(q);
 const VISUAL_POPOVER_TEST=new URLSearchParams(location.search).get("visual")==="popover";
 
 const LOADOUT_FIELDS=[
-  "meleeWeapon","meleeBlessing1","meleeBlessing2","meleePerk1","meleePerk2",
-  "rangedWeapon","rangedBlessing1","rangedBlessing2","rangedPerk1","rangedPerk2",
+  "meleeWeapon","meleeBlessing1","meleeBlessing1Tier","meleeBlessing2","meleeBlessing2Tier","meleePerk1","meleePerk2",
+  "rangedWeapon","rangedBlessing1","rangedBlessing1Tier","rangedBlessing2","rangedBlessing2Tier","rangedPerk1","rangedPerk2",
   "curio1Type","curio1Main","curio1Perks",
   "curio2Type","curio2Main","curio2Perks",
   "curio3Type","curio3Main","curio3Perks"
@@ -993,7 +1129,7 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
             input.value=item.label;
           }
           input.dispatchEvent(new Event("input",{bubbles:true}));
-          if(BLESSING_INPUT_IDS.has(id))showBlessingTooltip(input.value,input);
+          if(BLESSING_INPUT_IDS.has(id))showBlessingTooltip(input.value,input,id);
           if(multi&&((input.value||"").split("|").map(x=>x.trim()).filter(Boolean).length<max)){
             input.focus();
             renderMenu(true);
@@ -1043,10 +1179,12 @@ function setupEquipmentPickers(){
   for(const id of ["meleeBlessing1","meleeBlessing2"]){
     setupSearchPicker(id,()=>MELEE_BLESSINGS);
     bindBlessingTooltipInput(document.getElementById(id));
+    bindBlessingTierSelect(id);
   }
   for(const id of ["rangedBlessing1","rangedBlessing2"]){
     setupSearchPicker(id,()=>RANGED_BLESSINGS);
     bindBlessingTooltipInput(document.getElementById(id));
+    bindBlessingTierSelect(id);
   }
   for(const id of ["meleePerk1","meleePerk2","rangedPerk1","rangedPerk2"])setupSearchPicker(id,()=>WEAPON_PERKS);
   for(let i=1;i<=3;i++){
@@ -2389,6 +2527,14 @@ function runAutomatedSelfTest(){
     if(!blessingTip||blessingTip.classList.contains("hidden"))throw new Error("blessing effect tooltip did not open");
     if(!/[\u4e00-\u9fff]/.test(blessingTip.querySelector(".blessing-tooltip-cn")?.textContent||""))throw new Error("blessing tooltip Chinese effect missing");
     if(!/[A-Za-z]/.test(blessingTip.querySelector(".blessing-tooltip-en")?.textContent||""))throw new Error("blessing tooltip English effect missing");
+    const blessingTier=$("#meleeBlessing1Tier");
+    if(!blessingTier)throw new Error("blessing tier selector missing");
+    blessingTier.value="4";
+    blessingTier.dispatchEvent(new Event("change",{bubbles:true}));
+    blessing.dispatchEvent(new MouseEvent("mouseenter",{bubbles:true}));
+    const tierText=blessingTip.querySelector(".blessing-tooltip-tier")?.textContent||"";
+    if(!tierText.includes("IV")||!/[0-9]/.test(tierText))throw new Error("exact blessing tier value missing");
+    if(currentLoadout().meleeBlessing1Tier!=="4")throw new Error("blessing tier did not persist");
     hideBlessingTooltip();
 
     const perk=$("#meleePerk1");
@@ -2492,7 +2638,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl37").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl38").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
