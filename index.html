@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl37">
+  <link rel="stylesheet" href="./styles.css?v=gl38">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -134,8 +134,26 @@
       <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
       <input id="meleeWeapon" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择职业可用武器 / Search or choose weapon">
       <div class="two-col">
-        <input id="meleeBlessing1" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 1 / Search blessing 1">
-        <input id="meleeBlessing2" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 2 / Search blessing 2">
+        <div class="blessing-slot">
+          <input id="meleeBlessing1" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 1 / Search blessing 1">
+          <select id="meleeBlessing1Tier" class="blessing-tier-select" aria-label="祝福等级 / Blessing tier">
+            <option value="">等级 / Tier</option>
+            <option value="1">I</option>
+            <option value="2">II</option>
+            <option value="3">III</option>
+            <option value="4">IV</option>
+          </select>
+        </div>
+        <div class="blessing-slot">
+          <input id="meleeBlessing2" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 2 / Search blessing 2">
+          <select id="meleeBlessing2Tier" class="blessing-tier-select" aria-label="祝福等级 / Blessing tier">
+            <option value="">等级 / Tier</option>
+            <option value="1">I</option>
+            <option value="2">II</option>
+            <option value="3">III</option>
+            <option value="4">IV</option>
+          </select>
+        </div>
       </div>
       <div class="two-col">
         <input id="meleePerk1" autocomplete="off" aria-autocomplete="list" placeholder="搜索词条 1 / Search perk 1">
@@ -147,8 +165,26 @@
       <div class="gear-head"><span>远程武器</span><b>Ranged Weapon</b></div>
       <input id="rangedWeapon" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择职业可用武器 / Search or choose weapon">
       <div class="two-col">
-        <input id="rangedBlessing1" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 1 / Search blessing 1">
-        <input id="rangedBlessing2" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 2 / Search blessing 2">
+        <div class="blessing-slot">
+          <input id="rangedBlessing1" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 1 / Search blessing 1">
+          <select id="rangedBlessing1Tier" class="blessing-tier-select" aria-label="祝福等级 / Blessing tier">
+            <option value="">等级 / Tier</option>
+            <option value="1">I</option>
+            <option value="2">II</option>
+            <option value="3">III</option>
+            <option value="4">IV</option>
+          </select>
+        </div>
+        <div class="blessing-slot">
+          <input id="rangedBlessing2" autocomplete="off" aria-autocomplete="list" placeholder="搜索祝福 2 / Search blessing 2">
+          <select id="rangedBlessing2Tier" class="blessing-tier-select" aria-label="祝福等级 / Blessing tier">
+            <option value="">等级 / Tier</option>
+            <option value="1">I</option>
+            <option value="2">II</option>
+            <option value="3">III</option>
+            <option value="4">IV</option>
+          </select>
+        </div>
       </div>
       <div class="two-col">
         <input id="rangedPerk1" autocomplete="off" aria-autocomplete="list" placeholder="搜索词条 1 / Search perk 1">
@@ -220,7 +256,8 @@
 </dialog>
 
 <script src="./tree-core.js?v=gl34"></script>
-<script src="./blessing-effects.js?v=gl37"></script>
-<script src="./app.js?v=gl37"></script>
+<script src="./blessing-effects.js?v=gl38"></script>
+<script src="./blessing-tier-values.js?v=gl38"></script>
+<script src="./app.js?v=gl38"></script>
 </body>
 </html>
