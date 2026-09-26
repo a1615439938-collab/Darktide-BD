@@ -58,7 +58,7 @@ local NODE = {
   },
   ogryn = {
     found_some_more = "dp_found_some_more",
-    toughness_damage_reduction = "dp_toughness_damage_reduction_e9803f5f",
+    toughness_damage_reduction = "dp_toughness_damage_reduction_e0dd7125",
   },
 }
 
