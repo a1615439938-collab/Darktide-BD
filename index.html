@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl47">
+  <link rel="stylesheet" href="./styles.css?v=gl48">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -148,6 +148,14 @@
     <span>完整配装</span><b>Loadout</b>
   </section>
 
+  <section class="loadout-progress-card" aria-label="装备完成度 / Loadout completion">
+    <div class="loadout-progress-copy">
+      <strong id="loadoutCompletion">装备完成度 0 / 22</strong>
+      <span id="loadoutCompletionHint">按顺序完成武器、祝福、词条和珍品即可</span>
+    </div>
+    <div class="loadout-progress-track" aria-hidden="true"><i id="loadoutProgressBar"></i></div>
+  </section>
+
   <section class="loadout-grid loadout-card-grid">
     <article class="gear-card weapon-build-card" data-weapon-slot="melee">
       <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
@@ -234,6 +242,11 @@
     <div class="gear-head"><span>珍品</span><b>Curios</b></div>
     <div class="curio-grid redesigned-curios">
       <article class="curio-card redesigned-curio" data-curio-index="1">
+        <div class="curio-toolbar">
+          <span>珍品 1</span>
+          <span class="curio-progress" data-curio-progress="1">0 / 4</span>
+          <button type="button" data-curio-copy-all="1">复制到全部</button>
+        </div>
         <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio1Type">
           <span class="equipment-mark">C1</span>
           <span class="equipment-copy">
@@ -265,6 +278,11 @@
         </div>
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="2">
+        <div class="curio-toolbar">
+          <span>珍品 2</span>
+          <span class="curio-progress" data-curio-progress="2">0 / 4</span>
+          <button type="button" data-curio-copy-prev="2">复制珍品 1</button>
+        </div>
         <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio2Type">
           <span class="equipment-mark">C2</span>
           <span class="equipment-copy">
@@ -296,6 +314,11 @@
         </div>
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="3">
+        <div class="curio-toolbar">
+          <span>珍品 3</span>
+          <span class="curio-progress" data-curio-progress="3">0 / 4</span>
+          <button type="button" data-curio-copy-prev="3">复制珍品 2</button>
+        </div>
         <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio3Type">
           <span class="equipment-mark">C3</span>
           <span class="equipment-copy">
@@ -404,6 +427,7 @@
     </div>
     <div id="equipmentFlow" class="equipment-flow" hidden></div>
     <input id="equipmentSearch" class="equipment-search" type="search" autocomplete="off" placeholder="搜索中文或英文 / Search Chinese or English">
+    <div id="equipmentFilters" class="equipment-filters" hidden></div>
     <div id="equipmentTierPicker" class="equipment-tier-picker" hidden>
       <span>祝福等级 / Blessing Tier</span>
       <div class="tier-segments">
@@ -440,6 +464,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl47"></script>
+<script src="./app.js?v=gl48"></script>
 </body>
 </html>

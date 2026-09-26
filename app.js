@@ -497,6 +497,57 @@ function weaponBilingualLabel(en){
   return bilingualLabel(raw,raw);
 }
 
+const WEAPON_CATEGORY_LABELS={
+  blade:["剑 / 刀","Blades"],
+  axe:["斧","Axes"],
+  impact:["锤 / 钝器","Impact"],
+  shield:["盾牌","Shields"],
+  tool:["工具武器","Tools"],
+  rifle:["步枪 / 激光枪","Rifles"],
+  shotgun:["霰弹枪","Shotguns"],
+  pistol:["手枪","Pistols"],
+  automatic:["自动武器","Automatic"],
+  staff:["力场法杖","Force Staves"],
+  heavy:["重型 / 特殊","Heavy / Special"],
+  other:["其他","Other"]
+};
+function weaponCategory(en,slot){
+  const s=String(en||"").toLowerCase();
+  if(slot==="melee"){
+    if(/shield/.test(s))return "shield";
+    if(/axe|chainaxe/.test(s))return "axe";
+    if(/maul|hammer|club|crusher/.test(s))return "impact";
+    if(/shovel|pickaxe|bone saw|crowbar/.test(s))return "tool";
+    if(/sword|blade|eviscerator|falchion|chainsword|shiv|cleaver/.test(s))return "blade";
+    return "other";
+  }
+  if(/force staff/.test(s))return "staff";
+  if(/shotgun|kickback|thugshot/.test(s))return "shotgun";
+  if(/pistol|revolver/.test(s))return "pistol";
+  if(/autogun|stubber|ripper gun|shredder/.test(s))return "automatic";
+  if(/lasgun|rifle|plasma gun/.test(s))return "rifle";
+  if(/boltgun|rumbler|grenadier|flamer/.test(s))return "heavy";
+  return "other";
+}
+function weaponCategoryText(key){
+  const pair=WEAPON_CATEGORY_LABELS[key]||WEAPON_CATEGORY_LABELS.other;
+  return uiText(pair[0],pair[1]);
+}
+function recentWeaponKey(slot){
+  return baseClassKey()+":"+slot;
+}
+function recentWeaponNames(slot){
+  state.recentWeapons=state.recentWeapons&&typeof state.recentWeapons==="object"?state.recentWeapons:{};
+  return Array.isArray(state.recentWeapons[recentWeaponKey(slot)])?state.recentWeapons[recentWeaponKey(slot)]:[];
+}
+function rememberWeapon(slot,label){
+  const en=String(label||"").split(" / ").pop().trim();
+  if(!en)return;
+  state.recentWeapons=state.recentWeapons&&typeof state.recentWeapons==="object"?state.recentWeapons:{};
+  const key=recentWeaponKey(slot);
+  state.recentWeapons[key]=[en,...recentWeaponNames(slot).filter(x=>x!==en)].slice(0,6);
+}
+
 const MELEE_BLESSINGS=[
   ["机会主义者","Opportunist"],["放血者","Bloodletter"],["嗜血","Bloodthirsty"],["夺颅者","Headtaker"],
   ["杀戮者","Slaughterer"],["提速","Rev it up"],["推进","Thrust"],["雷鸣","Thunderous"],["愤怒","Wrath"],
@@ -886,7 +937,8 @@ let state={
   builds:[],
   activeBuildId:"",
   language:"zh",
-  view:"talent"
+  view:"talent",
+  recentWeapons:{}
 };
 
 let CUR=null;
@@ -997,9 +1049,13 @@ function weaponOptions(slot){
   const guide=GEAR_GUIDE[key]||{melee:[],ranged:[]};
   const all=(EQUIPMENT_DB[key]&&EQUIPMENT_DB[key][slot])||[];
   const recommended=guide[slot]||[];
+  const recent=new Set(recentWeaponNames(slot));
   return uniqueStrings([...recommended,...all]).map(en=>({
     label:weaponBilingualLabel(en),
-    recommended:recommended.includes(en)
+    en,
+    recommended:recommended.includes(en),
+    recent:recent.has(en),
+    category:weaponCategory(en,slot)
   }));
 }
 function localizedOptionValue(value,options){
@@ -1303,7 +1359,7 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
   },80));
   pickerRegistry.push({input,menu,renderMenu});
 }
-let equipmentEditor={action:"",field:"",index:-1,tier:"4",flow:[],flowIndex:-1};
+let equipmentEditor={action:"",field:"",index:-1,tier:"4",flow:[],flowIndex:-1,filter:"all"};
 
 function equipmentActionForField(field){
   if(/Weapon$/.test(field))return "weapon";
@@ -1434,7 +1490,46 @@ function setCurioPerk(field,index,value){
 function effectPreview(label,field=""){
   const effect=blessingEffectForLabel(label,field);
   if(!effect)return "";
-  return String(effect.cn||effect.en||"").replace(/\s+/g," ").trim();
+  const text=uiLanguage()==="en"
+    ?(effect.en||effect.cn||"")
+    :uiLanguage()==="bi"
+      ?((effect.cn||"")+(effect.cn&&effect.en?" / ":"")+(effect.en||""))
+      :(effect.cn||effect.en||"");
+  return String(text).replace(/\s+/g," ").trim();
+}
+function curioHasMeaningfulData(index){
+  const lo=currentLoadout();
+  return Boolean(lo["curio"+index+"Main"]||lo["curio"+index+"Perks"]||lo["curio"+index+"Type"]);
+}
+function copyCurio(source,target,{confirmOverwrite=true}={}){
+  if(source===target)return false;
+  const lo=currentLoadout();
+  if(confirmOverwrite&&curioHasMeaningfulData(target)){
+    const ok=confirm(uiText(
+      "珍品 "+target+" 已有内容，确认用珍品 "+source+" 覆盖？",
+      "Curio "+target+" already has data. Replace it with Curio "+source+"?"
+    ));
+    if(!ok)return false;
+  }
+  for(const suffix of ["Type","Main","Perks"]){
+    lo["curio"+target+suffix]=lo["curio"+source+suffix]||"";
+  }
+  applyLoadout();
+  persist();
+  renderLoadoutCards();
+  return true;
+}
+function copyCurioToAll(source){
+  const targets=[1,2,3].filter(i=>i!==source);
+  if(targets.some(curioHasMeaningfulData)){
+    const ok=confirm(uiText(
+      "其他珍品已有内容，确认全部覆盖？",
+      "Other curios already contain data. Replace them all?"
+    ));
+    if(!ok)return;
+  }
+  for(const target of targets)copyCurio(source,target,{confirmOverwrite:false});
+  notify(uiText("已复制到其他珍品","Copied to the other curios"));
 }
 function cardSetText(card,title,subtitle,empty=false){
   if(!card)return;
@@ -1447,6 +1542,47 @@ function cardSetText(card,title,subtitle,empty=false){
     s.hidden=mode!=="bi"||!subtitle;
   }
   card.classList.toggle("is-empty",Boolean(empty));
+}
+function loadoutProgress(){
+  const lo=currentLoadout();
+  const weaponFields=[
+    "meleeWeapon","meleeBlessing1","meleeBlessing2","meleePerk1","meleePerk2",
+    "rangedWeapon","rangedBlessing1","rangedBlessing2","rangedPerk1","rangedPerk2"
+  ];
+  let done=weaponFields.filter(k=>Boolean(lo[k])).length;
+  for(let i=1;i<=3;i++){
+    if(lo["curio"+i+"Main"])done++;
+    done+=curioPerks("curio"+i+"Perks").slice(0,3).length;
+  }
+  return {done,total:22};
+}
+function setSectionProgress(host,done,total){
+  if(!host)return;
+  host.classList.toggle("complete",done===total);
+  host.classList.toggle("partial",done>0&&done<total);
+  let badge=host.querySelector(".section-progress-badge");
+  if(!badge){
+    badge=document.createElement("span");
+    badge.className="section-progress-badge";
+    const head=host.querySelector(".gear-head")||host.querySelector(".curio-toolbar");
+    head?.appendChild(badge);
+  }
+  if(badge)badge.textContent=done===total?uiText("✓ 完成","✓ Complete"):done+" / "+total;
+}
+function renderLoadoutProgress(){
+  const p=loadoutProgress();
+  const completion=$("#loadoutCompletion");
+  const hint=$("#loadoutCompletionHint");
+  const bar=$("#loadoutProgressBar");
+  if(completion)completion.textContent=uiLanguage()==="en"
+    ?"Loadout "+p.done+" / "+p.total
+    :uiLanguage()==="bi"
+      ?"装备完成度 "+p.done+" / "+p.total+" · Loadout"
+      :"装备完成度 "+p.done+" / "+p.total;
+  if(hint)hint.textContent=p.done===p.total
+    ?uiText("✓ 配装已完整","✓ Loadout complete")
+    :uiText("还差 "+(p.total-p.done)+" 项；珍品外观不计入完成度",""+(p.total-p.done)+" required slots remaining; curio cosmetics are optional");
+  if(bar)bar.style.width=Math.round(p.done/p.total*100)+"%";
 }
 function renderLoadoutCards(){
   const lo=currentLoadout();
@@ -1527,19 +1663,39 @@ function renderLoadoutCards(){
         cardSetText(perkCard,"选择词条","Select perk",true);
       }
     }
+    const curioDone=(lo["curio"+i+"Main"]?1:0)+curioPerks("curio"+i+"Perks").slice(0,3).length;
+    const curioHost=document.querySelector('[data-curio-index="'+i+'"]');
+    setSectionProgress(curioHost,curioDone,4);
+    const curioProgress=document.querySelector('[data-curio-progress="'+i+'"]');
+    if(curioProgress)curioProgress.textContent=curioDone===4?uiText("✓ 完成","✓ Complete"):curioDone+" / 4";
   }
+  for(const slot of ["melee","ranged"]){
+    const fields=[slot+"Weapon",slot+"Blessing1",slot+"Blessing2",slot+"Perk1",slot+"Perk2"];
+    const done=fields.filter(k=>Boolean(lo[k])).length;
+    setSectionProgress(document.querySelector('[data-weapon-slot="'+slot+'"]'),done,5);
+  }
+  renderLoadoutProgress();
 }
 function equipmentItems(){
   const action=equipmentEditor.action,field=equipmentEditor.field,index=equipmentEditor.index;
   if(action==="weapon"){
     const slot=field.startsWith("melee")?"melee":"ranged";
-    return weaponOptions(slot).map(x=>({label:x.label,meta:x.recommended?"推荐 / Recommended":"",subtitle:""}));
+    return weaponOptions(slot).map(x=>({
+      label:x.label,
+      meta:x.recommended?uiText("推荐","Recommended"):(x.recent?uiText("最近","Recent"):""),
+      subtitle:"",
+      recommended:x.recommended,
+      recent:x.recent,
+      category:x.category
+    }));
   }
   if(action==="blessing"){
     return blessingPoolForField(field).map(label=>({
       label,
       meta:(equipmentEditor.tier||"4")==="4"?"IV":"Tier "+equipmentEditor.tier,
-      subtitle:effectPreview(label,field)+" · "+blessingTierSummary(label,field,equipmentEditor.tier)
+      subtitle:"",
+      effect:effectPreview(label,field),
+      tierSummary:blessingTierSummary(label,field,equipmentEditor.tier).split("\n")[0]
     }));
   }
   if(action==="perk")return WEAPON_PERKS.map(label=>({label,meta:"",subtitle:""}));
@@ -1551,6 +1707,36 @@ function equipmentItems(){
   }
   return [];
 }
+function renderEquipmentFilters(){
+  const host=document.getElementById("equipmentFilters");
+  if(!host)return;
+  if(equipmentEditor.action!=="weapon"){
+    host.hidden=true;
+    host.innerHTML="";
+    return;
+  }
+  const items=equipmentItems();
+  const categories=[...new Set(items.map(x=>x.category).filter(Boolean))];
+  const filters=[{key:"all",label:uiText("全部","All")}];
+  if(items.some(x=>x.recommended))filters.push({key:"recommended",label:uiText("推荐","Recommended")});
+  if(items.some(x=>x.recent))filters.push({key:"recent",label:uiText("最近","Recent")});
+  for(const key of categories)filters.push({key:"cat:"+key,label:weaponCategoryText(key)});
+  host.hidden=false;
+  host.innerHTML="";
+  for(const item of filters){
+    const b=document.createElement("button");
+    b.type="button";
+    b.dataset.equipmentFilter=item.key;
+    b.textContent=item.label;
+    b.classList.toggle("active",(equipmentEditor.filter||"all")===item.key);
+    b.onclick=()=>{
+      equipmentEditor.filter=item.key;
+      renderEquipmentFilters();
+      renderEquipmentOptions();
+    };
+    host.appendChild(b);
+  }
+}
 function renderEquipmentOptions(){
   const host=document.getElementById("equipmentOptions");
   if(!host)return;
@@ -1558,17 +1744,24 @@ function renderEquipmentOptions(){
   const current=equipmentEditor.action==="curioPerk"
     ?(curioPerks(equipmentEditor.field)[equipmentEditor.index]||"")
     :loadoutFieldValue(equipmentEditor.field);
+  const filter=equipmentEditor.filter||"all";
   const items=equipmentItems().filter(item=>{
-    const hay=(item.label+" "+(item.subtitle||"")).toLowerCase();
-    return !q||hay.includes(q);
+    const hay=(item.label+" "+(item.subtitle||"")+" "+(item.effect||"")+" "+(item.tierSummary||"")).toLowerCase();
+    if(q&&!hay.includes(q))return false;
+    if(equipmentEditor.action==="weapon"){
+      if(filter==="recommended"&&!item.recommended)return false;
+      if(filter==="recent"&&!item.recent)return false;
+      if(filter.startsWith("cat:")&&item.category!==filter.slice(4))return false;
+    }
+    return true;
   });
   host.innerHTML="";
   if(!items.length){
     const empty=document.createElement("div");
     empty.className="equipment-empty";
     empty.textContent=equipmentEditor.action==="blessing"
-      ?"当前武器没有匹配的祝福，或搜索无结果。 / No compatible blessing matches."
-      :"没有匹配项 / No matching options";
+      ?uiText("当前武器没有匹配的祝福，或搜索无结果。","No compatible blessing matches.")
+      :uiText("没有匹配项；试试“全部”或清空搜索。","No matches. Try All or clear the search.");
     host.appendChild(empty);
     return;
   }
@@ -1578,11 +1771,35 @@ function renderEquipmentOptions(){
     b.type="button";
     b.className="equipment-option"+(item.label===current?" selected":"");
     const copy=document.createElement("span");
+    copy.className="equipment-option-copy";
     const strong=document.createElement("strong");
-    strong.textContent=bi.cn;
-    const small=document.createElement("small");
-    small.textContent=(bi.en&&bi.en!==bi.cn?bi.en:"")+(item.subtitle?((bi.en&&bi.en!==bi.cn?" · ":"")+item.subtitle):"");
-    copy.appendChild(strong);copy.appendChild(small);
+    strong.textContent=uiText(bi.cn,bi.en);
+    copy.appendChild(strong);
+
+    if(uiLanguage()==="bi"&&bi.en&&bi.en!==bi.cn){
+      const small=document.createElement("small");
+      small.className="equipment-option-en";
+      small.textContent=bi.en;
+      copy.appendChild(small);
+    }
+    if(item.subtitle){
+      const small=document.createElement("small");
+      small.textContent=item.subtitle;
+      copy.appendChild(small);
+    }
+    if(item.effect){
+      const effect=document.createElement("span");
+      effect.className="equipment-option-effect";
+      effect.textContent=item.effect;
+      copy.appendChild(effect);
+    }
+    if(item.tierSummary){
+      const tier=document.createElement("span");
+      tier.className="equipment-option-tier-detail";
+      tier.textContent=item.tierSummary;
+      copy.appendChild(tier);
+    }
+
     const meta=document.createElement("span");
     meta.className="equipment-option-meta";
     meta.textContent=item.meta||"";
@@ -1599,8 +1816,10 @@ function selectEquipmentOption(value){
   const {action,field,index}=equipmentEditor;
   const flowActive=(equipmentEditor.flow||[]).length>1;
   if(action==="weapon"){
+    const slot=field.startsWith("melee")?"melee":"ranged";
     setLoadoutFieldValue(field,value,{quiet:true});
-    clearInvalidBlessingsAfterWeaponChange(field.startsWith("melee")?"melee":"ranged");
+    rememberWeapon(slot,value);
+    clearInvalidBlessingsAfterWeaponChange(slot);
     persist();renderLoadoutCards();
   }else if(action==="blessing"){
     const tierField=blessingTierField(field);
@@ -1630,7 +1849,7 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
     flow=weaponFlowFor(field);
     flowIndex=0;
   }
-  equipmentEditor={action,field,index,tier:"4",flow,flowIndex};
+  equipmentEditor={action,field,index,tier:"4",flow,flowIndex,filter:"all"};
   if(action==="blessing"){
     const saved=loadoutFieldValue(blessingTierField(field));
     equipmentEditor.tier=saved||"4";
@@ -1664,6 +1883,7 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
     }
   }
   renderEquipmentFlow();
+  renderEquipmentFilters();
   renderEquipmentOptions();
   const dialog=document.getElementById("equipmentDialog");
   if(dialog){
@@ -1725,6 +1945,19 @@ function setupEquipmentPickers(){
   document.getElementById("equipmentDialogClose")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
   document.getElementById("equipmentClear")?.addEventListener("click",clearEquipmentEditorSlot);
   document.getElementById("equipmentDone")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
+  document.querySelectorAll("[data-curio-copy-prev]").forEach(btn=>{
+    if(btn.dataset.copyReady==="1")return;
+    btn.dataset.copyReady="1";
+    btn.addEventListener("click",()=>{
+      const target=Number(btn.dataset.curioCopyPrev);
+      if(copyCurio(target-1,target))notify(uiText("已复制上一件珍品","Previous curio copied"));
+    });
+  });
+  document.querySelectorAll("[data-curio-copy-all]").forEach(btn=>{
+    if(btn.dataset.copyReady==="1")return;
+    btn.dataset.copyReady="1";
+    btn.addEventListener("click",()=>copyCurioToAll(Number(btn.dataset.curioCopyAll)));
+  });
   document.getElementById("equipmentDialog")?.addEventListener("close",hideBlessingTooltip);
   renderLoadoutCards();
 }
@@ -2930,6 +3163,9 @@ function selfCheck(){
   if(document.querySelectorAll("[data-workspace-panel]").length!==3) throw new Error("three workspace panels are missing");
   if(!$("#saveState")||!$("#pointsRemaining")) throw new Error("autosave or points-remaining status is missing");
   if(!document.querySelector('[data-workspace-tab="loadout"]')) throw new Error("workspace navigation is missing");
+  if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")) throw new Error("loadout completion UI is missing");
+  if(!$("#equipmentFilters")) throw new Error("equipment filter bar is missing");
+  if(!document.querySelector("[data-curio-copy-all]")||document.querySelectorAll("[data-curio-copy-prev]").length!==2) throw new Error("curio copy shortcuts are missing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout state fields are missing");
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
   if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
@@ -3072,12 +3308,15 @@ function runAutomatedSelfTest(){
     meleeCard.click();
     const equipDialog=$("#equipmentDialog");
     if(!equipDialog?.open)throw new Error("equipment dialog did not open");
+    const filterBar=$("#equipmentFilters");
+    if(filterBar?.hidden||!filterBar.querySelector('[data-equipment-filter="all"]'))throw new Error("weapon category filters did not render");
     const firstWeapon=equipDialog.querySelector(".equipment-option");
     if(!firstWeapon)throw new Error("weapon dialog has no choices");
     firstWeapon.click();
     const melee=$("#meleeWeapon");
     if(!melee.value||currentLoadout().meleeWeapon!==melee.value)throw new Error("weapon card selection did not persist");
     if(!/[\u4e00-\u9fff]/.test(melee.value)||!melee.value.includes(" / "))throw new Error("weapon card is not bilingual");
+    if(!recentWeaponNames("melee").length)throw new Error("recent weapon history was not recorded");
     if(typeof allIconPackKeys!=="function"||allIconPackKeys().length<7)throw new Error("icon preload class list incomplete");
     if(typeof scheduleRemainingIconPacks!=="function")throw new Error("background icon preloader missing");
 
@@ -3086,6 +3325,7 @@ function runAutomatedSelfTest(){
     if(!equipDialog.open)throw new Error("blessing dialog did not open");
     const blessingOptions=[...equipDialog.querySelectorAll(".equipment-option")];
     if(!blessingOptions.length)throw new Error("weapon-filtered blessing list is empty");
+    if(!blessingOptions[0].querySelector(".equipment-option-effect")?.textContent.trim())throw new Error("blessing effect is not directly visible in the chooser");
     blessingOptions[0].click();
     const blessing=$("#meleeBlessing1");
     if(!blessing.value||!blessingAllowedForWeapon(blessing.value,"meleeBlessing1"))throw new Error("selected blessing is not valid for weapon");
@@ -3110,6 +3350,9 @@ function runAutomatedSelfTest(){
     if(!firstCurio)throw new Error("curio main-stat dialog has no choices");
     firstCurio.click();
     if(!/[\u4e00-\u9fff]/.test($("#curio1Main").value)||!$("#curio1Main").value.includes(" / "))throw new Error("curio card is not bilingual");
+    document.querySelector('[data-curio-copy-all="1"]').click();
+    if($("#curio2Main").value!==$("#curio1Main").value||$("#curio3Main").value!==$("#curio1Main").value)throw new Error("curio copy-to-all shortcut failed");
+    if(!$("#loadoutCompletion").textContent.match(/\d+/))throw new Error("loadout completion did not update");
 
     const code=exportData();
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
@@ -3185,7 +3428,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl47").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl48").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
