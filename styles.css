@@ -939,3 +939,23 @@ html[data-lang="en"] .gear-head>b{display:block}
 }
 .info-more[open] summary{margin-bottom:7px;color:#e2d7af}
 .info-more .effect-source,.info-more .provenance,.info-more .vocab{margin-top:6px}
+
+
+/* ===== Mobile density + language polish v4 ===== */
+@media(max-width:560px){
+  .workspace-toolbar{gap:5px;padding:5px}
+  .toolbar-control{padding:6px}
+  .toolbar-label{display:none}
+  .patch-note{display:none}
+  .build-control select{height:36px}
+  .build-actions-menu summary{width:36px;height:36px}
+  .patch-compact .patch{min-height:34px;padding:5px 6px}
+  .language-switch button{height:34px}
+  .save-state{padding:6px 7px;font-size:9px}
+  .class-control{padding-top:3px;padding-bottom:2px}
+  .class-control .class-strip{gap:5px;padding-bottom:1px}
+  .class-control .class-strip button{min-width:92px;min-height:36px;padding:6px 9px;font-size:11px}
+  .class-strip button img{width:20px;height:20px}
+}
+html[data-lang="zh"] label small{display:none}
+html[data-lang="zh"] .brand-sub{display:none}

@@ -87,6 +87,11 @@ jobs:
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-mobile.png 'http://127.0.0.1:8000/'
 
+      - name: Capture loadout workspace screenshots
+        run: |
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --screenshot=/tmp/darktide-mobile-loadout.png 'http://127.0.0.1:8000/?view=loadout'
+          google-chrome --headless --no-sandbox --disable-gpu --window-size=1440,1200 --virtual-time-budget=7000 --screenshot=/tmp/darktide-desktop-loadout.png 'http://127.0.0.1:8000/?view=loadout'
+
       - name: Capture open-popover geometry and screenshot
         run: |
           google-chrome --headless --no-sandbox --disable-gpu --window-size=430,1800 --virtual-time-budget=7000 --dump-dom 'http://127.0.0.1:8000/?visual=popover' > /tmp/popover-dom.html
@@ -119,6 +124,8 @@ jobs:
           path: |
             /tmp/darktide-mobile.png
             /tmp/darktide-desktop.png
+            /tmp/darktide-mobile-loadout.png
+            /tmp/darktide-desktop-loadout.png
             /tmp/darktide-popover.png
             /tmp/dom.html
             /tmp/desktop-dom.html

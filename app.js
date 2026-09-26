@@ -18,6 +18,7 @@ const ICON_ART_SCALE=1.18; // Source talent art has transparent padding; zoom ar
 let treeTop=BASE_TREE_TOP;
 
 const QUERY=new URLSearchParams(location.search);
+const INITIAL_VIEW=QUERY.get("view");
 const DESKTOP_TEST=QUERY.get("desktoptest")==="1";
 const MOBILE_TEST=QUERY.get("selftest")==="1"||QUERY.get("visual")==="popover";
 const POINTER_MEDIA=matchMedia("(hover: hover) and (pointer: fine)");
@@ -998,6 +999,12 @@ function applyLanguageMode(){
     el.textContent=uiText(el.dataset.cn,el.dataset.en);
   });
   document.querySelectorAll("[data-lang-mode]").forEach(b=>b.classList.toggle("active",b.dataset.langMode===state.language));
+  const search=$("#equipmentSearch");
+  if(search)search.placeholder=state.language==="en"?"Search equipment, blessings or perks":state.language==="bi"?"搜索中文或英文 / Search Chinese or English":"搜索装备、祝福或词条";
+  const buildName=$("#buildName");
+  if(buildName)buildName.placeholder=state.language==="en"?"e.g. Voice of Command Veteran":"例如：发号施令老兵";
+  const notes=$("#notes");
+  if(notes)notes.placeholder=state.language==="en"?"Playstyle, alternatives, breakpoints, difficulty…":"记录打法、替代武器、断点、适用难度等…";
   renderSaveState("saved");
 }
 
@@ -2888,7 +2895,17 @@ function placePopover(n,focus=false){
     pop.dataset.side=side;
     pop.style.left=left+"px";
     pop.style.top=top+"px";
-    pop.style.setProperty("--arrow-left",arrow+"px");
+
+    // Clamp again using the actual laid-out rectangle. Mobile visual viewports can
+    // report a slightly different effective right edge than the layout viewport.
+    let finalLeft=left;
+    const placed=pop.getBoundingClientRect();
+    const safeLeft=vLeft+8,safeRight=vRight-8;
+    if(placed.right>safeRight)finalLeft-=placed.right-safeRight;
+    if(placed.left<safeLeft)finalLeft+=safeLeft-placed.left;
+    pop.style.left=finalLeft+"px";
+    const finalArrow=Math.max(arrowInset,Math.min(pw-arrowInset,nodeX-finalLeft));
+    pop.style.setProperty("--arrow-left",finalArrow+"px");
 
     // No automatic page/tree movement. The surface adapts to the node, not vice versa.
     if(focus){
@@ -3542,7 +3559,8 @@ function runAutomatedSelfTest(){
 
 try{
   load();
-  if(MOBILE_TEST||DESKTOP_TEST)state.view="talent";
+  if(["talent","loadout","meta"].includes(INITIAL_VIEW))state.view=INITIAL_VIEW;
+  else if(MOBILE_TEST||DESKTOP_TEST)state.view="talent";
   bind();
   const hashBuild=location.hash.startsWith("#b=")?location.hash.slice(3):"";
   if(hashBuild){
@@ -3557,7 +3575,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl50").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl51").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
