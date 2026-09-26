@@ -62,6 +62,15 @@ UI 改动后必须继续保持交互测试与视觉几何检查通过。
 - 天赋名称与说明需区分官方资料、社区维护翻译和人工补译；
 - 无法可靠确认时，不把机器翻译或临时译法冒充官方译名。
 
+
+## 自动化政策
+
+- 本仓库禁止 GitHub Actions 的 `schedule:` / `cron:` 定时任务。
+- 本仓库也**禁止在其他平台自动运行**，包括 Cloudflare、Supabase、Vercel、Netlify、外部 CI/CD、服务器 cron、Webhook Runner、轮询服务等。
+- 不得把定时刷新、后台任务、自动部署或其他自动执行迁移到外部平台来规避 GitHub Actions 额度。
+- 外部平台如需用于本仓库，只能由用户明确手动触发一次性任务；建立任何自动执行机制前必须得到用户新的明确指令。
+- 详细长期规则见 [AGENTS.md](./AGENTS.md) 与 [HANDOFF.md](./HANDOFF.md)。
+
 ## 项目交接
 
 当前实现状态、不可回退的 UX 原则和后续优先级见 [HANDOFF.md](./HANDOFF.md)。
