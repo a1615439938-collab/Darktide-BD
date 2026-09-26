@@ -260,6 +260,41 @@ input:focus,textarea:focus{border-color:#a8893d}
   content:"推荐";float:right;margin-left:8px;color:#d9b85d;font-size:8px
 }
 .picker-empty{padding:9px;color:#7d8990;font-size:10px;text-align:center}
+
+.blessing-tooltip{
+  position:fixed;z-index:95;
+  border:1px solid #5a704f;border-radius:10px;
+  padding:10px 11px 11px;
+  background:
+    linear-gradient(180deg,rgba(37,55,35,.98),rgba(17,28,22,.99)),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 4px);
+  box-shadow:0 14px 36px rgba(0,0,0,.46);
+  color:#eef3ea;
+  pointer-events:none;
+  opacity:1;transform:translateY(0);
+  transition:opacity .12s ease,transform .12s ease;
+}
+.blessing-tooltip.hidden{
+  opacity:0;transform:translateY(4px);
+  visibility:hidden!important;
+}
+.blessing-tooltip-title{
+  font-size:12px;font-weight:800;color:#f0d47b;
+  line-height:1.35;margin-bottom:7px
+}
+.blessing-tooltip-cn{
+  font-size:11px;line-height:1.58;color:#eef3ea;
+  white-space:pre-line
+}
+.blessing-tooltip-en{
+  margin-top:8px;padding-top:7px;
+  border-top:1px solid rgba(205,221,195,.16);
+  font-size:9.5px;line-height:1.5;color:#aebba9;
+  white-space:pre-line
+}
+.blessing-tooltip-note{
+  margin-top:7px;font-size:8px;line-height:1.45;color:#849181
+}
 .share-row{display:flex;gap:7px;margin-top:9px}
 .share-row button{flex:1}
 
