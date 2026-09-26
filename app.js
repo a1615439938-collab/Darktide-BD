@@ -713,7 +713,7 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
             if(parts.length&& !allLabels.includes(parts[parts.length-1]))parts.pop();
             parts=parts.filter(x=>allLabels.includes(x));
             if(!parts.includes(item.label)&&parts.length<max)parts.push(item.label);
-            input.value=parts.join(" | ")+(parts.length<max?" | ":"");
+            input.value=parts.join(" | ");
           }else{
             input.value=item.label;
           }
