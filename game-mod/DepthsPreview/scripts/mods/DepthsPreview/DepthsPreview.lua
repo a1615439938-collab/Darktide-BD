@@ -24,12 +24,17 @@ local function apply_preview_rules()
   TalentUI.set_enabled(true)
 end
 
-local function restore_preview_rules()
-  TalentUI.set_enabled(false)
+local function restore_runtime_only()
+  TalentUI.restore_runtime()
   Blessings.restore()
   TalentBalance.restore()
   Balance.restore()
   RuntimePreview.clear()
+end
+
+local function restore_preview_rules()
+  State.set_enabled(false)
+  restore_runtime_only()
 end
 
 local function apply_mode()
@@ -192,6 +197,18 @@ end
 
 mod.on_all_mods_loaded = function()
   apply_mode()
+end
+
+mod.on_enabled = function()
+  apply_mode()
+end
+
+mod.on_disabled = function()
+  restore_runtime_only()
+end
+
+mod.on_unload = function()
+  restore_runtime_only()
 end
 
 mod:command("depths", "Standalone Depths of the Damned local preview environment", function(action, arg)
