@@ -585,8 +585,28 @@ function uniqueStrings(arr){
   return [...new Set((arr||[]).filter(Boolean))];
 }
 
-const BLESSING_EFFECTS=window.BLESSING_EFFECTS||{};
+const EXTRA_BLESSINGS=window.EXTRA_BLESSINGS||{};
+const WEAPON_BLESSING_OVERRIDES=window.WEAPON_BLESSING_OVERRIDES||{};
+const BLESSING_EFFECTS={...(window.BLESSING_EFFECTS||{})};
 const BLESSING_TIER_VALUES=window.BLESSING_TIER_VALUES||{};
+for(const extra of Object.values(EXTRA_BLESSINGS)){
+  if(!extra?.en)continue;
+  BLESSING_EFFECTS[extra.en]={
+    cn:extra.effectCn||"",
+    en:extra.effectEn||"",
+    sourceKey:"games-lantern-current"
+  };
+}
+for(const en of ["Deadly Frequencies","Enhanced Voltaic Arcs","Voltagheist Overload"]){
+  const extra=EXTRA_BLESSINGS[en];
+  if(!extra)continue;
+  const label=bilingualLabel(extra.cn||en,en);
+  if(en!=="Enhanced Voltaic Arcs"&&!MELEE_BLESSINGS.includes(label))MELEE_BLESSINGS.push(label);
+  if(en==="Enhanced Voltaic Arcs"){
+    if(!MELEE_BLESSINGS.includes(label))MELEE_BLESSINGS.push(label);
+    if(!RANGED_BLESSINGS.includes(label))RANGED_BLESSINGS.push(label);
+  }
+}
 const BLESSING_INPUT_IDS=new Set(["meleeBlessing1","meleeBlessing2","rangedBlessing1","rangedBlessing2"]);
 const BLESSING_TIER_FIELD={
   meleeBlessing1:"meleeBlessing1Tier",meleeBlessing2:"meleeBlessing2Tier",
@@ -606,8 +626,10 @@ function blessingEnglishName(label){
   const en=(parts[parts.length-1]||"").trim();
   return BLESSING_EFFECTS[en]?en:raw;
 }
-function blessingEffectForLabel(label){
+function blessingEffectForLabel(label,inputId=""){
   const en=blessingEnglishName(label);
+  const extra=extraBlessingEffect(en,inputId);
+  if(extra)return extra;
   const effect=BLESSING_EFFECTS[en];
   return effect?{...effect,enName:en}:null;
 }
@@ -675,11 +697,12 @@ function tierMetricCn(metric){
 function weaponMatchTokens(text){
   const singular={
     staves:"staff",axes:"axe",knives:"knife",swords:"sword",greatswords:"greatsword",
+    chainswords:"chainsword",chainaxes:"chainaxe",
     pistols:"pistol",laspistols:"laspistol",revolvers:"revolver",shotguns:"shotgun",
     autoguns:"autogun",lasguns:"lasgun",stubbers:"stubber",boltguns:"boltgun",
     guns:"gun",blades:"blade",shovels:"shovel",pickaxes:"pickaxe",mauls:"maul",
     hammers:"hammer",clubs:"club",cleavers:"cleaver",eviscerators:"eviscerator",
-    falchions:"falchion",shivs:"shiv"
+    falchions:"falchion",shivs:"shiv",barrelled:"barrel"
   };
   return String(text||"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").trim()
     .split(/\s+/).filter(x=>x&&x!=="and"&&!/^mk$/.test(x)&&!/^m?g?\d+[a-z]*$/.test(x))
@@ -695,33 +718,69 @@ function tierRowMatchesWeapon(row,weaponLabel){
   }
   return false;
 }
+function blessingOverrideFamily(weaponLabel){
+  const en=String(weaponLabel||"").split(" / ").pop().trim();
+  if(!en)return "";
+  const families=Object.keys(WEAPON_BLESSING_OVERRIDES).sort((a,b)=>b.length-a.length);
+  return families.find(family=>en.includes(family))||"";
+}
+function overrideBlessingNamesForWeapon(weaponLabel){
+  const family=blessingOverrideFamily(weaponLabel);
+  return family?(WEAPON_BLESSING_OVERRIDES[family]||[]):[];
+}
+function extraBlessingEffect(en,inputId=""){
+  const extra=EXTRA_BLESSINGS[en];
+  if(!extra)return null;
+  const weaponField=BLESSING_WEAPON_FIELD[inputId]||"";
+  const weapon=weaponField?(document.getElementById(weaponField)?.value||""):"";
+  const family=blessingOverrideFamily(weapon);
+  const specific=family&&extra.weaponEffects?extra.weaponEffects[family]:null;
+  return {
+    cn:specific?.cn||extra.effectCn||"",
+    en:specific?.en||extra.effectEn||"",
+    enName:en
+  };
+}
 function blessingTierSummary(label,inputId,tierOverride=""){
   const en=blessingEnglishName(label);
-  const meta=BLESSING_TIER_VALUES[en];
-  if(!meta)return "";
   const tierField=BLESSING_TIER_FIELD[inputId]||"";
   const tierRaw=tierOverride||(tierField?(document.getElementById(tierField)?.value||""):"");
   const tier=Number(tierRaw);
   if(!tier||tier<1||tier>4){
-    return "请选择祝福等级 I–IV，以显示准确数值。 / Select blessing tier I–IV for exact values.";
+    return "请选择祝福等级 I–IV，以显示等级信息。 / Select blessing tier I–IV.";
   }
   const roman=["","I","II","III","IV"][tier];
   const weaponField=BLESSING_WEAPON_FIELD[inputId]||"";
   const weapon=weaponField?(document.getElementById(weaponField)?.value||""):"";
-  const rows=Array.isArray(meta.rows)?meta.rows:[];
-  let matched=weapon?rows.filter(r=>tierRowMatchesWeapon(r,weapon)):[];
-  let row=matched[0]||(!weapon&&rows.length===1?rows[0]:null);
-  const metricCn=tierMetricCn(meta.metric);
-  const metric=String(meta.metric||"Tier value");
-  if(row){
+  const overrideFamily=blessingOverrideFamily(weapon);
+  const meta=BLESSING_TIER_VALUES[en];
+  const rows=Array.isArray(meta?.rows)?meta.rows:[];
+  const matched=weapon?rows.filter(r=>tierRowMatchesWeapon(r,weapon)):[];
+  const row=matched[0]||(!weapon&&rows.length===1?rows[0]:null);
+
+  if(row&&meta){
+    const metricCn=tierMetricCn(meta.metric);
+    const metric=String(meta.metric||"Tier value");
     let out=roman+" 级 · "+metricCn+" / "+metric+"： "+(row.tiers?.[tier-1]||"—");
     if(row.extra?.length)out+="\n固定附加 / Extra: "+row.extra.join(" · ");
     if(row.notes?.length)out+="\n备注 / Note: "+row.notes.join("；");
     if(rows.length>1)out+="\n武器匹配 / Weapon family: "+row.weapons;
     return out;
   }
+
+  // New 2026 weapon families can have valid current blessings before the maintained
+  // historical tier table is expanded. Do not display another family's numbers.
+  if(overrideFamily&&(WEAPON_BLESSING_OVERRIDES[overrideFamily]||[]).includes(en)){
+    return roman+" 级 · 当前武器家族的精确 I–IV 数值暂未纳入本地等级表；下方显示当前武器的已核对机制。\n"+
+      "Tier "+roman+" · Exact tier values for this newer weapon family are not yet in the local tier table; the verified current weapon effect is shown below.";
+  }
+
+  if(!meta)return roman+" 级 · 暂无可靠的等级数值表 / Exact tier values unavailable.";
+  const metricCn=tierMetricCn(meta.metric);
+  const metric=String(meta.metric||"Tier value");
   const candidates=rows.slice(0,5).map(r=>r.weapons+"： "+(r.tiers?.[tier-1]||"—"));
-  return roman+" 级 · "+metricCn+" / "+metric+"\n当前武器未可靠匹配，按武器家族候选： / Weapon-specific values:\n"+candidates.join("\n");
+  return roman+" 级 · "+metricCn+" / "+metric+"\n当前武器未可靠匹配；不会套用其他武器的数值。 / No reliable weapon match; values from other weapon families are not substituted."+
+    (candidates.length?"\n参考家族 / Reference families:\n"+candidates.join("\n"):"");
 }
 function ensureBlessingTooltip(){
   let tip=document.getElementById("blessingTooltip");
@@ -753,13 +812,13 @@ function positionBlessingTooltip(anchor){
 }
 function showBlessingTooltip(label,anchor,inputId=""){
   clearTimeout(blessingTooltipHideTimer);
-  const effect=blessingEffectForLabel(label);
+  const sourceId=inputId||anchor.id||"";
+  const effect=blessingEffectForLabel(label,sourceId);
   const tip=ensureBlessingTooltip();
   if(!effect||!anchor){
     tip.classList.add("hidden");
     return;
   }
-  const sourceId=inputId||anchor.id||"";
   const tierSummary=blessingTierSummary(label,sourceId);
   tip.querySelector(".blessing-tooltip-title").textContent=blessingDisplayName(label);
   const tierEl=tip.querySelector(".blessing-tooltip-tier");
@@ -1206,18 +1265,26 @@ function blessingTierField(field){
 }
 function blessingAllowedForWeapon(label,field,weaponOverride=""){
   const en=blessingEnglishName(label);
-  const meta=BLESSING_TIER_VALUES[en];
   const weapon=weaponOverride||loadoutFieldValue(blessingWeaponField(field));
-  if(!meta||!weapon)return false;
-  return (meta.rows||[]).some(row=>tierRowMatchesWeapon(row,weapon));
+  if(!weapon)return false;
+  const overrideNames=overrideBlessingNamesForWeapon(weapon);
+  if(overrideNames.length)return overrideNames.includes(en);
+  const meta=BLESSING_TIER_VALUES[en];
+  return Boolean(meta&&(meta.rows||[]).some(row=>tierRowMatchesWeapon(row,weapon)));
 }
 function blessingPoolForField(field){
-  const pool=field.startsWith("melee")?MELEE_BLESSINGS:RANGED_BLESSINGS;
+  const basePool=field.startsWith("melee")?MELEE_BLESSINGS:RANGED_BLESSINGS;
   const weapon=loadoutFieldValue(blessingWeaponField(field));
   if(!weapon)return [];
+  const labels=[...basePool];
+  for(const en of overrideBlessingNamesForWeapon(weapon)){
+    if(labels.some(x=>blessingEnglishName(x)===en))continue;
+    const extra=EXTRA_BLESSINGS[en];
+    labels.push(extra?bilingualLabel(extra.cn||en,en):en);
+  }
   const paired=field.endsWith("1")?field.replace(/1$/,"2"):field.replace(/2$/,"1");
   const other=loadoutFieldValue(paired);
-  return pool.filter(label=>label!==other&&blessingAllowedForWeapon(label,field,weapon));
+  return uniqueStrings(labels).filter(label=>label!==other&&blessingAllowedForWeapon(label,field,weapon));
 }
 function clearInvalidBlessingsAfterWeaponChange(slot){
   const lo=currentLoadout();
@@ -1244,8 +1311,8 @@ function setCurioPerk(field,index,value){
   const cleaned=arr.filter(Boolean).slice(0,3);
   setLoadoutFieldValue(field,cleaned.join(" | "));
 }
-function effectPreview(label){
-  const effect=blessingEffectForLabel(label);
+function effectPreview(label,field=""){
+  const effect=blessingEffectForLabel(label,field);
   if(!effect)return "";
   return String(effect.cn||effect.en||"").replace(/\s+/g," ").trim();
 }
@@ -1282,7 +1349,7 @@ function renderLoadoutCards(){
         const bi=splitBilingualLabel(bv);
         const compatible=blessingAllowedForWeapon(bv,bf);
         bc?.classList.toggle("invalid",!compatible);
-        const preview=effectPreview(bv);
+        const preview=effectPreview(bv,bf);
         cardSetText(bc,bi.cn,(bi.en?bi.en+" · ":"")+(compatible?preview:"与当前武器不兼容 / Incompatible with selected weapon"),false);
       }else{
         bc?.classList.remove("invalid");
@@ -1349,7 +1416,7 @@ function equipmentItems(){
     return blessingPoolForField(field).map(label=>({
       label,
       meta:(equipmentEditor.tier||"4")==="4"?"IV":"Tier "+equipmentEditor.tier,
-      subtitle:effectPreview(label)+" · "+blessingTierSummary(label,field,equipmentEditor.tier)
+      subtitle:effectPreview(label,field)+" · "+blessingTierSummary(label,field,equipmentEditor.tier)
     }));
   }
   if(action==="perk")return WEAPON_PERKS.map(label=>({label,meta:"",subtitle:""}));
@@ -2689,6 +2756,8 @@ function selfCheck(){
   if(!$("#buildSelect")||!Array.isArray(state.builds)||!state.builds.length) throw new Error("build library is missing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout state fields are missing");
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
+  if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
+  if(!EXTRA_BLESSINGS["Deadly Frequencies"]||!EXTRA_BLESSINGS["Voltagheist Overload"]) throw new Error("new blessing effect data missing");
   for(const tree of [...DATA.classes,...DATA.liveClasses]){
     for(const n of tree.nodes){
       if(/[A-F0-9]{8,}$/i.test(displayTalentEn(n)))throw new Error("internal talent id leaked into display name");
@@ -2934,7 +3003,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl40").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl41").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
