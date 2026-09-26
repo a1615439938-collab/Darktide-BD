@@ -40,11 +40,9 @@ if payload.endswith(";"): payload=payload[:-1]
 data=json.loads(payload)
 
 GLOSSARY_URL="https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/Referneces/Translation.md"
-NAMES_URL="https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/Warhammer%2040%2C000%20DARKTIDE/mods/Enhanced_descriptions/Main_Modules/NAMES_Talents_Blessings.lua"
 PREVIEW_URL="https://raw.githubusercontent.com/SyuanTsai/Warhammer-40-000-DARKTIDE-Mods/main/%E5%85%AC%E5%91%8A/2026-09-18_%E8%A9%9B%E5%92%92%E6%B7%B1%E6%B7%B5%E5%B9%B3%E8%A1%A1%E6%80%A7%E6%9B%B4%E6%96%B0_%E7%B9%81%E4%B8%AD%E7%BF%BB%E8%AD%AF.md"
 
 glossary_text=fetch(GLOSSARY_URL)
-names_text=fetch(NAMES_URL)
 preview_text=fetch(PREVIEW_URL)
 
 glossary={}
@@ -64,17 +62,6 @@ for line in preview_text.splitlines():
     en=m.group(2).strip()
     if en and zh:
         preview_names[norm_name(en)]=cc.convert(zh)
-
-# The maintained NAMES table contains later corrections that may not yet be
-# reflected in Translation.md. Parse the title in each name block and its zh-tw.
-maintained_names={}
-headers=list(re.finditer(r"--\[\+\s*.*?\s-\s(.+?)\s\+\]--",names_text))
-for i,m in enumerate(headers):
-    en=m.group(1).strip()
-    block=names_text[m.end():(headers[i+1].start() if i+1<len(headers) else len(names_text))]
-    z=re.search(r'(?:--\s*)?\["zh-tw"\]\s*=\s*"([^"]+)"',block)
-    if z:
-        maintained_names[norm_name(en)]=cc.convert(z.group(1).strip())
 
 nodes=[]
 for bucket in ("classes","liveClasses"):
@@ -99,20 +86,37 @@ def effective_cn(n):
         return n.get("advancedCn","")
     return n.get("descCn","")
 
-# Explicit name corrections independently confirmed in SyuanTsai's maintained
-# NAMES table or Sep-18 preview translation.
+def display_equiv(a,b):
+    # Ignore full-width/ASCII punctuation differences only; wording differences still matter.
+    trans=str.maketrans({"！":"!","？":"?","，":",","。":".","：":":","；":";","（":"(", "）":")"})
+    aa=re.sub(r"\s+","",str(a or "").translate(trans))
+    bb=re.sub(r"\s+","",str(b or "").translate(trans))
+    return aa==bb
+
+# Compare against the latest formal glossary plus the dated future-patch translation.
+# This avoids treating historical candidates in the Enhanced Descriptions workspace
+# as authoritative over the maintained formal glossary.
+MANUAL_NAME_CORRECTIONS={
+    "superiority complex":"优越情结",
+    "precision strikes":"精准打击",
+    "malocator":"生化武器官",
+    "coated weaponry":"涂毒武装",
+    "a tertium welcome":"特提恩式欢迎",
+}
 for patch,tree,n in nodes:
     en=n.get("en","")
     cn=n.get("cn","")
     key=norm_name(en)
     if cn==en and tree.get("key")!="hivescum-stimm":
         add("high","untranslated_talent_name",patch,tree,n,"Chinese display name equals English source")
-    if patch=="future" and key in preview_names and cn!=preview_names[key]:
+    if patch=="future" and key in preview_names and not display_equiv(cn,preview_names[key]):
         add("high","preview_name_mismatch",patch,tree,n,f"expected={preview_names[key]}")
-    if key in maintained_names and maintained_names[key] and cn!=maintained_names[key]:
-        # Current NAMES table is newer than Translation.md; treat clear replacements
-        # as review candidates rather than auto-overwriting every stylistic variant.
-        add("medium","newer_maintained_name_differs",patch,tree,n,f"maintained={maintained_names[key]}")
+    formal=glossary.get(key)
+    if formal and key not in MANUAL_NAME_CORRECTIONS and not display_equiv(cn,formal):
+        add("medium","latest_glossary_name_mismatch",patch,tree,n,f"latest_formal={formal}")
+    expected=MANUAL_NAME_CORRECTIONS.get(key)
+    if expected and not display_equiv(cn,expected):
+        add("high","known_name_translation_error",patch,tree,n,f"expected={expected}")
 
 # High-confidence terminology/style problems in the displayed Chinese.
 checks=[
@@ -133,20 +137,6 @@ for patch,tree,n in nodes:
         if rx.search(text):
             add(sev,kind,patch,tree,n,detail)
 
-# Obvious stale/typo names where the newer maintained name table or semantics
-# provide an unambiguous correction.
-known_name_fixes={
-    "superiority complex":"优越情结",
-    "precision strikes":"精准打击",
-    "coated weaponry":"涂毒武装",
-    "a tertium welcome":"特提恩式欢迎",
-}
-for patch,tree,n in nodes:
-    key=norm_name(n.get("en",""))
-    expected=known_name_fixes.get(key)
-    if expected and n.get("cn")!=expected:
-        add("high","known_name_translation_error",patch,tree,n,f"expected={expected}")
-
 # Find English talent titles leaking into Chinese descriptions even when a Chinese
 # title exists. This is different from English weapon model names, which are allowed.
 name_map={}
@@ -155,9 +145,6 @@ for _,_,n in nodes:
     cn=(n.get("cn") or "").strip()
     if en and cn and en!=cn and len(en)>=5:
         name_map[en]=cn
-# Include preview names so new talents are checked before tree regeneration.
-for key,cn in preview_names.items():
-    pass
 english_titles=sorted(name_map.items(),key=lambda kv:len(kv[0]),reverse=True)
 for patch,tree,n in nodes:
     text=effective_cn(n)
