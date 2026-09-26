@@ -3700,6 +3700,13 @@ function runAutomatedSelfTest(){
       const pathNeed=Math.max(0,unlockPathFor(lockedCandidate.s).length-1);
       if(pathNeed>0&&pathNeed<=CUR.budget-points()&&$("#infoAction")?.dataset.mode!=="fillpath")throw new Error("locked path is not directly actionable");
       if(uiLanguage()==="zh"&&!$("#infoDesc").hidden)throw new Error("Chinese mode still shows the English talent paragraph");
+      if(pathNeed>1&&pathNeed<=CUR.budget-points()){
+        const beforePath=points();
+        if(!applyUnlockPath(lockedCandidate))throw new Error("one-tap path completion failed");
+        if(!active.has(lockedCandidate.s)||points()!==beforePath+pathNeed)throw new Error("path completion selected the wrong nodes");
+        undoLast();
+        if(points()!==beforePath)throw new Error("path completion is not one-step undoable");
+      }
       hideInfo();
     }
 
@@ -3768,9 +3775,21 @@ function runAutomatedSelfTest(){
     if(!firstCurio)throw new Error("curio main-stat dialog has no choices");
     firstCurio.click();
     if(!/[\u4e00-\u9fff]/.test($("#curio1Main").value)||!$("#curio1Main").value.includes(" / "))throw new Error("curio card is not bilingual");
+    if(equipmentEditor.action!=="curioPerk"||equipmentEditor.index!==0||!equipDialog.open)throw new Error("curio guided flow did not advance to perk 1");
+    for(let p=0;p<3;p++){
+      if(equipmentEditor.action!=="curioPerk"||equipmentEditor.index!==p)throw new Error("curio guided flow step mismatch");
+      const option=equipDialog.querySelector(".equipment-option");
+      if(!option)throw new Error("curio guided flow has no perk choice");
+      option.click();
+    }
+    if(curioPerks("curio1Perks").length!==3)throw new Error("curio guided flow did not fill all three perks");
+    if(equipDialog.open)throw new Error("curio guided flow did not finish cleanly");
     document.querySelector('[data-curio-copy-all="1"]').click();
     if($("#curio2Main").value!==$("#curio1Main").value||$("#curio3Main").value!==$("#curio1Main").value)throw new Error("curio copy-to-all shortcut failed");
     if(!$("#loadoutCompletion").textContent.match(/\d+/))throw new Error("loadout completion did not update");
+    if(!nextIncompleteLoadoutStep())throw new Error("continue-setup cannot find the next incomplete slot");
+    if($("#loadoutContinue").disabled)throw new Error("continue-setup button disabled while loadout is incomplete");
+    if(!$("#readinessStatus").textContent.trim()||!$("#readinessLoadoutValue").textContent.includes("/"))throw new Error("build readiness did not update");
 
     const code=exportData();
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
@@ -3847,7 +3866,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl56").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl57").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");

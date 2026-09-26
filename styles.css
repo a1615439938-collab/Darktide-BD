@@ -1031,3 +1031,13 @@ html[data-lang="zh"] .brand-sub{display:none}
   .share-row{display:grid;grid-template-columns:1.25fr 1fr 1fr}
   .share-row button{padding-left:6px;padding-right:6px}
 }
+
+
+/* ===== Clean single-language chrome v8 ===== */
+.legend b,.equipment-mark b,.equipment-edit b{font:inherit;color:inherit}
+html[data-lang="zh"] .only-en-bi{display:none!important}
+html[data-lang="en"] .only-zh-bi{display:none!important}
+html[data-lang="bi"] .only-zh-bi,
+html[data-lang="bi"] .only-en-bi{display:initial}
+html[data-lang="zh"] .equipment-edit .only-zh-bi,
+html[data-lang="en"] .equipment-edit .only-en-bi{display:inline!important}

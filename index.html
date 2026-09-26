@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl56">
+  <link rel="stylesheet" href="./styles.css?v=gl57">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -81,7 +81,7 @@
 
   <section class="workspace-view active" data-workspace-panel="talent">
   <section class="section-title tree-title">
-    <span>天赋树</span><b>Talent Tree</b>
+    <span class="only-zh-bi">天赋树</span><b class="only-en-bi">Talent Tree</b>
   </section>
 
   <section id="status" class="status">正在载入未来更新天赋树… / Loading future-update talent tree…</section>
@@ -138,18 +138,18 @@
   </section>
 
   <section class="legend">
-    <span data-cn="普通" data-en="Passive"><i class="passive"></i>普通</span>
-    <span data-cn="闪击" data-en="Blitz"><i class="blitz"></i>闪击</span>
-    <span data-cn="光环" data-en="Aura"><i class="aura"></i>光环</span>
-    <span data-cn="技能" data-en="Ability"><i class="ability"></i>技能</span>
-    <span data-cn="关键" data-en="Keystone"><i class="keystone"></i>关键</span>
+    <span><i class="passive"></i><b data-cn="普通" data-en="Passive">普通</b></span>
+    <span><i class="blitz"></i><b data-cn="闪击" data-en="Blitz">闪击</b></span>
+    <span><i class="aura"></i><b data-cn="光环" data-en="Aura">光环</b></span>
+    <span><i class="ability"></i><b data-cn="技能" data-en="Ability">技能</b></span>
+    <span><i class="keystone"></i><b data-cn="关键" data-en="Keystone">关键</b></span>
   </section>
 
   </section>
 
   <section class="workspace-view" data-workspace-panel="loadout">
   <section class="section-title loadout-title">
-    <span>完整配装</span><b>Loadout</b>
+    <span class="only-zh-bi">完整配装</span><b class="only-en-bi">Loadout</b>
   </section>
 
   <section class="loadout-progress-card" aria-label="装备完成度 / Loadout completion">
@@ -163,14 +163,14 @@
 
   <section class="loadout-grid loadout-card-grid">
     <article class="gear-card weapon-build-card" data-weapon-slot="melee">
-      <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
+      <div class="gear-head"><span class="only-zh-bi">近战武器</span><b class="only-en-bi">Melee Weapon</b></div>
       <button class="equipment-card weapon-card" type="button" data-equip-action="weapon" data-field="meleeWeapon">
-        <span class="equipment-mark">近战</span>
+        <span class="equipment-mark"><b class="only-zh-bi">近战</b><b class="only-en-bi">Melee</b></span>
         <span class="equipment-copy">
           <strong data-card-title>选择近战武器</strong>
           <small data-card-subtitle>Select melee weapon</small>
         </span>
-        <span class="equipment-edit">选择 / Select</span>
+        <span class="equipment-edit"><b class="only-zh-bi">选择</b><b class="only-en-bi">Select</b></span>
       </button>
       <div class="equipment-section-label" data-cn="祝福" data-en="Blessings">祝福</div>
       <div class="modifier-grid blessing-grid">
@@ -203,14 +203,14 @@
     </article>
 
     <article class="gear-card weapon-build-card" data-weapon-slot="ranged">
-      <div class="gear-head"><span>远程武器</span><b>Ranged Weapon</b></div>
+      <div class="gear-head"><span class="only-zh-bi">远程武器</span><b class="only-en-bi">Ranged Weapon</b></div>
       <button class="equipment-card weapon-card" type="button" data-equip-action="weapon" data-field="rangedWeapon">
-        <span class="equipment-mark">远程</span>
+        <span class="equipment-mark"><b class="only-zh-bi">远程</b><b class="only-en-bi">Ranged</b></span>
         <span class="equipment-copy">
           <strong data-card-title>选择远程武器</strong>
           <small data-card-subtitle>Select ranged weapon</small>
         </span>
-        <span class="equipment-edit">选择 / Select</span>
+        <span class="equipment-edit"><b class="only-zh-bi">选择</b><b class="only-en-bi">Select</b></span>
       </button>
       <div class="equipment-section-label" data-cn="祝福" data-en="Blessings">祝福</div>
       <div class="modifier-grid blessing-grid">
@@ -244,7 +244,7 @@
   </section>
 
   <section class="curio-section">
-    <div class="gear-head"><span>珍品</span><b>Curios</b></div>
+    <div class="gear-head"><span class="only-zh-bi">珍品</span><b class="only-en-bi">Curios</b></div>
     <div class="curio-grid redesigned-curios">
       <article class="curio-card redesigned-curio" data-curio-index="1">
         <div class="curio-toolbar">
@@ -486,13 +486,13 @@
 
 <dialog id="codeDialog">
   <form method="dialog" class="dialog-card">
-    <h2>BD 数据 <small>/ Build Data</small></h2>
+    <h2 data-cn="BD 数据" data-en="Build Data">BD 数据</h2>
     <textarea id="codeBox"></textarea>
     <div class="dialog-actions">
-      <button type="button" id="copyBtn">复制代码 / Copy code</button>
-      <button type="button" id="copyLinkBtn">复制分享链接 / Copy link</button>
-      <button type="button" id="loadBtn">载入 / Load</button>
-      <button value="close">关闭 / Close</button>
+      <button type="button" id="copyBtn" data-cn="复制代码" data-en="Copy code">复制代码</button>
+      <button type="button" id="copyLinkBtn" data-cn="复制分享链接" data-en="Copy link">复制分享链接</button>
+      <button type="button" id="loadBtn" data-cn="载入" data-en="Load">载入</button>
+      <button value="close" data-cn="关闭" data-en="Close">关闭</button>
     </div>
     <div id="dialogMsg"></div>
   </form>
@@ -502,6 +502,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl56"></script>
+<script src="./app.js?v=gl57"></script>
 </body>
 </html>
