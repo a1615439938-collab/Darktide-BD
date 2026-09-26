@@ -57,14 +57,8 @@ const VOCAB=[
 ];
 
 const TALENT_CN_OVERRIDES={};
-const TALENT_NAME_CN_OVERRIDES={
-  "Toughness Boost":"韧性提升",
-  "Health Boost":"生命提升",
-  "Stamina Boost":"耐力提升",
-  "Damage Boost":"伤害提升",
-  "Melee Damage Boost":"近战伤害提升",
-  "Ranged Damage Boost":"远程伤害提升"
-};
+// Talent display names now come from the audited generated translation data.
+const TALENT_NAME_CN_OVERRIDES={};
 function cleanTalentName(name){
   return String(name||"")
     .replace(/\s+[A-F0-9]{8,}$/i,"")
