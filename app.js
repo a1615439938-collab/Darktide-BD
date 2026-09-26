@@ -260,7 +260,7 @@ function translateEffectFallback(text){
 
 const GEAR_GUIDE={
   veteran:{
-    melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk VI Power Sword"],
+    melee:["Maccabian Mk IV Duelling Sword","Scandar Mk III Power Sword"],
     ranged:["M35 Magnacore Mk II Plasma Gun","Accatran Mk XIV Recon Lasgun"],
     curios:"参考 / Reference: 3× 韧性 Toughness；词条优先韧性回复、技能冷却、枪手减伤 / Toughness Regen, Ability Regen, Gunner DR."
   },
@@ -296,6 +296,145 @@ const GEAR_GUIDE={
   }
 };
 
+const WF={
+  combatBlade:["Catachan Mk III Combat Blade","Catachan Mk VI Combat Blade"],
+  duellingSword:["Maccabian Mk IV Duelling Sword","Maccabian Mk II Duelling Sword","Maccabian Mk V Duelling Sword"],
+  devilsClaw:['Catachan Mk VII "Devil\'s Claw" Sword','Catachan Mk IV "Devil\'s Claw" Sword','Catachan Mk I "Devil\'s Claw" Sword'],
+  tacticalAxe:["Atrox Mk VII Tactical Axe","Atrox Mk II Tactical Axe","Atrox Mk IV Tactical Axe"],
+  chainsword:["Cadia Mk IV Assault Chainsword","Cadia Mk XIIIg Assault Chainsword"],
+  combatAxe:["Rashad Mk III Combat Axe","Antax Mk V Combat Axe","Achlys Mk VIII Combat Axe"],
+  chainaxe:["Orestes Mk IV Assault Chainaxe","Orestes Mk XII Assault Chainaxe"],
+  shockMaul:["Munitorum Mk III Shock Maul","Agni Mk Ia Shock Maul"],
+  heavySword:["Turtolsky Mk VII Heavy Sword","Turtolsky Mk VI Heavy Sword","Turtolsky Mk IX Heavy Sword"],
+  crusher:["Krourk Mk VII Crusher","Indignatus Mk IVe Crusher"],
+  powerFalchion:["Lawbringer Mk IIb Power Falchion","Aridin Mk I Power Falchion"],
+  recon:["Accatran Mk XIV Recon Lasgun","Accatran Mk VIc Recon Lasgun","Accatran Mk XII Recon Lasgun"],
+  combatShotgun:["Zarona Mk VI Combat Shotgun","Agripinaa Mk VII Combat Shotgun","Accatran Mk IX Combat Shotgun"],
+  boltgun:["Locke Mk III Spearhead Boltgun","Locke Mk IIb Spearhead Boltgun"],
+  vigilant:["Agripinaa Mk IX Vigilant Autogun","Graia Mk VII Vigilant Autogun","Columnus Mk III Vigilant Autogun"],
+  doubleBarrel:["Crucis Mk XI Double-Barrelled Shotgun","Krourk Mk IV Double-Barrelled Shotgun"],
+  boltPistol:["Godwyn-Branx Mk IV Bolt Pistol","Godwyn-Branx Mk VI Bolt Pistol"],
+  infantryAutogun:["Columnus Mk VIII Infantry Autogun","Vraks Mk V Infantry Autogun","Agripinaa Mk I Infantry Autogun"],
+  huntsman:["Accatran Mk III Huntsman's Shotgun"],
+  infantryLasgun:["Kantrael Mk IIb Infantry Lasgun","Kantrael Mk IX Infantry Lasgun","Kantrael Mk VII Infantry Lasgun"],
+  braced:["Agripinaa Mk VIII Braced Autogun","Vraks Mk II Braced Autogun","Graia Mk IV Braced Autogun"],
+  plasma:["M35 Magnacore Mk III Plasma Gun","M35 Magnacore Mk II Plasma Gun"],
+  shredder:["Ius Mk IV Shredder Autopistol"],
+  revolver:["Zarona Mk IIa Quickdraw Stub Revolver","Agripinaa Mk XIV Quickdraw Stub Revolver"],
+  heavyLaspistol:["Kantrael Mk X Heavy Laspistol","Accatran MG Mk II Heavy Laspistol"]
+};
+const EQUIPMENT_DB={
+  veteran:{
+    melee:[
+      "Munitorum Mk I Sapper Shovel","Munitorum Mk VII Sapper Shovel","Munitorum Mk III Sapper Shovel",
+      "Scandar Mk III Power Sword","Achlys Mk VI Power Sword",
+      ...WF.combatBlade,...WF.duellingSword,...WF.devilsClaw,...WF.tacticalAxe,...WF.chainsword,
+      ...WF.combatAxe,...WF.chainaxe,...WF.shockMaul,...WF.powerFalchion,...WF.heavySword
+    ],
+    ranged:[
+      "Lucius Mk IV Helbore Lasgun","Lucius MK V Helbore Lasgun","Lucius MK IIIa Helbore Lasgun",
+      ...WF.recon,...WF.combatShotgun,...WF.boltgun,...WF.vigilant,...WF.doubleBarrel,...WF.boltPistol,
+      ...WF.infantryAutogun,...WF.huntsman,...WF.infantryLasgun,...WF.braced,...WF.plasma,...WF.shredder,
+      ...WF.revolver,...WF.heavyLaspistol
+    ]
+  },
+  zealot:{
+    melee:[
+      "Crucis Mk II Thunder Hammer","Ironhelm Mk IV Thunder Hammer",
+      "Munitorum Mk II Relic Blade","Munitorum Mk X Relic Blade",
+      "Tigrus Mk III Heavy Eviscerator","Tigrus Mk XV Heavy Eviscerator",
+      ...WF.combatBlade,...WF.duellingSword,...WF.crusher,...WF.devilsClaw,...WF.tacticalAxe,...WF.chainsword,
+      ...WF.combatAxe,...WF.chainaxe,...WF.shockMaul,...WF.heavySword
+    ],
+    ranged:[
+      "Artemia Mk III Purgation Flamer",
+      ...WF.recon,...WF.combatShotgun,...WF.boltgun,...WF.vigilant,...WF.doubleBarrel,...WF.boltPistol,
+      ...WF.infantryAutogun,...WF.huntsman,...WF.infantryLasgun,...WF.braced,...WF.shredder,...WF.revolver,...WF.heavyLaspistol
+    ]
+  },
+  psyker:{
+    melee:[
+      "Obscurus Mk II Blaze Force Sword","Deimos Mk IV Blaze Force Sword","Illisi Mk V Blaze Force Sword",
+      "Covenant Mk VIII Blaze Force Greatsword","Covenant Mk VI Blaze Force Greatsword",
+      ...WF.combatBlade,...WF.duellingSword,...WF.devilsClaw,...WF.tacticalAxe,...WF.chainsword,
+      ...WF.combatAxe,...WF.chainaxe,...WF.shockMaul,...WF.heavySword
+    ],
+    ranged:[
+      "Rifthaven Mk II Inferno Force Staff","Equinox Mk III Voidblast Force Staff",
+      "Nomanus Mk VI Electrokinetic Force Staff","Equinox Mk IV Voidstrike Force Staff",
+      ...WF.recon,...WF.combatShotgun,...WF.vigilant,...WF.doubleBarrel,...WF.boltPistol,...WF.infantryAutogun,
+      ...WF.huntsman,...WF.infantryLasgun,...WF.braced,...WF.shredder,...WF.revolver,...WF.heavyLaspistol
+    ]
+  },
+  arbites:{
+    melee:[
+      "Branx Mk XI Shock Maul and Suppression Shield","Branx Mk VI Shock Maul and Suppression Shield",
+      "Judgement Mk IV Subductor Shotpistol and Riot Shield","Branx Mk III Arbites Shock Maul",
+      ...WF.crusher,...WF.tacticalAxe,...WF.chainsword,...WF.combatAxe,...WF.shockMaul
+    ],
+    ranged:[
+      "Exaction Mk III Exterminator Shotgun","Exaction Mk VIII Exterminator Shotgun",
+      ...WF.combatShotgun,...WF.boltgun,...WF.vigilant,...WF.doubleBarrel,...WF.boltPistol,
+      ...WF.infantryAutogun,...WF.braced,...WF.shredder,...WF.revolver
+    ]
+  },
+  skitarii:{
+    melee:[
+      "Branx Mk VI Mechanicus Power Sword","Branx Mk XI Paired Transonic Blades","Branx Mk III Arc Maul",
+      ...WF.combatBlade,...WF.devilsClaw,...WF.chainsword,...WF.shockMaul,...WF.powerFalchion
+    ],
+    ranged:[
+      "Branx Mk CV Galvanic Rifle","Branx Mk XI Phosphor Blast Pistol","Branx Mk IV Arc Rifle",
+      ...WF.vigilant,...WF.infantryAutogun,...WF.braced,...WF.plasma,...WF.shredder,...WF.revolver,...WF.heavyLaspistol
+    ]
+  },
+  hivescum:{
+    melee:[
+      "Enginseer's Mk VI Crowbar","Chirurgeon's Mk IV Bone Saw","Improvised Mk III Shivs","Improvised Mk I Shivs",
+      ...WF.combatBlade,...WF.devilsClaw,...WF.tacticalAxe,...WF.chainsword,...WF.combatAxe,...WF.chainaxe,...WF.heavySword
+    ],
+    ranged:[
+      "Branx MkVIII Dual Stub Pistols","Branx MkIII Dual Autopistols","Branx MkVI Needle Pistol","Branx MKII Needle Pistol",
+      ...WF.combatShotgun,...WF.vigilant,...WF.doubleBarrel,...WF.boltPistol,...WF.infantryAutogun,
+      ...WF.huntsman,...WF.braced,...WF.shredder,...WF.revolver
+    ]
+  },
+  ogryn:{
+    melee:[
+      '"Brunt Special" Mk I Bully Club','"Brunt\'s Pride" Mk II Bully Club','"Brunt\'s Basher" Mk IIIb Bully Club',
+      "Gromm Mk I & Mk V Battle Maul & Slab Shield","Orox Mk II & Mk III Battle Maul & Slab Shield",
+      "Brute-Brainer Mk III Latrine Shovel","Brute-Brainer Mk V Latrine Shovel","Brute-Brainer Mk XIX Latrine Shovel",
+      "Borovian Mk III Delver's Pickaxe","Karsolas Mk II Delver's Pickaxe","Branx Mk Ia Delver's Pickaxe",
+      "Achlys Mk I Power Maul","Krourk Mk IIa Cruncher","Bull Butcher Mk III Cleaver","Krourk Mk IV Cleaver","Krourk Mk VI Cleaver"
+    ],
+    ranged:[
+      "Lorenz Mk V Kickback","Foe-Rend Mk II Ripper Gun","Foe-Rend Mk VI Ripper Gun","Foe-Rend Mk V Ripper Gun",
+      "Krourk Mk V Twin-Linked Heavy Stubber","Achlys Mk VII Twin-Linked Heavy Stubber","Gorgonum Mk IV Twin-Linked Heavy Stubber",
+      "Blastoom Mk III Grenadier Gauntlet","Gorgonum Mk IIIa Heavy Stubber","Achlys Mk II Heavy Stubber","Krourk Mk IIa Heavy Stubber",
+      "Lorenz Mk VII Thugshot","Lorenz Mk VI Rumbler"
+    ]
+  }
+};
+const CURIO_TYPES=[
+  "Blessed Bullet","Gilded Inquisitorial Rosette","Gilded Mandible","Guardian Nocturnus","Guardian of the Hateful",
+  "Guardian of the Lost","Herald's Seal","Laurel of the Just","Laurel of the Righteous","Mechanicus Icon Illustrious",
+  "Obsidiax-Sheathed Bullet","Redeemer's Gilded Hand","Saintly Fragment","Scrap of Scripture","Stalwart's Mandible"
+];
+const CURIO_MAINS=["+1 Wound(s)","+1-3 Max Stamina","+13-17% Toughness","+17-21% Max Health"];
+const CURIO_PERKS=[
+  "+1-4% Combat Ability Regeneration","+2-10% Experience","+2-5% Health","+2-5% Toughness",
+  "+4-10% Ordo Dockets (Mission Rewards)","+4-10% Revive Speed (Ally)",
+  "+5-20% chance of Curio as Mission Reward (Instead of Weapon)","+5-20% Corruption Resistance (Grimoires)",
+  "+5-20% Damage Resistance (Bombers)","+5-20% Damage Resistance (Gunners)",
+  "+5-20% Damage Resistance (Mutants)","+5-20% Damage Resistance (Pox Hounds)",
+  "+5-20% Damage Resistance (Snipers)","+5-20% Damage Resistance (Tox Flamers)",
+  "+6-12% Block Efficiency","+6-12% Stamina Regeneration","+6-15% Corruption Resistance",
+  "+7.5-30% Toughness Regeneration Speed","6-15% Sprint Efficiency"
+];
+function uniqueStrings(arr){
+  return [...new Set((arr||[]).filter(Boolean))];
+}
+
 let state={
   patch:"future",
   classKey:"veteran",
@@ -303,7 +442,9 @@ let state={
   loadouts:{},
   name:"",
   notes:"",
-  zoom:1
+  zoom:1,
+  builds:[],
+  activeBuildId:""
 };
 
 let CUR=null;
@@ -324,7 +465,9 @@ const VISUAL_POPOVER_TEST=new URLSearchParams(location.search).get("visual")==="
 const LOADOUT_FIELDS=[
   "meleeWeapon","meleeBlessing1","meleeBlessing2","meleePerk1","meleePerk2",
   "rangedWeapon","rangedBlessing1","rangedBlessing2","rangedPerk1","rangedPerk2",
-  "curio1Main","curio1Perks","curio2Main","curio2Perks","curio3Main","curio3Perks"
+  "curio1Type","curio1Main","curio1Perks",
+  "curio2Type","curio2Main","curio2Perks",
+  "curio3Type","curio3Main","curio3Perks"
 ];
 function blankLoadout(){
   return Object.fromEntries(LOADOUT_FIELDS.map(k=>[k,""]));
@@ -356,10 +499,281 @@ function applyLoadout(){
 }
 function renderGearSuggestions(){
   const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
-  const melee=$("#meleeSuggestions"),ranged=$("#rangedSuggestions");
-  if(melee)melee.innerHTML=guide.melee.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
-  if(ranged)ranged.innerHTML=guide.ranged.map(x=>'<option value="'+x.replace(/"/g,"&quot;")+'"></option>').join("");
-  if($("#curioHint"))$("#curioHint").textContent=guide.curios||"";
+  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 可直接输入关键词搜索，也可点右侧箭头浏览完整列表。 / Search by typing or open the full list.";
+  refreshOpenPickers();
+}
+function weaponOptions(slot){
+  const key=baseClassKey();
+  const guide=GEAR_GUIDE[key]||{melee:[],ranged:[]};
+  const all=(EQUIPMENT_DB[key]&&EQUIPMENT_DB[key][slot])||[];
+  const recommended=guide[slot]||[];
+  return uniqueStrings([...recommended,...all]).map(label=>({label,recommended:recommended.includes(label)}));
+}
+
+function makeBuildId(){
+  if(globalThis.crypto&&crypto.randomUUID)return crypto.randomUUID();
+  return "bd-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9);
+}
+function cloneJson(v){
+  return JSON.parse(JSON.stringify(v??null));
+}
+function snapshotCurrentBuild(id=state.activeBuildId||makeBuildId()){
+  return {
+    id,
+    name:state.name||"",
+    notes:state.notes||"",
+    patch:state.patch==="live"?"live":"future",
+    classKey:state.classKey||"veteran",
+    selected:cloneJson(state.selected||{}),
+    loadouts:cloneJson(state.loadouts||{}),
+    zoom:Number.isFinite(state.zoom)?state.zoom:1,
+    updatedAt:Date.now()
+  };
+}
+function applyBuildSnapshot(build){
+  if(!build)return;
+  state.name=build.name||"";
+  state.notes=build.notes||"";
+  state.patch=build.patch==="live"?"live":"future";
+  state.classKey=build.classKey||"veteran";
+  state.selected=cloneJson(build.selected||{});
+  state.loadouts=cloneJson(build.loadouts||{});
+  state.zoom=Number.isFinite(build.zoom)?build.zoom:1;
+}
+function blankBuild(){
+  return {
+    id:makeBuildId(),
+    name:"新 BD / New Build",
+    notes:"",
+    patch:state.patch==="live"?"live":"future",
+    classKey:baseClassKey()||"veteran",
+    selected:{},
+    loadouts:{},
+    zoom:1,
+    updatedAt:Date.now()
+  };
+}
+function syncActiveBuild(){
+  state.builds=Array.isArray(state.builds)?state.builds:[];
+  if(!state.activeBuildId)return;
+  const i=state.builds.findIndex(b=>b&&b.id===state.activeBuildId);
+  if(i>=0)state.builds[i]={...state.builds[i],...snapshotCurrentBuild(state.activeBuildId)};
+}
+function ensureBuildLibrary(){
+  state.builds=Array.isArray(state.builds)?state.builds.filter(Boolean):[];
+  if(!state.builds.length){
+    const first=snapshotCurrentBuild(makeBuildId());
+    if(!first.name)first.name="我的 BD 1 / My Build 1";
+    state.builds=[first];
+    state.activeBuildId=first.id;
+    return;
+  }
+  let active=state.builds.find(b=>b.id===state.activeBuildId);
+  if(!active){
+    active=state.builds[0];
+    state.activeBuildId=active.id;
+  }
+  applyBuildSnapshot(active);
+}
+function writeStorage(){
+  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}
+}
+function classLabelForBuild(build){
+  const list=build.patch==="live"&&Array.isArray(DATA.liveClasses)?DATA.liveClasses:DATA.classes;
+  const c=(list||[]).find(x=>x.key===build.classKey)||(list||[]).find(x=>!x.parent);
+  return c?(c.cn+" · "+c.name):build.classKey;
+}
+function renderBuildLibrary(){
+  const select=$("#buildSelect");
+  if(!select)return;
+  const current=state.activeBuildId;
+  select.innerHTML="";
+  for(const b of state.builds||[]){
+    const opt=document.createElement("option");
+    opt.value=b.id;
+    const title=(b.name||"未命名 BD / Untitled").trim();
+    opt.textContent=title+"  ·  "+classLabelForBuild(b)+"  ·  "+(b.patch==="live"?"LIVE":"FUTURE");
+    select.appendChild(opt);
+  }
+  select.value=current||"";
+  const hint=$("#buildLibraryHint");
+  if(hint)hint.textContent=(state.builds?.length||0)+" 套 BD 已保存在本机浏览器 · 当前修改自动保存 / "+(state.builds?.length||0)+" builds saved locally · autosave on";
+}
+function switchSavedBuild(id){
+  if(!id||id===state.activeBuildId)return;
+  saveSelection();
+  persist();
+  const next=(state.builds||[]).find(b=>b.id===id);
+  if(!next)return;
+  state.activeBuildId=id;
+  applyBuildSnapshot(next);
+  clearHistory();
+  hideInfo(false);
+  renderAll(true);
+  writeStorage();
+  queueCurrentIconPack();
+}
+function createSavedBuild(copyCurrent=false){
+  saveSelection();
+  persist();
+  let next;
+  if(copyCurrent){
+    next=snapshotCurrentBuild(makeBuildId());
+    next.name=((state.name||"未命名 BD / Untitled").trim()+" · 副本 / Copy");
+  }else{
+    next=blankBuild();
+  }
+  state.builds.push(next);
+  state.activeBuildId=next.id;
+  applyBuildSnapshot(next);
+  clearHistory();
+  renderAll(true);
+  writeStorage();
+  queueCurrentIconPack();
+  notify(copyCurrent?"已复制为新 BD / Build duplicated":"已新建空白 BD / New build created");
+}
+function deleteSavedBuild(){
+  const builds=state.builds||[];
+  const i=builds.findIndex(b=>b.id===state.activeBuildId);
+  if(i<0)return;
+  const title=(builds[i].name||"未命名 BD / Untitled").trim();
+  if(!confirm("删除“"+title+"”？此操作只删除本机保存的数据。\nDelete this locally saved build?"))return;
+  builds.splice(i,1);
+  if(!builds.length)builds.push(blankBuild());
+  const next=builds[Math.min(i,builds.length-1)];
+  state.activeBuildId=next.id;
+  applyBuildSnapshot(next);
+  clearHistory();
+  renderAll(true);
+  writeStorage();
+  queueCurrentIconPack();
+  notify("已删除 BD / Build deleted");
+}
+
+const pickerRegistry=[];
+function normalizePickerItem(item){
+  return typeof item==="string"?{label:item,recommended:false}:item;
+}
+function pickerQuery(input,multi,allLabels){
+  const raw=input.value||"";
+  if(!multi)return raw.trim();
+  const bits=raw.split("|");
+  const last=(bits[bits.length-1]||"").trim();
+  return allLabels.includes(last)?"":last;
+}
+function setupSearchPicker(id,provider,{multi=false,max=3}={}){
+  const input=document.getElementById(id);
+  if(!input||input.dataset.pickerReady==="1")return;
+  input.dataset.pickerReady="1";
+  const host=document.createElement("div");
+  host.className="picker-host";
+  input.parentNode.insertBefore(host,input);
+  host.appendChild(input);
+  const toggle=document.createElement("button");
+  toggle.type="button";
+  toggle.className="picker-toggle";
+  toggle.setAttribute("aria-label","展开选择 / Open choices");
+  toggle.textContent="⌄";
+  const menu=document.createElement("div");
+  menu.className="picker-menu";
+  menu.hidden=true;
+  host.appendChild(toggle);
+  host.appendChild(menu);
+  let activeIndex=-1;
+
+  function items(){
+    return uniqueStrings(provider().map(x=>normalizePickerItem(x).label)).map(label=>{
+      const original=provider().map(normalizePickerItem).find(x=>x.label===label);
+      return original||{label,recommended:false};
+    });
+  }
+  function renderMenu(forceAll=false){
+    const all=items();
+    const labels=all.map(x=>x.label);
+    const q=(forceAll?"":pickerQuery(input,multi,labels)).toLowerCase();
+    const selected=multi?(input.value||"").split("|").map(x=>x.trim()).filter(x=>labels.includes(x)):[];
+    const matches=all.filter(x=>!selected.includes(x.label)&&(!q||x.label.toLowerCase().includes(q))).slice(0,40);
+    menu.innerHTML="";
+    activeIndex=-1;
+    if(!matches.length){
+      const empty=document.createElement("div");
+      empty.className="picker-empty";
+      empty.textContent="没有匹配项；也可以保留手动输入 / No match — custom text is allowed";
+      menu.appendChild(empty);
+    }else{
+      for(const item of matches){
+        const b=document.createElement("button");
+        b.type="button";
+        b.className="picker-option"+(item.recommended?" recommended":"");
+        b.textContent=item.label;
+        b.onclick=()=>{
+          if(multi){
+            const allLabels=all.map(x=>x.label);
+            let parts=(input.value||"").split("|").map(x=>x.trim()).filter(Boolean);
+            if(parts.length&& !allLabels.includes(parts[parts.length-1]))parts.pop();
+            parts=parts.filter(x=>allLabels.includes(x));
+            if(!parts.includes(item.label)&&parts.length<max)parts.push(item.label);
+            input.value=parts.join(" | ")+(parts.length<max?" | ":"");
+          }else{
+            input.value=item.label;
+          }
+          input.dispatchEvent(new Event("input",{bubbles:true}));
+          if(multi&&((input.value||"").split("|").map(x=>x.trim()).filter(Boolean).length<max)){
+            input.focus();
+            renderMenu(true);
+          }else{
+            menu.hidden=true;
+          }
+        };
+        menu.appendChild(b);
+      }
+    }
+    menu.hidden=false;
+  }
+  function setActive(next){
+    const buttons=[...menu.querySelectorAll(".picker-option")];
+    if(!buttons.length)return;
+    activeIndex=Math.max(0,Math.min(buttons.length-1,next));
+    buttons.forEach((b,i)=>b.classList.toggle("active",i===activeIndex));
+    buttons[activeIndex].scrollIntoView({block:"nearest"});
+  }
+  input.addEventListener("focus",()=>renderMenu(false));
+  input.addEventListener("input",()=>renderMenu(false));
+  input.addEventListener("keydown",e=>{
+    if(e.key==="ArrowDown"){
+      e.preventDefault();
+      if(menu.hidden)renderMenu(false);
+      setActive(activeIndex+1);
+    }else if(e.key==="ArrowUp"){
+      e.preventDefault();
+      setActive(activeIndex-1);
+    }else if(e.key==="Enter"&&!menu.hidden&&activeIndex>=0){
+      e.preventDefault();
+      const buttons=[...menu.querySelectorAll(".picker-option")];
+      buttons[activeIndex]?.click();
+    }else if(e.key==="Escape"){
+      menu.hidden=true;
+    }
+  });
+  toggle.onclick=()=>menu.hidden?renderMenu(true):(menu.hidden=true);
+  host.addEventListener("focusout",()=>setTimeout(()=>{
+    if(!host.contains(document.activeElement))menu.hidden=true;
+  },80));
+  pickerRegistry.push({input,menu,renderMenu});
+}
+function setupEquipmentPickers(){
+  setupSearchPicker("meleeWeapon",()=>weaponOptions("melee"));
+  setupSearchPicker("rangedWeapon",()=>weaponOptions("ranged"));
+  for(let i=1;i<=3;i++){
+    setupSearchPicker("curio"+i+"Type",()=>CURIO_TYPES);
+    setupSearchPicker("curio"+i+"Main",()=>CURIO_MAINS);
+    setupSearchPicker("curio"+i+"Perks",()=>CURIO_PERKS,{multi:true,max:3});
+  }
+}
+function refreshOpenPickers(){
+  for(const p of pickerRegistry){
+    if(!p.menu.hidden)p.renderMenu(false);
+  }
 }
 
 function load(){
@@ -367,6 +781,7 @@ function load(){
     const raw=localStorage.getItem(STORE);
     if(raw) state={...state,...JSON.parse(raw)};
   }catch(_){}
+  ensureBuildLibrary();
 }
 function persist(){
   const name=$("#buildName");
@@ -374,7 +789,8 @@ function persist(){
   if(name) state.name=name.value||"";
   if(notes) state.notes=notes.value||"";
   captureLoadout();
-  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}
+  syncActiveBuild();
+  writeStorage();
 }
 function treeList(){
   if(state.patch==="live"&&Array.isArray(DATA.liveClasses)&&DATA.liveClasses.length)return DATA.liveClasses;
@@ -1128,6 +1544,7 @@ function centerTree(){
 }
 function renderAll(center=false){
   treeTop=BASE_TREE_TOP;
+  renderBuildLibrary();
   renderPatchControls();
   renderClassbar();
   renderSubtreeBar();
@@ -1197,8 +1614,14 @@ function importData(txt){
   state.loadouts=x.loadouts||state.loadouts||{};
   persist();
   renderAll(true);
+  renderBuildLibrary();
 }
 function bind(){
+  setupEquipmentPickers();
+  $("#buildSelect").onchange=e=>switchSavedBuild(e.target.value);
+  $("#newBuildBtn").onclick=()=>createSavedBuild(false);
+  $("#duplicateBuildBtn").onclick=()=>createSavedBuild(true);
+  $("#deleteBuildBtn").onclick=deleteSavedBuild;
   $("#undoBtn").onclick=undoLast;
   $("#resetBtn").onclick=()=>{
     if(points()===0){
@@ -1235,6 +1658,7 @@ function bind(){
   $("#saveBtn").onclick=()=>{
     saveSelection();
     persist();
+    renderBuildLibrary();
     const b=$("#saveBtn"),old=b.innerHTML;
     b.innerHTML="已保存 ✓<br><small>Saved</small>";
     setTimeout(()=>b.innerHTML=old,900);
@@ -1255,7 +1679,11 @@ function bind(){
     persist();
     requestAnimationFrame(centerTree);
   };
-  $("#buildName").oninput=()=>{state.name=$("#buildName").value;persist();};
+  $("#buildName").oninput=()=>{
+    state.name=$("#buildName").value;
+    persist();
+    renderBuildLibrary();
+  };
   $("#notes").oninput=()=>{state.notes=$("#notes").value;persist();};
   for(const id of LOADOUT_FIELDS){
     const el=document.getElementById(id);
@@ -1424,7 +1852,9 @@ function selfCheck(){
   if(Object.keys(nodeEls).length!==CUR.nodes.length) throw new Error("not all nodes rendered");
   if(!$("#nodePopover")) throw new Error("node popover is missing");
   if(treeTop!==BASE_TREE_TOP) throw new Error("tree top shifted unexpectedly");
-  if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Main")) throw new Error("loadout editor is missing");
+  if(!$("#buildSelect")||!Array.isArray(state.builds)||!state.builds.length) throw new Error("build library is missing");
+  if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout editor is missing");
+  if(!document.querySelector("#meleeWeapon + .picker-toggle")&&!$("#meleeWeapon").closest(".picker-host")) throw new Error("weapon picker is missing");
   for(const tree of [...DATA.classes,...DATA.liveClasses]){
     for(const n of tree.nodes){
       if(/[A-F0-9]{8,}$/i.test(displayTalentEn(n)))throw new Error("internal talent id leaked into display name");
