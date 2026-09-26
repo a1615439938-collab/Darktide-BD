@@ -8,61 +8,78 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl44">
+  <link rel="stylesheet" href="./styles.css?v=gl45">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
-<header class="site-head">
+<header class="site-head app-shell-head">
   <div class="brand">
     <div class="brand-kicker">WARHAMMER 40,000 · DARKTIDE</div>
-    <h1>暗潮中英双语 BD 编辑器</h1>
-    <div class="brand-sub">Bilingual Build Editor · Desktop & Mobile</div>
+    <h1>暗潮 BD</h1>
+    <div class="brand-sub">Build Planner</div>
   </div>
   <div class="point-badge">
     <b id="pts">0 / 30</b>
-    <span>天赋点 / Points</span>
+    <span id="pointsRemaining">剩余 30 点</span>
   </div>
 </header>
 
-<main class="page">
-  <section class="class-strip" id="classbar" aria-label="Class selector"></section>
-  <section class="subtree-strip" id="subtreeStrip" aria-label="Hive Scum subtree selector"></section>
-
-  <section class="build-library" aria-label="Saved builds">
-    <div class="build-library-head">
-      <div>
-        <span>我的 BD</span>
-        <b>Build Library</b>
+<main class="page app-shell">
+  <section class="workspace-toolbar" aria-label="构筑工具栏 / Build toolbar">
+    <div class="toolbar-control build-control">
+      <span class="toolbar-label" data-cn="当前 BD" data-en="Build">当前 BD</span>
+      <div class="toolbar-inline">
+        <select id="buildSelect" aria-label="选择已保存 BD / Select saved build"></select>
+        <details class="build-actions-menu">
+          <summary aria-label="BD 操作 / Build actions">•••</summary>
+          <div class="build-actions-popover">
+            <button id="newBuildBtn" type="button" data-cn="＋ 新建 BD" data-en="＋ New build">＋ 新建 BD</button>
+            <button id="duplicateBuildBtn" type="button" data-cn="复制当前 BD" data-en="Duplicate build">复制当前 BD</button>
+            <button id="deleteBuildBtn" class="danger" type="button" data-cn="删除当前 BD" data-en="Delete build">删除当前 BD</button>
+          </div>
+        </details>
       </div>
-      <button id="newBuildBtn" type="button">＋ 新建 <small>/ New</small></button>
+      <div class="build-library-hint" id="buildLibraryHint">当前修改自动保存</div>
     </div>
-    <div class="build-library-row">
-      <select id="buildSelect" aria-label="选择已保存 BD / Select saved build"></select>
-      <button id="duplicateBuildBtn" type="button">复制 <small>/ Duplicate</small></button>
-      <button id="deleteBuildBtn" class="danger" type="button">删除 <small>/ Delete</small></button>
+
+    <div class="toolbar-control patch-control">
+      <span class="toolbar-label" data-cn="版本" data-en="Patch">版本</span>
+      <div class="patch-grid patch-compact">
+        <button class="patch active" id="futurePatchBtn" data-patch="future" type="button">
+          <span data-cn="诅咒深渊" data-en="Depths of the Damned">诅咒深渊</span>
+        </button>
+        <button class="patch" id="livePatchBtn" data-patch="live" type="button">
+          <span data-cn="正式服" data-en="Live">正式服</span>
+        </button>
+      </div>
+      <p class="patch-note">各版本分别保存加点</p>
     </div>
-    <div class="build-library-hint" id="buildLibraryHint">当前 BD 会自动保存在本机浏览器。 / Current build is autosaved in this browser.</div>
+
+    <div class="toolbar-control language-control">
+      <span class="toolbar-label" data-cn="显示语言" data-en="Language">显示语言</span>
+      <div class="language-switch" role="group" aria-label="显示语言 / Display language">
+        <button id="langZh" type="button" data-lang-mode="zh">中文</button>
+        <button id="langBi" type="button" data-lang-mode="bi">中英</button>
+        <button id="langEn" type="button" data-lang-mode="en">EN</button>
+      </div>
+    </div>
+
+    <div class="save-state" id="saveState" role="status" aria-live="polite">✓ 已自动保存</div>
+
+    <div class="toolbar-control class-control">
+      <span class="toolbar-label" data-cn="职业" data-en="Class">职业</span>
+      <section class="class-strip" id="classbar" aria-label="Class selector"></section>
+      <section class="subtree-strip" id="subtreeStrip" aria-label="Hive Scum subtree selector"></section>
+    </div>
   </section>
 
-  <section class="section-title">
-    <span>版本选择</span><b>Talent Tree Patch</b>
-  </section>
+  <nav class="workspace-tabs" aria-label="主要编辑区域 / Main editor sections">
+    <button class="active" type="button" data-workspace-tab="talent" data-cn="天赋" data-en="Talents">天赋</button>
+    <button type="button" data-workspace-tab="loadout" data-cn="装备" data-en="Loadout">装备</button>
+    <button type="button" data-workspace-tab="meta" data-cn="BD 信息" data-en="Build info">BD 信息</button>
+  </nav>
 
-  <section class="patch-grid">
-    <button class="patch active" id="futurePatchBtn" data-patch="future" type="button">
-      <span>诅咒深渊</span>
-      <strong>Depths of the Damned</strong>
-      <em>未来更新 · FUTURE UPDATE</em>
-    </button>
-    <button class="patch" id="livePatchBtn" data-patch="live" type="button">
-      <span>当前正式服</span>
-      <strong>Live patch</strong>
-      <em>正式服 · LIVE</em>
-    </button>
-  </section>
-
-  <p class="patch-note">本 BD 会按所选版本保存。 / Your build is saved against the selected patch.</p>
-
+  <section class="workspace-view active" data-workspace-panel="talent">
   <section class="section-title tree-title">
     <span>天赋树</span><b>Talent Tree</b>
   </section>
@@ -114,7 +131,6 @@
     <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
     <button id="zoomFit" type="button">适配 <small>Fit</small></button>
     <button id="zoomIn" type="button" aria-label="Zoom in">＋</button>
-    <button id="saveBtn" class="gold" type="button">保存 <small>Save</small></button>
   </section>
 
   <section class="legend">
@@ -125,6 +141,9 @@
     <span><i class="keystone"></i>关键 / Keystone</span>
   </section>
 
+  </section>
+
+  <section class="workspace-view" data-workspace-panel="loadout">
   <section class="section-title loadout-title">
     <span>完整配装</span><b>Loadout</b>
   </section>
@@ -311,6 +330,8 @@
     <div class="meta-hint" id="curioHint"></div>
   </section>
 
+  </section>
+
   <div id="loadoutStateFields" hidden>
     <input id="meleeWeapon" type="hidden">
     <input id="meleeBlessing1" type="hidden">
@@ -337,6 +358,10 @@
     <input id="curio3Perks" type="hidden">
   </div>
 
+  <section class="workspace-view" data-workspace-panel="meta">
+    <section class="section-title meta-title">
+      <span data-cn="BD 信息" data-en="Build Details">BD 信息</span><b>Build Details</b>
+    </section>
   <section class="build-panel open-panel">
     <div class="panel-body">
       <label>BD 名称 <small>/ Build name</small></label>
@@ -352,10 +377,18 @@
     </div>
   </section>
 
+  </section>
+
   <footer>
     <p>非官方玩家工具 / Unofficial fan tool.</p>
     <p>树形布局与图标参考 Games Lantern；当前机制优先核对 Fatshark 官方更新说明与 Darktide 游戏数据；中文名称优先采用维护中的 Darktide 中文术语来源。交互实现参考并归因于 LawsonMode 的开源 Darktide Tree Planner。</p>
   </footer>
+
+  <nav class="mobile-bottom-nav" aria-label="移动端导航 / Mobile navigation">
+    <button class="active" type="button" data-workspace-tab="talent"><span>◆</span><b data-cn="天赋" data-en="Talents">天赋</b></button>
+    <button type="button" data-workspace-tab="loadout"><span>⚔</span><b data-cn="装备" data-en="Loadout">装备</b></button>
+    <button type="button" data-workspace-tab="meta"><span>▣</span><b data-cn="BD" data-en="Build">BD</b></button>
+  </nav>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -369,6 +402,7 @@
       </div>
       <button type="button" id="equipmentDialogClose" class="dialog-close" aria-label="关闭 / Close">×</button>
     </div>
+    <div id="equipmentFlow" class="equipment-flow" hidden></div>
     <input id="equipmentSearch" class="equipment-search" type="search" autocomplete="off" placeholder="搜索中文或英文 / Search Chinese or English">
     <div id="equipmentTierPicker" class="equipment-tier-picker" hidden>
       <span>祝福等级 / Blessing Tier</span>
@@ -383,6 +417,7 @@
     <div id="equipmentOptions" class="equipment-options" role="listbox"></div>
     <div class="equipment-dialog-actions">
       <button type="button" id="equipmentClear">清空此槽位 / Clear slot</button>
+      <button type="button" id="equipmentDone" class="gold">完成 / Done</button>
     </div>
   </div>
 </dialog>
@@ -405,6 +440,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl44"></script>
+<script src="./app.js?v=gl45"></script>
 </body>
 </html>

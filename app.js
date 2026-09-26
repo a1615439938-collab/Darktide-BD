@@ -884,7 +884,9 @@ let state={
   notes:"",
   zoom:1,
   builds:[],
-  activeBuildId:""
+  activeBuildId:"",
+  language:"zh",
+  view:"talent"
 };
 
 let CUR=null;
@@ -900,6 +902,53 @@ let actionHistory=[];
 let toastTimer=null;
 
 const $=q=>document.querySelector(q);
+
+function uiLanguage(){
+  return ["zh","bi","en"].includes(state.language)?state.language:"zh";
+}
+function uiText(cn,en){
+  const mode=uiLanguage();
+  if(mode==="en")return en||cn||"";
+  if(mode==="bi")return (cn&&en&&cn!==en)?cn+" · "+en:(cn||en||"");
+  return cn||en||"";
+}
+let saveStateTimer=null;
+function renderSaveState(kind="saved"){
+  const el=$("#saveState");
+  if(!el)return;
+  el.classList.toggle("saving",kind==="saving");
+  el.classList.toggle("error",kind==="error");
+  const mode=uiLanguage();
+  const copy=kind==="saving"
+    ?(mode==="en"?"Saving…":mode==="bi"?"正在保存… / Saving…":"正在保存…")
+    :kind==="error"
+      ?(mode==="en"?"Save failed":mode==="bi"?"保存失败 / Save failed":"保存失败")
+      :(mode==="en"?"✓ Autosaved":mode==="bi"?"✓ 已自动保存 / Autosaved":"✓ 已自动保存");
+  el.textContent=copy;
+}
+function setWorkspaceView(view,persistChoice=true){
+  const next=["talent","loadout","meta"].includes(view)?view:"talent";
+  state.view=next;
+  document.querySelectorAll("[data-workspace-panel]").forEach(p=>p.classList.toggle("active",p.dataset.workspacePanel===next));
+  document.querySelectorAll("[data-workspace-tab]").forEach(b=>b.classList.toggle("active",b.dataset.workspaceTab===next));
+  if(persistChoice)writeStorage();
+  if(next==="talent"&&CUR){
+    requestAnimationFrame(()=>{
+      applyZoom();
+      if(!hotSlug)centerTree();
+    });
+  }
+}
+function applyLanguageMode(){
+  state.language=uiLanguage();
+  document.documentElement.dataset.lang=state.language;
+  document.querySelectorAll("[data-cn][data-en]").forEach(el=>{
+    el.textContent=uiText(el.dataset.cn,el.dataset.en);
+  });
+  document.querySelectorAll("[data-lang-mode]").forEach(b=>b.classList.toggle("active",b.dataset.langMode===state.language));
+  renderSaveState("saved");
+}
+
 const VISUAL_POPOVER_TEST=new URLSearchParams(location.search).get("visual")==="popover";
 
 const LOADOUT_FIELDS=[
@@ -1055,7 +1104,7 @@ function writeStorage(){
 function classLabelForBuild(build){
   const list=build.patch==="live"&&Array.isArray(DATA.liveClasses)?DATA.liveClasses:DATA.classes;
   const c=(list||[]).find(x=>x.key===build.classKey)||(list||[]).find(x=>!x.parent);
-  return c?(c.cn+" · "+c.name):build.classKey;
+  return c?uiText(c.cn,c.name):build.classKey;
 }
 function renderBuildLibrary(){
   const select=$("#buildSelect");
@@ -1071,7 +1120,14 @@ function renderBuildLibrary(){
   }
   select.value=current||"";
   const hint=$("#buildLibraryHint");
-  if(hint)hint.textContent=(state.builds?.length||0)+" 套 BD 已保存在本机浏览器 · 当前修改自动保存 / "+(state.builds?.length||0)+" builds saved locally · autosave on";
+  if(hint){
+    const n=state.builds?.length||0;
+    hint.textContent=uiLanguage()==="en"
+      ?n+" builds · changes autosave locally"
+      :uiLanguage()==="bi"
+        ?n+" 套 BD · 本机自动保存 / "+n+" builds · local autosave"
+        :n+" 套 BD · 当前修改自动保存在本机";
+  }
 }
 function switchSavedBuild(id){
   if(!id||id===state.activeBuildId)return;
@@ -1242,7 +1298,60 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
   },80));
   pickerRegistry.push({input,menu,renderMenu});
 }
-let equipmentEditor={action:"",field:"",index:-1,tier:"4"};
+let equipmentEditor={action:"",field:"",index:-1,tier:"4",flow:[],flowIndex:-1};
+
+function equipmentActionForField(field){
+  if(/Weapon$/.test(field))return "weapon";
+  if(/Blessing[12]$/.test(field))return "blessing";
+  if(/Perk[12]$/.test(field))return "perk";
+  return "";
+}
+function weaponFlowFor(field){
+  const slot=field.startsWith("melee")?"melee":"ranged";
+  return [
+    slot+"Weapon",
+    slot+"Blessing1",
+    slot+"Blessing2",
+    slot+"Perk1",
+    slot+"Perk2"
+  ];
+}
+function equipmentFlowLabel(field){
+  if(/Weapon$/.test(field))return uiText("武器","Weapon");
+  if(/Blessing1$/.test(field))return uiText("祝福 1","Blessing 1");
+  if(/Blessing2$/.test(field))return uiText("祝福 2","Blessing 2");
+  if(/Perk1$/.test(field))return uiText("词条 1","Perk 1");
+  if(/Perk2$/.test(field))return uiText("词条 2","Perk 2");
+  return field;
+}
+function renderEquipmentFlow(){
+  const host=document.getElementById("equipmentFlow");
+  if(!host)return;
+  const flow=equipmentEditor.flow||[];
+  host.hidden=flow.length<2;
+  host.innerHTML="";
+  if(flow.length<2)return;
+  flow.forEach((field,i)=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.textContent=equipmentFlowLabel(field);
+    b.classList.toggle("active",i===equipmentEditor.flowIndex);
+    b.classList.toggle("done",Boolean(loadoutFieldValue(field)));
+    b.onclick=()=>openEquipmentDialog(equipmentActionForField(field),field,-1,{steps:flow,index:i});
+    host.appendChild(b);
+  });
+}
+function advanceEquipmentFlow(){
+  const flow=equipmentEditor.flow||[];
+  const nextIndex=equipmentEditor.flowIndex+1;
+  if(!flow.length||nextIndex>=flow.length){
+    document.getElementById("equipmentDialog")?.close();
+    if(flow.length)notify(uiText("这把武器的配置已完成","Weapon setup complete"));
+    return;
+  }
+  const nextField=flow[nextIndex];
+  openEquipmentDialog(equipmentActionForField(nextField),nextField,-1,{steps:flow,index:nextIndex});
+}
 
 function splitBilingualLabel(value){
   const raw=String(value||"").trim();
@@ -1326,8 +1435,12 @@ function cardSetText(card,title,subtitle,empty=false){
   if(!card)return;
   const t=card.querySelector("[data-card-title]");
   const s=card.querySelector("[data-card-subtitle]");
-  if(t)t.textContent=title;
-  if(s)s.textContent=subtitle||"";
+  const mode=uiLanguage();
+  if(t)t.textContent=mode==="en"?(subtitle||title):title;
+  if(s){
+    s.textContent=mode==="bi"?(subtitle||""):"";
+    s.hidden=mode!=="bi"||!subtitle;
+  }
   card.classList.toggle("is-empty",Boolean(empty));
 }
 function renderLoadoutCards(){
@@ -1479,6 +1592,7 @@ function renderEquipmentOptions(){
 }
 function selectEquipmentOption(value){
   const {action,field,index}=equipmentEditor;
+  const flowActive=(equipmentEditor.flow||[]).length>1;
   if(action==="weapon"){
     setLoadoutFieldValue(field,value,{quiet:true});
     clearInvalidBlessingsAfterWeaponChange(field.startsWith("melee")?"melee":"ranged");
@@ -1492,16 +1606,26 @@ function selectEquipmentOption(value){
   }else{
     setLoadoutFieldValue(field,value,{quiet:true});
   }
-  document.getElementById("equipmentDialog")?.close();
   hideBlessingTooltip();
   renderLoadoutCards();
+  if(flowActive){
+    advanceEquipmentFlow();
+  }else{
+    document.getElementById("equipmentDialog")?.close();
+  }
 }
-function openEquipmentDialog(action,field,index=-1){
+function openEquipmentDialog(action,field,index=-1,flowState=null){
   if(action==="blessing"&&!loadoutFieldValue(blessingWeaponField(field))){
     notify("请先选择武器，再选择该武器可用的祝福 / Choose a weapon first");
     return;
   }
-  equipmentEditor={action,field,index,tier:"4"};
+  let flow=flowState?.steps||[];
+  let flowIndex=Number.isInteger(flowState?.index)?flowState.index:-1;
+  if(action==="weapon"&&!flow.length){
+    flow=weaponFlowFor(field);
+    flowIndex=0;
+  }
+  equipmentEditor={action,field,index,tier:"4",flow,flowIndex};
   if(action==="blessing"){
     const saved=loadoutFieldValue(blessingTierField(field));
     equipmentEditor.tier=saved||"4";
@@ -1534,6 +1658,7 @@ function openEquipmentDialog(action,field,index=-1){
       hint.textContent="点击一个选项即可写入当前 BD。 / Choose an option to save it to this build.";
     }
   }
+  renderEquipmentFlow();
   renderEquipmentOptions();
   const dialog=document.getElementById("equipmentDialog");
   if(dialog){
@@ -1594,6 +1719,7 @@ function setupEquipmentPickers(){
   });
   document.getElementById("equipmentDialogClose")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
   document.getElementById("equipmentClear")?.addEventListener("click",clearEquipmentEditorSlot);
+  document.getElementById("equipmentDone")?.addEventListener("click",()=>document.getElementById("equipmentDialog")?.close());
   document.getElementById("equipmentDialog")?.addEventListener("close",hideBlessingTooltip);
   renderLoadoutCards();
 }
@@ -1617,7 +1743,14 @@ function persist(){
   if(notes) state.notes=notes.value||"";
   captureLoadout();
   syncActiveBuild();
-  writeStorage();
+  renderSaveState("saving");
+  try{
+    writeStorage();
+    clearTimeout(saveStateTimer);
+    saveStateTimer=setTimeout(()=>renderSaveState("saved"),180);
+  }catch(_){
+    renderSaveState("error");
+  }
 }
 function treeList(){
   if(state.patch==="live"&&Array.isArray(DATA.liveClasses)&&DATA.liveClasses.length)return DATA.liveClasses;
@@ -1870,7 +2003,7 @@ function renderClassbar(){
     b.className=c.key===selectedBase?"on":"";
     const root=c.nodes.find(n=>n.cat==="root");
     const icon=root&&ICONS[root.s]?'<img src="'+ICONS[root.s]+'" alt="">':"";
-    b.innerHTML=icon+`<span>${c.cn} · ${c.name}</span>`;
+    b.innerHTML=icon+`<span>${uiText(c.cn,c.name)}</span>`;
     b.onclick=()=>{
       saveSelection();
       persist();
@@ -1891,9 +2024,14 @@ function renderPatchControls(){
   if(future)future.classList.toggle("active",state.patch==="future");
   if(live)live.classList.toggle("active",state.patch==="live");
   const note=document.querySelector(".patch-note");
-  if(note)note.textContent=state.patch==="live"
-    ?"当前使用正式服天赋树；切换版本不会覆盖另一版本的加点。 / Live tree selected; each patch keeps its own build."
-    :"当前使用未来更新天赋树；切换版本不会覆盖正式服加点。 / Future tree selected; each patch keeps its own build.";
+  if(note){
+    const live=state.patch==="live";
+    note.textContent=uiLanguage()==="en"
+      ?(live?"Live tree · patch-specific points are kept separately":"Future tree · patch-specific points are kept separately")
+      :uiLanguage()==="bi"
+        ?(live?"正式服 · 各版本分别保存加点 / Live · patch-specific points":"未来树 · 各版本分别保存加点 / Future · patch-specific points")
+        :(live?"正式服 · 各版本分别保存加点":"未来树 · 各版本分别保存加点");
+  }
 }
 function switchPatch(next){
   if(next===state.patch)return;
@@ -1928,7 +2066,7 @@ function renderSubtreeBar(){
     const b=document.createElement("button");
     b.type="button";
     b.className=c.key===state.classKey?"on":"";
-    b.textContent=c.key==="hivescum"?"天赋树 · Talent Tree":"兴奋剂实验室 · Stimm Lab";
+    b.textContent=c.key==="hivescum"?uiText("天赋树","Talent Tree"):uiText("兴奋剂实验室","Stimm Lab");
     b.onclick=()=>{
       saveSelection();
       persist();
@@ -2200,7 +2338,18 @@ function redraw(){
   }
 
   $("#pts").textContent=`${points()} / ${CUR.budget}`;
-  setStatus(`${CUR.cn} · ${CUR.name} — ${patchLabel()} — ${CUR.nodes.length} nodes`,"ok");
+  const remain=Math.max(0,CUR.budget-points());
+  const remainEl=$("#pointsRemaining");
+  if(remainEl)remainEl.textContent=uiLanguage()==="en"
+    ?remain+" points left"
+    :uiLanguage()==="bi"
+      ?"剩余 "+remain+" 点 / "+remain+" left"
+      :"剩余 "+remain+" 点";
+  setStatus(uiLanguage()==="en"
+    ?`${CUR.name} · ${patchLabel()} · ${CUR.nodes.length} nodes`
+    :uiLanguage()==="bi"
+      ?`${CUR.cn} · ${CUR.name} — ${patchLabel()} — ${CUR.nodes.length} nodes`
+      :`${CUR.cn} · ${CUR.nodes.length} 个节点`,"ok");
 }
 function showInfo(n,focus=false){
   if(!n)return;
@@ -2456,7 +2605,9 @@ function renderAll(center=false){
   renderLoadoutCards();
   hotSlug=null;
   buildTree();
-  if(center)requestAnimationFrame(centerTree);
+  applyLanguageMode();
+  setWorkspaceView(state.view||"talent",false);
+  if(center&&state.view==="talent")requestAnimationFrame(centerTree);
 }
 function buildPayload(){
   saveSelection();
@@ -2522,10 +2673,27 @@ function importData(txt){
 }
 function bind(){
   setupEquipmentPickers();
+  document.querySelectorAll("[data-workspace-tab]").forEach(btn=>{
+    btn.addEventListener("click",()=>setWorkspaceView(btn.dataset.workspaceTab||"talent"));
+  });
+  document.querySelectorAll("[data-lang-mode]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      state.language=btn.dataset.langMode||"zh";
+      applyLanguageMode();
+      renderBuildLibrary();
+      renderPatchControls();
+      renderClassbar();
+      renderSubtreeBar();
+      renderLoadoutCards();
+      redraw();
+      writeStorage();
+    });
+  });
   $("#buildSelect").onchange=e=>switchSavedBuild(e.target.value);
-  $("#newBuildBtn").onclick=()=>createSavedBuild(false);
-  $("#duplicateBuildBtn").onclick=()=>createSavedBuild(true);
-  $("#deleteBuildBtn").onclick=deleteSavedBuild;
+  const closeBuildMenu=()=>document.querySelector(".build-actions-menu")?.removeAttribute("open");
+  $("#newBuildBtn").onclick=()=>{createSavedBuild(false);closeBuildMenu();};
+  $("#duplicateBuildBtn").onclick=()=>{createSavedBuild(true);closeBuildMenu();};
+  $("#deleteBuildBtn").onclick=()=>{deleteSavedBuild();closeBuildMenu();};
   $("#undoBtn").onclick=undoLast;
   $("#resetBtn").onclick=()=>{
     if(points()===0){
@@ -2559,14 +2727,6 @@ function bind(){
   };
   $("#futurePatchBtn").onclick=()=>switchPatch("future");
   $("#livePatchBtn").onclick=()=>switchPatch("live");
-  $("#saveBtn").onclick=()=>{
-    saveSelection();
-    persist();
-    renderBuildLibrary();
-    const b=$("#saveBtn"),old=b.innerHTML;
-    b.innerHTML="已保存 ✓<br><small>Saved</small>";
-    setTimeout(()=>b.innerHTML=old,900);
-  };
   $("#zoomIn").onclick=()=>{
     state.zoom=Math.min(1.9,state.zoom*1.15);
     applyZoom();
@@ -2763,6 +2923,9 @@ function selfCheck(){
   if(!$("#nodePopover")) throw new Error("node popover is missing");
   if(treeTop!==BASE_TREE_TOP) throw new Error("tree top shifted unexpectedly");
   if(!$("#buildSelect")||!Array.isArray(state.builds)||!state.builds.length) throw new Error("build library is missing");
+  if(document.querySelectorAll("[data-workspace-panel]").length!==3) throw new Error("three workspace panels are missing");
+  if(!$("#saveState")||!$("#pointsRemaining")) throw new Error("autosave or points-remaining status is missing");
+  if(!document.querySelector('[data-workspace-tab="loadout"]')) throw new Error("workspace navigation is missing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout state fields are missing");
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
   if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
@@ -3001,6 +3164,7 @@ function runAutomatedSelfTest(){
 
 try{
   load();
+  if(MOBILE_TEST||DESKTOP_TEST)state.view="talent";
   bind();
   const hashBuild=location.hash.startsWith("#b=")?location.hash.slice(3):"";
   if(hashBuild){
@@ -3015,7 +3179,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl44").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl45").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
