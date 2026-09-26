@@ -325,12 +325,13 @@ input:focus,textarea:focus{border-color:#a8893d}
 }
 .equipment-card:active,.modifier-card:active,.curio-type-card:active{transform:scale(.995)}
 .equipment-card,.curio-type-card{
-  display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px
+  display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:11px;align-items:center;padding:11px 12px
 }
 .equipment-mark{
-  display:grid;place-items:center;width:44px;height:44px;border-radius:9px;
-  border:1px solid #4b5962;background:#0a1116;color:#d9bb64;
-  font-size:12px;font-weight:800;letter-spacing:.06em
+  display:grid;place-items:center;width:48px;height:48px;border-radius:10px;
+  border:1px solid #4b5962;background:
+    linear-gradient(135deg,rgba(216,187,100,.08),transparent 55%),#0a1116;
+  color:#d9bb64;font-size:12px;font-weight:800;letter-spacing:.06em
 }
 .equipment-copy{min-width:0}
 .equipment-copy strong,.modifier-card strong{
@@ -346,7 +347,7 @@ input:focus,textarea:focus{border-color:#a8893d}
 }
 .modifier-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .modifier-card{
-  position:relative;min-height:74px;padding:9px 10px
+  position:relative;min-height:60px;padding:8px 10px
 }
 .modifier-kicker{display:block;margin-bottom:5px;color:#829097;font-size:8px;font-weight:700}
 .blessing-card strong,.blessing-card small{padding-right:34px}
@@ -360,21 +361,24 @@ input:focus,textarea:focus{border-color:#a8893d}
   border-color:#7a4343;background:linear-gradient(180deg,#251718,#140e10)
 }
 .blessing-card.invalid .tier-badge{border-color:#7b4c4c;color:#e9a9a9;background:#301718}
-.redesigned-curio{padding:9px}
+.redesigned-curio{padding:9px}.redesigned-curio>.equipment-section-label{display:none}
 .curio-type-card{grid-template-columns:40px minmax(0,1fr);padding:8px}
 .curio-type-card .equipment-mark{width:40px;height:40px}
-.curio-main-card{min-height:66px}
-.curio-perk-stack{display:grid;gap:6px}
-.curio-perk-card{min-height:60px}
+.curio-main-card{min-height:56px;margin-top:7px}
+.curio-perk-stack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.curio-perk-card{min-height:54px}
 .equipment-card.is-empty,.modifier-card.is-empty,.curio-type-card.is-empty{border-style:dashed}
 .equipment-card.is-empty strong,.modifier-card.is-empty strong,.curio-type-card.is-empty strong{color:#9ba5aa}
 
-.equipment-dialog{width:min(94vw,760px);max-height:88vh;border:0;padding:0;background:transparent}
-.equipment-dialog::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(2px)}
+.equipment-dialog{
+  width:min(96vw,520px);height:100vh;max-height:100vh;border:0;padding:0;background:transparent;
+  margin:0 0 0 auto
+}
+.equipment-dialog::backdrop{background:rgba(0,0,0,.34);backdrop-filter:blur(1px)}
 .equipment-dialog-card{
-  max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
-  border:1px solid #3c4b55;border-radius:14px;background:#0c151b;color:#eef2f4;
-  box-shadow:0 22px 60px rgba(0,0,0,.55)
+  height:100vh;max-height:100vh;display:flex;flex-direction:column;overflow:hidden;
+  border:0;border-left:1px solid #3c4b55;border-radius:14px 0 0 14px;background:#0c151b;color:#eef2f4;
+  box-shadow:-18px 0 48px rgba(0,0,0,.45)
 }
 .equipment-dialog-head{
   display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px 10px;
@@ -403,7 +407,7 @@ input:focus,textarea:focus{border-color:#a8893d}
   border-color:#a18643;background:#2a2416;color:#ebcf7a;font-weight:800
 }
 .equipment-dialog-hint{min-height:18px;margin:8px 12px 0;color:#8c989f;font-size:8.5px;line-height:1.4}
-.equipment-options{overflow:auto;padding:0 10px 10px}
+.equipment-options{overflow:auto;padding:0 10px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 7px}
 .equipment-option{
   display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;width:100%;margin-top:6px;padding:10px;
   border:1px solid #2e3c45;border-radius:10px;background:#0f191f;color:#e7ecee;text-align:left
@@ -420,11 +424,22 @@ input:focus,textarea:focus{border-color:#a8893d}
   width:100%;border:1px solid #4a3c3c;border-radius:8px;background:#1b1112;color:#d8aaaa;padding:9px 10px
 }
 @media(max-width:560px){
-  .modifier-grid{grid-template-columns:1fr}
-  .equipment-card,.curio-type-card{grid-template-columns:40px minmax(0,1fr)}
+  .modifier-grid{grid-template-columns:1fr 1fr}
+  .equipment-card,.curio-type-card{grid-template-columns:42px minmax(0,1fr)}
+  .equipment-mark{width:42px;height:42px}
   .equipment-edit{display:none}
-  .equipment-dialog{width:96vw;max-height:92vh}
-  .equipment-dialog-card{max-height:92vh}
+  .equipment-dialog{
+    width:100vw;height:min(82vh,720px);max-height:82vh;margin:auto 0 0
+  }
+  .equipment-dialog-card{
+    height:100%;max-height:100%;border:1px solid #3c4b55;border-bottom:0;
+    border-radius:16px 16px 0 0;box-shadow:0 -16px 48px rgba(0,0,0,.5)
+  }
+  .equipment-options{grid-template-columns:1fr}
+  .equipment-dialog[data-action="perk"] .equipment-options,
+  .equipment-dialog[data-action="curioPerk"] .equipment-options{grid-template-columns:1fr 1fr}
+  .redesigned-curio{padding:8px}
+  .curio-perk-stack{grid-template-columns:1fr}
 }
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
 .blessing-slot{
@@ -591,3 +606,29 @@ html.desktop-input .provenance{font-size:8px}
   padding-top:9px;
   border-top:1px solid rgba(191,213,176,.18);
 }
+
+.equipment-dialog[data-action="blessing"] .equipment-options{grid-template-columns:1fr}
+.equipment-dialog[data-action="weapon"] .equipment-option strong{font-size:11.5px}
+.equipment-dialog[data-action="weapon"] .equipment-option small{max-height:2.9em;overflow:hidden}
+.equipment-dialog[data-action="curioPerk"] .equipment-options,
+.equipment-dialog[data-action="perk"] .equipment-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.weapon-build-card .equipment-section-label{margin-top:8px}
+.weapon-build-card .equipment-card{min-height:72px}
+
+@media(min-width:760px){
+  .weapon-build-card{
+    display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    grid-template-rows:auto auto auto;gap:7px 9px
+  }
+  .weapon-build-card>.gear-head{grid-column:1/-1}
+  .weapon-build-card>.equipment-card{grid-column:1;grid-row:2/4;min-height:145px;align-content:center}
+  .weapon-build-card>.equipment-section-label{display:none}
+  .weapon-build-card>.modifier-grid{grid-column:2;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .weapon-build-card>.modifier-grid:nth-of-type(1){grid-row:2}
+  .weapon-build-card>.modifier-grid:nth-of-type(2){grid-row:3}
+  .weapon-build-card .modifier-card{min-height:67px}
+}
+
+.equipment-copy strong,.modifier-card strong{font-size:12px}
+.equipment-copy small,.modifier-card small{color:#748189}
+.weapon-card .equipment-copy strong{font-size:13px;color:#f2f3ef}
