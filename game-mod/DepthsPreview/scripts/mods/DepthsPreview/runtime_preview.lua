@@ -3,6 +3,7 @@ local mod = get_mod("DepthsPreview")
 local Ammo = require("scripts/utilities/ammo")
 local AttackSettings = require("scripts/settings/damage/attack_settings")
 local Buff = require("scripts/extension_systems/buff/buffs/buff")
+local ProcBuff = require("scripts/extension_systems/buff/buffs/proc_buff")
 local BuffExtensionBase = require("scripts/extension_systems/buff/buff_extension_base")
 local BuffSettings = require("scripts/settings/buff/buff_settings")
 local DamageCalculation = require("scripts/utilities/attack/damage_calculation")
@@ -10,6 +11,10 @@ local DamageProfileTemplates = require("scripts/settings/damage/damage_profile_t
 local DamageSettings = require("scripts/settings/damage/damage_settings")
 local FixedFrame = require("scripts/utilities/fixed_frame")
 local ActionZealotChannel = require("scripts/extension_systems/weapon/actions/action_zealot_channel")
+local BreedSettings = require("scripts/settings/breed/breed_settings")
+local Health = require("scripts/utilities/health")
+local Stagger = require("scripts/utilities/attack/stagger")
+local StaggerSettings = require("scripts/settings/damage/stagger_settings")
 local Toughness = require("scripts/utilities/toughness/toughness")
 local WarpCharge = require("scripts/utilities/warp_charge")
 
@@ -20,6 +25,9 @@ local keywords = BuffSettings.keywords
 local proc_events = BuffSettings.proc_events
 local stat_buffs = BuffSettings.stat_buffs
 local warp_damage_types = DamageSettings.warp_damage_types
+local MINION_BREED_TYPE = BreedSettings.types.minion
+local stagger_types = StaggerSettings.stagger_types
+local BROADPHASE_RESULTS = {}
 
 local Runtime = {}
 local runtime_by_unit = setmetatable({}, { __mode = "k" })
@@ -34,6 +42,9 @@ local NODE = {
     got_your_back = "dp_got_your_back",
     purifying_hatred = "dp_purifying_hatred",
     zealous_pilgrim = "dp_zealous_pilgrim",
+    holy_revenant = "dp_holy_revenant_2",
+    fire_and_fury = "dp_fire_and_fury",
+    risen = "dp_risen",
     holy_cause = "dp_holy_cause",
     ecclesiarchs_call = "dp_ecclesiarchs_call",
     chorus = "dp_chorus_of_spiritual_fortitude",
@@ -130,6 +141,114 @@ for _, name in ipairs({
   add_psykinetic_profile(name)
 end
 
+local function is_unkillable(unit, data, t)
+  if data.until_death_until and t < data.until_death_until then
+    return true
+  end
+  if data.unkillable_until and t < data.unkillable_until then
+    return true
+  end
+
+  local buff_extension = ScriptUnit.has_extension(unit, "buff_system")
+  return buff_extension and buff_extension:current_stacks("bolstering_prayer_resist_death") > 0 or false
+end
+
+local function start_preview_unkillable(unit, data, t, duration)
+  local was_active = is_unkillable(unit, data, t)
+  data.unkillable_until = math.max(data.unkillable_until or 0, t + duration)
+  if not was_active then
+    data.holy_revenant_healed = 0
+    data.next_risen_tick = t + 1
+  end
+end
+
+local function knockback_nearby(unit, radius)
+  if not HEALTH_ALIVE[unit] then
+    return
+  end
+
+  local side_system = Managers.state.extension:system("side_system")
+  local side = side_system and side_system.side_by_unit[unit]
+  local broadphase_system = Managers.state.extension:system("broadphase_system")
+  local broadphase = broadphase_system and broadphase_system.broadphase
+  local position = POSITION_LOOKUP[unit]
+  if not side or not broadphase or not position then
+    return
+  end
+
+  local enemy_side_names = side:relation_side_names("enemy")
+  table.clear(BROADPHASE_RESULTS)
+  local num_hits = broadphase.query(broadphase, position, radius, BROADPHASE_RESULTS, enemy_side_names, MINION_BREED_TYPE)
+
+  for i = 1, num_hits do
+    local enemy = BROADPHASE_RESULTS[i]
+    local enemy_position = POSITION_LOOKUP[enemy]
+    if HEALTH_ALIVE[enemy] and enemy_position then
+      local direction = Vector3.normalize(Vector3.flat(enemy_position - position))
+      Stagger.force_stagger(enemy, stagger_types.medium, direction, 1.5, 1, 0.3333333333333333, unit)
+    end
+  end
+end
+
+local function apply_fire_and_fury(self, params, t)
+  local target = params.attacked_unit
+  if not target or not HEALTH_ALIVE[target] then
+    return
+  end
+
+  local attack_type = params.attack_type
+  if attack_type ~= attack_types.melee and attack_type ~= attack_types.ranged then
+    return
+  end
+
+  local target_buffs = ScriptUnit.has_extension(target, "buff_system")
+  if not target_buffs then
+    return
+  end
+
+  local burn_name = "flamer_assault"
+  local current = target_buffs:current_stacks(burn_name)
+  local requested = attack_type == attack_types.melee and 3 or 1
+  local to_add = math.min(requested, math.max(12 - current, 0))
+  if to_add > 0 then
+    target_buffs:add_internally_controlled_buff_with_stacks(burn_name, to_add, t, "owner_unit", self._unit)
+  elseif current >= 12 then
+    target_buffs:refresh_duration_of_stacking_buff(burn_name, t)
+  end
+end
+
+local function heal_holy_revenant(self, params)
+  local unit = self._unit
+  local health = ScriptUnit.has_extension(unit, "health_system")
+  if not health then
+    return
+  end
+
+  local data = runtime(unit)
+  local max_health = health:max_health()
+  local cap = max_health * 0.25
+  local healed = data.holy_revenant_healed or 0
+  local remaining_cap = math.max(cap - healed, 0)
+  if remaining_cap <= 0 then
+    return
+  end
+
+  -- Fatshark's preview did not publish a new conversion coefficient.
+  -- Reuse the current Holy Revenant coefficients, but heal immediately.
+  local dealt = params.actual_damage_dealt or params.damage or 0
+  local coefficient = 0.007
+  if params.attack_type == attack_types.melee then
+    coefficient = coefficient * 3
+  end
+
+  local missing_health = math.max(max_health - health:current_health(), 0)
+  local amount = math.min(dealt * coefficient, remaining_cap, missing_health)
+  if amount > 0 then
+    Health.add(unit, amount, "leech")
+    data.holy_revenant_healed = healed + amount
+  end
+end
+
 local function apply_preview_stats(self)
   if not State.enabled() then
     return
@@ -141,7 +260,7 @@ local function apply_preview_stats(self)
 
   -- Chorus pulse buffs may affect allies, not only the local player.
   if data.holy_cause_until and now < data.holy_cause_until and data.holy_cause_stacks and data.holy_cause_stacks > 0 then
-    multiply_stat(stats, stat_buffs.toughness_damage_taken_multiplier, 0.92 ^ data.holy_cause_stacks)
+    multiply_stat(stats, stat_buffs.toughness_damage_taken_multiplier, 1 - 0.08 * data.holy_cause_stacks)
   elseif data.holy_cause_until and now >= data.holy_cause_until then
     data.holy_cause_until = nil
     data.holy_cause_stacks = nil
@@ -172,6 +291,13 @@ local function apply_preview_stats(self)
     if data.unkillable_until and now < data.unkillable_until then
       self._keywords[keywords.resist_death] = true
     end
+
+    if data.risen_until and now < data.risen_until and (data.risen_stacks or 0) > 0 then
+      add_stat(stats, stat_buffs.toughness_bonus_flat, 5 * data.risen_stacks)
+    elseif data.risen_until and now >= data.risen_until then
+      data.risen_until = nil
+      data.risen_stacks = nil
+    end
   elseif class == "psyker" then
     if State.has_node(class, NODE.psyker.focused_warp) then
       add_stat(stats, stat_buffs.warp_damage, 0.15)
@@ -196,6 +322,28 @@ local function tick_preview_effects(self, unit, dt, t)
         Toughness.replenish_percentage(unit, 0.10 * dt, false, "depths_preview_voice_of_terra")
       end
     end
+  end
+
+  if class == "zealot" then
+    local active = is_unkillable(unit, data, t)
+
+    if active and not data.was_unkillable then
+      data.holy_revenant_healed = 0
+      data.next_risen_tick = t + 1
+    end
+
+    if active and State.has_node(class, NODE.zealot.risen) then
+      data.next_risen_tick = data.next_risen_tick or (t + 1)
+      if t >= data.next_risen_tick then
+        data.risen_stacks = math.min(8, (data.risen_stacks or 0) + 1)
+        data.risen_until = t + 5
+        data.next_risen_tick = data.next_risen_tick + 1
+      end
+    elseif not active then
+      data.next_risen_tick = nil
+    end
+
+    data.was_unkillable = active
   end
 
   if class == "ogryn" and State.has_node(class, NODE.ogryn.found_some_more) then
@@ -318,6 +466,16 @@ local function handle_proc_event(self, event, params)
       if State.has_node(class, NODE.zealot.got_your_back) then
         handle_got_your_back(self, params)
       end
+    elseif event == proc_events.on_damage_dealt then
+      local t = FixedFrame.get_latest_fixed_time()
+      if is_unkillable(self._unit, data, t) then
+        if State.has_node(class, NODE.zealot.fire_and_fury) then
+          apply_fire_and_fury(self, params, t)
+        end
+        if State.has_node(class, NODE.zealot.holy_revenant) then
+          heal_holy_revenant(self, params)
+        end
+      end
     end
 
     -- Zealous Pilgrim: use the native combat-ability proc as the authoritative
@@ -327,7 +485,8 @@ local function handle_proc_event(self, event, params)
       and State.has_node(class, NODE.zealot.zealous_pilgrim)
       and State.has_node(class, NODE.zealot.fury)
     then
-      data.unkillable_until = FixedFrame.get_latest_fixed_time() + 5
+      local t = FixedFrame.get_latest_fixed_time()
+      start_preview_unkillable(self._unit, data, t, 5)
     end
   elseif class == "psyker" then
     if event == proc_events.on_hit and State.has_node(class, NODE.psyker.peril_equilibrium) then
@@ -369,6 +528,22 @@ function Runtime.install()
 
     for unit, _ in pairs(in_coherence_units or {}) do
       local data = runtime(unit)
+
+      -- September 29: every pulse grants +15 Max Toughness even when the
+      -- ally was not already at full Toughness. The live client only adds
+      -- the stack at full Toughness, so top up to exactly one stack/pulse.
+      if State.has_node(class, NODE.zealot.chorus) then
+        local buff_extension = ScriptUnit.has_extension(unit, "buff_system")
+        if buff_extension and self._toughness_bonus_buff then
+          local expected = math.min(5, (self._num_ticks or 0) + 1)
+          local current = buff_extension:current_stacks(self._toughness_bonus_buff)
+          local missing = math.max(expected - current, 0)
+          if missing > 0 then
+            buff_extension:add_internally_controlled_buff_with_stacks(self._toughness_bonus_buff, missing, t)
+          end
+        end
+      end
+
       if holy_cause then
         data.holy_cause_stacks = math.min(5, (data.holy_cause_stacks or 0) + 1)
         data.holy_cause_until = t + 10
@@ -389,7 +564,7 @@ function Runtime.install()
       and State.has_node(class, NODE.zealot.zealous_pilgrim)
       and State.has_node(class, NODE.zealot.chorus)
     then
-      runtime(self._player_unit).unkillable_until = t + 5
+      start_preview_unkillable(self._player_unit, runtime(self._player_unit), t, 5)
     end
   end)
 
@@ -410,8 +585,35 @@ function Runtime.install()
       and State.has_node(class, NODE.zealot.zealous_pilgrim)
       and State.has_node(class, NODE.zealot.shroudfield)
     then
-      runtime(unit).unkillable_until = FixedFrame.get_latest_fixed_time() + 5
+      local t = FixedFrame.get_latest_fixed_time()
+      start_preview_unkillable(unit, runtime(unit), t, 5)
     end
+  end)
+
+  mod:hook(ProcBuff, "update_proc_events", function(func, self, t, proc_event_list, num_proc_events, portable_random, local_portable_random)
+    local activated, procced = func(self, t, proc_event_list, num_proc_events, portable_random, local_portable_random)
+
+    if activated and State.enabled() and self:template_name() == "zealot_resist_death" then
+      local context = self:template_context()
+      local player = context and context.player
+      local unit = context and context.unit
+      local class = class_key(player)
+
+      if unit and is_local_player(player) and class == "zealot" then
+        local data = runtime(unit)
+        data.until_death_until = t + 8
+        data.holy_revenant_healed = 0
+        data.next_risen_tick = t + 1
+
+        if State.has_node(class, NODE.zealot.holy_revenant) then
+          -- Official preview gives no numeric radius; 5m is the explicit
+          -- preview approximation until the September 29 data ships.
+          knockback_nearby(unit, 5)
+        end
+      end
+    end
+
+    return activated, procced
   end)
 
   mod:hook(DamageCalculation, "calculate", function(func, damage_profile, damage_type, target_settings, lerp_values, hit_zone_name, power_level, charge_level, breed_or_nil, attacker_owner_breed_or_nil, attacker_breed_or_nil, is_critical_strike, hit_weakspot, hit_shield, is_backstab, is_flanking, dropoff_scalar, attack_type, attacker_stat_buffs, target_stat_buffs, attacker_buff_extension, target_buff_extension, armor_penetrating, target_health_extension, target_toughness_extension, armor_type, target_stagger_count, num_triggered_staggers, is_attacked_unit_suppressed, distance, target_unit, auto_completed_action, stagger_impact, stagger_impact_bonus, attacking_unit_or_nil, attacking_unit_owner_unit_or_nil, attacker_owner_buff_extension, target_index)
