@@ -1662,6 +1662,38 @@ function openNextIncompleteLoadout(){
   }
   openEquipmentDialog(next.action,next.field,next.index,{steps:next.flow,index:next.flowIndex});
 }
+function renderBuildReadiness(){
+  const talentDone=CUR?points():0;
+  const talentTotal=CUR?.budget||30;
+  const gear=loadoutProgress();
+  const talentMissing=Math.max(0,talentTotal-talentDone);
+  const gearMissing=Math.max(0,gear.total-gear.done);
+  const totalMissing=talentMissing+gearMissing;
+  const complete=totalMissing===0;
+
+  const title=$("#readinessTitle");
+  const status=$("#readinessStatus");
+  const badge=$("#readinessBadge");
+  const tv=$("#readinessTalentValue");
+  const lv=$("#readinessLoadoutValue");
+  const th=$("#readinessTalentHint");
+  const lh=$("#readinessLoadoutHint");
+
+  if(title)title.textContent=uiText("BD 完成情况","Build readiness");
+  if(tv)tv.textContent=talentDone+" / "+talentTotal;
+  if(lv)lv.textContent=gear.done+" / "+gear.total;
+  if(th)th.textContent=talentMissing?uiText("还差 "+talentMissing+" 点",""+talentMissing+" points left"):uiText("✓ 已完成","✓ Complete");
+  if(lh)lh.textContent=gearMissing?uiText("还差 "+gearMissing+" 项",""+gearMissing+" slots left"):uiText("✓ 已完成","✓ Complete");
+  if(status)status.textContent=complete
+    ?uiText("天赋和配装都已完整，可以直接分享。","Talents and loadout are complete. Ready to share.")
+    :uiText("还差 "+totalMissing+" 项；点击下面对应区域继续。",""+totalMissing+" items remain. Use the section buttons below to continue.");
+  if(badge){
+    badge.textContent=complete?uiText("✓ 可分享","✓ Ready"):uiText("未完成","Incomplete");
+    badge.classList.toggle("complete",complete);
+  }
+  $("#readinessTalents")?.classList.toggle("complete",talentMissing===0);
+  $("#readinessLoadout")?.classList.toggle("complete",gearMissing===0);
+}
 function renderLoadoutProgress(){
   const p=loadoutProgress();
   const completion=$("#loadoutCompletion");
@@ -1682,6 +1714,7 @@ function renderLoadoutProgress(){
     continueBtn.disabled=!next;
     continueBtn.textContent=next?uiText("继续配装","Continue setup"):uiText("✓ 配装完成","✓ Complete");
   }
+  renderBuildReadiness();
 }
 function renderLoadoutCards(){
   const lo=currentLoadout();
@@ -2861,6 +2894,7 @@ function redraw(){
     :uiLanguage()==="bi"
       ?`${CUR.cn} · ${CUR.name} — ${patchLabel()} — ${CUR.nodes.length} nodes`
       :`${CUR.cn} · ${CUR.nodes.length} 个节点`,"ok");
+  renderBuildReadiness();
 }
 function showInfo(n,focus=false){
   if(!n)return;
@@ -3199,6 +3233,41 @@ function shareURL(){
   u.hash="b="+exportData();
   return u.toString();
 }
+async function copyPlainText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(_){
+    const area=document.createElement("textarea");
+    area.value=text;
+    area.style.position="fixed";
+    area.style.opacity="0";
+    document.body.appendChild(area);
+    area.select();
+    let ok=false;
+    try{ok=document.execCommand("copy");}catch(_){}
+    area.remove();
+    return ok;
+  }
+}
+async function shareBuildDirect(){
+  const url=shareURL();
+  const title=(state.name||uiText("我的暗潮 BD","My Darktide build")).trim();
+  if(navigator.share){
+    try{
+      await navigator.share({
+        title,
+        text:uiText("查看我的《暗潮》BD","Check out my Darktide build"),
+        url
+      });
+      return;
+    }catch(e){
+      if(e?.name==="AbortError")return;
+    }
+  }
+  if(await copyPlainText(url))notify(uiText("分享链接已复制","Share link copied"));
+  else notify(uiText("无法自动复制，请使用“BD 数据”里的分享链接","Could not copy automatically; use the link in Build data"));
+}
 function importData(txt){
   txt=(txt||"").trim();
   let x;
@@ -3247,6 +3316,16 @@ function bind(){
     });
   });
   $("#buildSelect").onchange=e=>switchSavedBuild(e.target.value);
+  $("#readinessTalents").onclick=()=>{
+    setWorkspaceView("talent");
+    requestAnimationFrame(centerTree);
+  };
+  $("#readinessLoadout").onclick=()=>{
+    setWorkspaceView("loadout");
+    const next=nextIncompleteLoadoutStep();
+    if(next)requestAnimationFrame(()=>openNextIncompleteLoadout());
+  };
+  $("#shareBuildBtn").onclick=shareBuildDirect;
   const closeBuildMenu=()=>document.querySelector(".build-actions-menu")?.removeAttribute("open");
   $("#newBuildBtn").onclick=()=>{createSavedBuild(false);closeBuildMenu();};
   $("#duplicateBuildBtn").onclick=()=>{createSavedBuild(true);closeBuildMenu();};
@@ -3335,23 +3414,13 @@ function bind(){
   };
   $("#copyBtn").onclick=async()=>{
     const text=$("#codeBox").value;
-    try{
-      await navigator.clipboard.writeText(text);
-      $("#dialogMsg").textContent="代码已复制 / Code copied ✓";
-    }catch(_){
-      $("#codeBox").select();
-      document.execCommand("copy");
-      $("#dialogMsg").textContent="代码已复制 / Code copied ✓";
-    }
+    const ok=await copyPlainText(text);
+    $("#dialogMsg").textContent=ok?uiText("代码已复制 ✓","Code copied ✓"):uiText("复制失败，请手动选择文本","Copy failed; select the text manually");
   };
   $("#copyLinkBtn").onclick=async()=>{
     const text=shareURL();
-    try{
-      await navigator.clipboard.writeText(text);
-      $("#dialogMsg").textContent="分享链接已复制 / Share link copied ✓";
-    }catch(_){
-      $("#dialogMsg").textContent=text;
-    }
+    const ok=await copyPlainText(text);
+    $("#dialogMsg").textContent=ok?uiText("分享链接已复制 ✓","Share link copied ✓"):text;
   };
   $("#loadBtn").onclick=()=>{
     try{
@@ -3497,6 +3566,7 @@ function selfCheck(){
   if(!$("#saveState")||!$("#pointsRemaining")) throw new Error("autosave or points-remaining status is missing");
   if(!document.querySelector('[data-workspace-tab="loadout"]')) throw new Error("workspace navigation is missing");
   if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")||!$("#loadoutContinue")) throw new Error("loadout completion UI is missing");
+  if(!$("#readinessTalents")||!$("#readinessLoadout")||!$("#shareBuildBtn")) throw new Error("build readiness or sharing UI is missing");
   if(!$("#equipmentFilters")) throw new Error("equipment filter bar is missing");
   if(!document.querySelector("[data-curio-copy-all]")||document.querySelectorAll("[data-curio-copy-prev]").length!==2) throw new Error("curio copy shortcuts are missing");
   if(document.querySelectorAll("[data-curio-toggle]").length!==3||document.querySelectorAll(".curio-body").length!==3) throw new Error("curio disclosure controls are missing");
@@ -3777,7 +3847,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl55").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl56").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
