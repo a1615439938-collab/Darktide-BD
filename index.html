@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl54">
+  <link rel="stylesheet" href="./styles.css?v=gl59">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -81,7 +81,7 @@
 
   <section class="workspace-view active" data-workspace-panel="talent">
   <section class="section-title tree-title">
-    <span>天赋树</span><b>Talent Tree</b>
+    <span class="only-zh-bi">天赋树</span><b class="only-en-bi">Talent Tree</b>
   </section>
 
   <section id="status" class="status">正在载入未来更新天赋树… / Loading future-update talent tree…</section>
@@ -138,18 +138,18 @@
   </section>
 
   <section class="legend">
-    <span data-cn="普通" data-en="Passive"><i class="passive"></i>普通</span>
-    <span data-cn="闪击" data-en="Blitz"><i class="blitz"></i>闪击</span>
-    <span data-cn="光环" data-en="Aura"><i class="aura"></i>光环</span>
-    <span data-cn="技能" data-en="Ability"><i class="ability"></i>技能</span>
-    <span data-cn="关键" data-en="Keystone"><i class="keystone"></i>关键</span>
+    <span><i class="passive"></i><b data-cn="普通" data-en="Passive">普通</b></span>
+    <span><i class="blitz"></i><b data-cn="闪击" data-en="Blitz">闪击</b></span>
+    <span><i class="aura"></i><b data-cn="光环" data-en="Aura">光环</b></span>
+    <span><i class="ability"></i><b data-cn="技能" data-en="Ability">技能</b></span>
+    <span><i class="keystone"></i><b data-cn="关键" data-en="Keystone">关键</b></span>
   </section>
 
   </section>
 
   <section class="workspace-view" data-workspace-panel="loadout">
   <section class="section-title loadout-title">
-    <span>完整配装</span><b>Loadout</b>
+    <span class="only-zh-bi">完整配装</span><b class="only-en-bi">Loadout</b>
   </section>
 
   <section class="loadout-progress-card" aria-label="装备完成度 / Loadout completion">
@@ -158,18 +158,19 @@
       <span id="loadoutCompletionHint">按顺序完成武器、祝福、词条和珍品即可</span>
     </div>
     <div class="loadout-progress-track" aria-hidden="true"><i id="loadoutProgressBar"></i></div>
+    <button id="loadoutContinue" class="loadout-continue" type="button" data-cn="继续配装" data-en="Continue setup">继续配装</button>
   </section>
 
   <section class="loadout-grid loadout-card-grid">
     <article class="gear-card weapon-build-card" data-weapon-slot="melee">
-      <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
+      <div class="gear-head"><span class="only-zh-bi">近战武器</span><b class="only-en-bi">Melee Weapon</b></div>
       <button class="equipment-card weapon-card" type="button" data-equip-action="weapon" data-field="meleeWeapon">
-        <span class="equipment-mark">近战</span>
+        <span class="equipment-mark"><b class="only-zh-bi">近战</b><b class="only-en-bi">Melee</b></span>
         <span class="equipment-copy">
           <strong data-card-title>选择近战武器</strong>
           <small data-card-subtitle>Select melee weapon</small>
         </span>
-        <span class="equipment-edit">选择 / Select</span>
+        <span class="equipment-edit"><b class="only-zh-bi">选择</b><b class="only-en-bi">Select</b></span>
       </button>
       <div class="equipment-section-label" data-cn="祝福" data-en="Blessings">祝福</div>
       <div class="modifier-grid blessing-grid">
@@ -202,14 +203,14 @@
     </article>
 
     <article class="gear-card weapon-build-card" data-weapon-slot="ranged">
-      <div class="gear-head"><span>远程武器</span><b>Ranged Weapon</b></div>
+      <div class="gear-head"><span class="only-zh-bi">远程武器</span><b class="only-en-bi">Ranged Weapon</b></div>
       <button class="equipment-card weapon-card" type="button" data-equip-action="weapon" data-field="rangedWeapon">
-        <span class="equipment-mark">远程</span>
+        <span class="equipment-mark"><b class="only-zh-bi">远程</b><b class="only-en-bi">Ranged</b></span>
         <span class="equipment-copy">
           <strong data-card-title>选择远程武器</strong>
           <small data-card-subtitle>Select ranged weapon</small>
         </span>
-        <span class="equipment-edit">选择 / Select</span>
+        <span class="equipment-edit"><b class="only-zh-bi">选择</b><b class="only-en-bi">Select</b></span>
       </button>
       <div class="equipment-section-label" data-cn="祝福" data-en="Blessings">祝福</div>
       <div class="modifier-grid blessing-grid">
@@ -243,13 +244,13 @@
   </section>
 
   <section class="curio-section">
-    <div class="gear-head"><span>珍品</span><b>Curios</b></div>
+    <div class="gear-head"><span class="only-zh-bi">珍品</span><b class="only-en-bi">Curios</b></div>
     <div class="curio-grid redesigned-curios">
       <article class="curio-card redesigned-curio" data-curio-index="1">
         <div class="curio-toolbar">
-          <span>珍品 1</span>
+          <span data-cn="珍品 1" data-en="Curio 1">珍品 1</span>
           <span class="curio-progress" data-curio-progress="1">0 / 4</span>
-          <button type="button" data-curio-copy-all="1">复制到全部</button>
+          <button type="button" data-curio-copy-all="1" data-cn="复制到全部" data-en="Copy to all">复制到全部</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="1">收起</button></div>
         <div class="curio-body">
@@ -286,9 +287,9 @@
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="2">
         <div class="curio-toolbar">
-          <span>珍品 2</span>
+          <span data-cn="珍品 2" data-en="Curio 2">珍品 2</span>
           <span class="curio-progress" data-curio-progress="2">0 / 4</span>
-          <button type="button" data-curio-copy-prev="2">复制珍品 1</button>
+          <button type="button" data-curio-copy-prev="2" data-cn="复制珍品 1" data-en="Copy Curio 1">复制珍品 1</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="2">收起</button></div>
         <div class="curio-body">
@@ -325,9 +326,9 @@
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="3">
         <div class="curio-toolbar">
-          <span>珍品 3</span>
+          <span data-cn="珍品 3" data-en="Curio 3">珍品 3</span>
           <span class="curio-progress" data-curio-progress="3">0 / 4</span>
-          <button type="button" data-curio-copy-prev="3">复制珍品 2</button>
+          <button type="button" data-curio-copy-prev="3" data-cn="复制珍品 2" data-en="Copy Curio 2">复制珍品 2</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="3">收起</button></div>
         <div class="curio-body">
@@ -396,18 +397,41 @@
 
   <section class="workspace-view" data-workspace-panel="meta">
     <section class="section-title meta-title">
-      <span data-cn="BD 信息" data-en="Build Details">BD 信息</span><b>Build Details</b>
+      <span class="only-zh-bi">BD 信息</span><b class="only-en-bi">Build Details</b>
     </section>
   <section class="build-panel open-panel">
     <div class="panel-body">
-      <label>BD 名称 <small>/ Build name</small></label>
+      <section class="build-readiness" aria-label="BD 完成情况 / Build readiness">
+        <div class="build-readiness-head">
+          <div>
+            <strong id="readinessTitle">BD 完成情况</strong>
+            <span id="readinessStatus">检查天赋与配装完整度</span>
+          </div>
+          <span id="readinessBadge" class="readiness-badge">未完成</span>
+        </div>
+        <div class="readiness-grid">
+          <button id="readinessTalents" type="button" class="readiness-item">
+            <span data-cn="天赋" data-en="Talents">天赋</span>
+            <b id="readinessTalentValue">0 / 30</b>
+            <small id="readinessTalentHint">去补天赋</small>
+          </button>
+          <button id="readinessLoadout" type="button" class="readiness-item">
+            <span data-cn="装备" data-en="Loadout">装备</span>
+            <b id="readinessLoadoutValue">0 / 22</b>
+            <small id="readinessLoadoutHint">去补配装</small>
+          </button>
+        </div>
+      </section>
+
+      <label><span class="only-zh-bi">BD 名称</span><span class="only-en-bi">Build name</span></label>
       <input id="buildName" placeholder="例如：新版发号施令老兵 / New VoC Veteran">
 
-      <label>打法与备注 <small>/ Playstyle & notes</small></label>
+      <label><span class="only-zh-bi">打法与备注</span><span class="only-en-bi">Playstyle & notes</span></label>
       <textarea id="notes" placeholder="记录打法、替代武器、断点、适用难度等… / Playstyle, alternatives, breakpoints, difficulty…"></textarea>
 
       <div class="share-row">
-        <button id="exportBtn" type="button" data-cn="导出 BD" data-en="Export build">导出 BD</button>
+        <button id="shareBuildBtn" class="gold" type="button" data-cn="分享 BD" data-en="Share build">分享 BD</button>
+        <button id="exportBtn" type="button" data-cn="BD 数据" data-en="Build data">BD 数据</button>
         <button id="importBtn" type="button" data-cn="导入" data-en="Import">导入</button>
       </div>
     </div>
@@ -462,13 +486,13 @@
 
 <dialog id="codeDialog">
   <form method="dialog" class="dialog-card">
-    <h2>BD 数据 <small>/ Build Data</small></h2>
+    <h2 data-cn="BD 数据" data-en="Build Data">BD 数据</h2>
     <textarea id="codeBox"></textarea>
     <div class="dialog-actions">
-      <button type="button" id="copyBtn">复制代码 / Copy code</button>
-      <button type="button" id="copyLinkBtn">复制分享链接 / Copy link</button>
-      <button type="button" id="loadBtn">载入 / Load</button>
-      <button value="close">关闭 / Close</button>
+      <button type="button" id="copyBtn" data-cn="复制代码" data-en="Copy code">复制代码</button>
+      <button type="button" id="copyLinkBtn" data-cn="复制分享链接" data-en="Copy link">复制分享链接</button>
+      <button type="button" id="loadBtn" data-cn="载入" data-en="Load">载入</button>
+      <button value="close" data-cn="关闭" data-en="Close">关闭</button>
     </div>
     <div id="dialogMsg"></div>
   </form>
@@ -478,6 +502,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl54"></script>
+<script src="./app.js?v=gl59"></script>
 </body>
 </html>
