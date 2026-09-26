@@ -2,7 +2,8 @@ local mod = get_mod("DepthsPreview")
 
 local Archetypes = require("scripts/settings/archetype/archetypes")
 local FixedFrame = require("scripts/utilities/fixed_frame")
-local InventoryBackgroundView = require("scripts/ui/views/inventory_background_view/inventory_background_view")\nlocal MatchmakingConstants = require("scripts/settings/network/matchmaking_constants")
+local InventoryBackgroundView = require("scripts/ui/views/inventory_background_view/inventory_background_view")
+local MatchmakingConstants = require("scripts/settings/network/matchmaking_constants")
 local LocalizationManager = require("scripts/managers/localization/localization_manager")
 local TalentBuilderView = require("scripts/ui/views/talent_builder_view/talent_builder_view")
 local TalentLayoutParser = require("scripts/ui/views/talent_builder_view/utilities/talent_layout_parser")
@@ -42,7 +43,8 @@ local GENERIC_ICONS = {
 local original_layouts = {}
 local preview_layouts = {}
 local localization = {}
-local installed = false\nlocal HOST_TYPES = MatchmakingConstants.HOST_TYPES
+local installed = false
+local HOST_TYPES = MatchmakingConstants.HOST_TYPES
 
 local function deep_copy(value, seen)
   if type(value) ~= "table" then
