@@ -129,14 +129,20 @@ local function choose_candidate(candidates, compatibility_node)
   return candidates[math.min(ordinal, #candidates)]
 end
 
-local function resolve_native(lookup, compatibility_node)
-  if not compatibility_node then
+local function resolve_native(lookup, compatibility_node, snapshot_node)
+  if not compatibility_node and not snapshot_node then
     return nil
   end
-  for _, name in ipairs({
-    compatibility_node.live_en,
-    compatibility_node.live_cn,
-  }) do
+
+  local names = {
+    compatibility_node and compatibility_node.live_en,
+    compatibility_node and compatibility_node.live_cn,
+    snapshot_node and snapshot_node.en,
+    snapshot_node and snapshot_node.cn,
+  }
+
+  for i = 1, #names do
+    local name = names[i]
     if name and name ~= "" then
       local candidate = choose_candidate(lookup[normalize(name)], compatibility_node)
       if candidate then
@@ -144,6 +150,7 @@ local function resolve_native(lookup, compatibility_node)
       end
     end
   end
+
   return nil
 end
 
@@ -268,7 +275,7 @@ local function build_layout(class_key, original_layout)
   for i = 1, #snapshot.nodes do
     local source = snapshot.nodes[i]
     local compatibility_node = compatibility[source.slug]
-    local native_match = resolve_native(candidates, compatibility_node)
+    local native_match = resolve_native(candidates, compatibility_node, source)
     local is_root = source.cat == "root"
     local is_reuse = compatibility_node and compatibility_node.mode == "reuse" and native_match ~= nil
 
