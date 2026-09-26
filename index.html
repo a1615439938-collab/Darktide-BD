@@ -28,6 +28,22 @@
   <section class="class-strip" id="classbar" aria-label="Class selector"></section>
   <section class="subtree-strip" id="subtreeStrip" aria-label="Hive Scum subtree selector"></section>
 
+  <section class="build-library" aria-label="Saved builds">
+    <div class="build-library-head">
+      <div>
+        <span>我的 BD</span>
+        <b>Build Library</b>
+      </div>
+      <button id="newBuildBtn" type="button">＋ 新建 <small>/ New</small></button>
+    </div>
+    <div class="build-library-row">
+      <select id="buildSelect" aria-label="选择已保存 BD / Select saved build"></select>
+      <button id="duplicateBuildBtn" type="button">复制 <small>/ Duplicate</small></button>
+      <button id="deleteBuildBtn" class="danger" type="button">删除 <small>/ Delete</small></button>
+    </div>
+    <div class="build-library-hint" id="buildLibraryHint">当前 BD 会自动保存在本机浏览器。 / Current build is autosaved in this browser.</div>
+  </section>
+
   <section class="section-title">
     <span>版本选择</span><b>Talent Tree Patch</b>
   </section>
@@ -116,7 +132,7 @@
   <section class="loadout-grid">
     <article class="gear-card">
       <div class="gear-head"><span>近战武器</span><b>Melee Weapon</b></div>
-      <input id="meleeWeapon" list="meleeSuggestions" placeholder="选择或输入武器 / Choose or type">
+      <input id="meleeWeapon" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择职业可用武器 / Search or choose weapon">
       <div class="two-col">
         <input id="meleeBlessing1" placeholder="祝福 1 / Blessing 1">
         <input id="meleeBlessing2" placeholder="祝福 2 / Blessing 2">
@@ -129,7 +145,7 @@
 
     <article class="gear-card">
       <div class="gear-head"><span>远程武器</span><b>Ranged Weapon</b></div>
-      <input id="rangedWeapon" list="rangedSuggestions" placeholder="选择或输入武器 / Choose or type">
+      <input id="rangedWeapon" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择职业可用武器 / Search or choose weapon">
       <div class="two-col">
         <input id="rangedBlessing1" placeholder="祝福 1 / Blessing 1">
         <input id="rangedBlessing2" placeholder="祝福 2 / Blessing 2">
@@ -141,26 +157,26 @@
     </article>
   </section>
 
-  <datalist id="meleeSuggestions"></datalist>
-  <datalist id="rangedSuggestions"></datalist>
-
   <section class="curio-section">
     <div class="gear-head"><span>珍品</span><b>Curios</b></div>
     <div class="curio-grid">
       <article class="curio-card">
         <strong>珍品 1 / Curio 1</strong>
-        <input id="curio1Main" placeholder="主属性 / Main stat">
-        <input id="curio1Perks" placeholder="词条 / Perks">
+        <input id="curio1Type" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择珍品类型 / Curio type">
+        <input id="curio1Main" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择主属性 / Main blessing">
+        <input id="curio1Perks" autocomplete="off" aria-autocomplete="list" placeholder="搜索/选择词条（最多 3 条） / Up to 3 perks">
       </article>
       <article class="curio-card">
         <strong>珍品 2 / Curio 2</strong>
-        <input id="curio2Main" placeholder="主属性 / Main stat">
-        <input id="curio2Perks" placeholder="词条 / Perks">
+        <input id="curio2Type" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择珍品类型 / Curio type">
+        <input id="curio2Main" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择主属性 / Main blessing">
+        <input id="curio2Perks" autocomplete="off" aria-autocomplete="list" placeholder="搜索/选择词条（最多 3 条） / Up to 3 perks">
       </article>
       <article class="curio-card">
         <strong>珍品 3 / Curio 3</strong>
-        <input id="curio3Main" placeholder="主属性 / Main stat">
-        <input id="curio3Perks" placeholder="词条 / Perks">
+        <input id="curio3Type" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择珍品类型 / Curio type">
+        <input id="curio3Main" autocomplete="off" aria-autocomplete="list" placeholder="搜索或选择主属性 / Main blessing">
+        <input id="curio3Perks" autocomplete="off" aria-autocomplete="list" placeholder="搜索/选择词条（最多 3 条） / Up to 3 perks">
       </article>
     </div>
     <div class="meta-hint" id="curioHint"></div>
