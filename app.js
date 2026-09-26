@@ -409,21 +409,177 @@ const EQUIPMENT_DB={
     ]
   }
 };
-const CURIO_TYPES=[
-  "Blessed Bullet","Gilded Inquisitorial Rosette","Gilded Mandible","Guardian Nocturnus","Guardian of the Hateful",
-  "Guardian of the Lost","Herald's Seal","Laurel of the Just","Laurel of the Righteous","Mechanicus Icon Illustrious",
-  "Obsidiax-Sheathed Bullet","Redeemer's Gilded Hand","Saintly Fragment","Scrap of Scripture","Stalwart's Mandible"
+function bilingualLabel(cn,en){
+  return cn+" / "+en;
+}
+
+const WEAPON_FAMILY_CN=[
+  ["Shock Maul and Suppression Shield","电击锤与压制盾"],
+  ["Subductor Shotpistol and Riot Shield","执法霰弹手枪与防暴盾"],
+  ["Battle Maul & Slab Shield","作战大槌&板盾"],
+  ["Blaze Force Greatsword","烈焰力场巨剑"],
+  ["Blaze Force Sword","烈焰力场剑"],
+  ["Paired Transonic Blades","双持跨音速刀刃"],
+  ["Mechanicus Power Sword","机械教动力剑"],
+  ["Heavy Eviscerator","重型开膛剑"],
+  ["Double-Barrelled Shotgun","双管霰弹枪"],
+  ["Twin-Linked Heavy Stubber","双联重型机枪"],
+  ["Electrokinetic Force Staff","电流力场法杖"],
+  ["Voidblast Force Staff","虚空爆破力场法杖"],
+  ["Voidstrike Force Staff","虚空打击力场法杖"],
+  ["Inferno Force Staff","烈焰力场法杖"],
+  ["Purgation Flamer","净化喷火器"],
+  ["Quickdraw Stub Revolver","快拔左轮手枪"],
+  ["Grenadier Gauntlet","掷弹兵臂铠"],
+  ["Huntsman's Shotgun","猎手霰弹枪"],
+  ["Exterminator Shotgun","灭绝者霰弹枪"],
+  ["Phosphor Blast Pistol","磷火爆破手枪"],
+  ["Dual Stub Pistols","双持短管手枪"],
+  ["Dual Autopistols","双持自动手枪"],
+  ["Spearhead Boltgun","矛头爆矢枪"],
+  ["Vigilant Autogun","机动自动枪"],
+  ["Infantry Autogun","步兵自动枪"],
+  ["Infantry Lasgun","步兵激光枪"],
+  ["Braced Autogun","枪托自动枪"],
+  ["Recon Lasgun","侦查激光枪"],
+  ["Helbore Lasgun","冥潮激光枪"],
+  ["Heavy Laspistol","重型激光手枪"],
+  ["Combat Shotgun","战斗霰弹枪"],
+  ["Shredder Autopistol","撕裂者自动手枪"],
+  ["Needle Pistol","针刺手枪"],
+  ["Galvanic Rifle","电流步枪"],
+  ["Arc Rifle","电弧步枪"],
+  ["Bolt Pistol","爆弹手枪"],
+  ["Plasma Gun","电浆枪"],
+  ["Heavy Stubber","重型机枪"],
+  ["Ripper Gun","撕裂枪"],
+  ["Thunder Hammer","雷锤"],
+  ["Relic Blade","上古神刃"],
+  ["Power Falchion","动力弯刀"],
+  ["Power Sword","动力剑"],
+  ["Power Maul","动力锤"],
+  ["Arc Maul","电弧锤"],
+  ["Shock Maul","电击锤"],
+  ["Assault Chainaxe","突击链斧"],
+  ["Assault Chainsword","突击链锯剑"],
+  ["Combat Axe","战斗斧"],
+  ["Tactical Axe","战术斧"],
+  ["Devil's Claw Sword","“恶魔之爪”剑"],
+  ["Duelling Sword","决斗剑"],
+  ["Combat Blade","战刃"],
+  ["Heavy Sword","重剑"],
+  ["Sapper Shovel","工兵铲"],
+  ["Latrine Shovel","厕所铲"],
+  ["Delver's Pickaxe","十字镐"],
+  ["Bully Club","恶棍棒"],
+  ["Cleaver","砍刀"],
+  ["Crusher","碾压者"],
+  ["Bone Saw","骨锯"],
+  ["Crowbar","撬棍"],
+  ["Shivs","短刀"],
+  ["Kickback","反冲者"],
+  ["Rumbler","震荡枪"],
+  ["Thugshot","暴徒霰弹枪"]
 ];
-const CURIO_MAINS=["+1 Wound(s)","+1-3 Max Stamina","+13-17% Toughness","+17-21% Max Health"];
+function weaponBilingualLabel(en){
+  const raw=String(en||"").trim();
+  for(const [family,cn] of WEAPON_FAMILY_CN){
+    if(raw.endsWith(family)){
+      const prefix=raw.slice(0,-family.length).trim();
+      return bilingualLabel((prefix?prefix+" ":"")+cn,raw);
+    }
+  }
+  return bilingualLabel(raw,raw);
+}
+
+const MELEE_BLESSINGS=[
+  ["机会主义者","Opportunist"],["放血者","Bloodletter"],["嗜血","Bloodthirsty"],["夺颅者","Headtaker"],
+  ["杀戮者","Slaughterer"],["提速","Rev it up"],["推进","Thrust"],["雷鸣","Thunderous"],["愤怒","Wrath"],
+  ["粉碎","Shred"],["野蛮横扫","Savage Sweep"],["暴走","Rampage"],["毁灭打击","Devastating Strike"],
+  ["屠戮者","Decimator"],["野蛮攻势","Brutal Momentum"],["断肢者","Limbsplitter"],["孤注一掷","All or Nothing"],
+  ["斩首者","Decapitator"],["敏捷","Agile"],["杀戮狂潮","Slaughter Spree"],["持续打击","Relentless Strikes"],
+  ["血肉撕裂者","Flesh Tearer"],["撕碎","Lacerate"],["行刑者","Executor"],["还击","Riposte"],
+  ["未卜先知","Precognition"],["强力一击","Haymaker"],["击倒","Smackdown"],["仁慈杀手","Mercy Killer"],
+  ["无情背刺","Ruthless Backstab"],["诡异打击","Uncanny Strike"],["创伤","Trauma"],["凶狠切割","Vicious Slice"],
+  ["锤击","Hammerblow"],["粉碎者","Skullcrusher"],["雷霆打击","Thunderstrike"],["致命连击","Chained Deathblow"],
+  ["致命一击","Deathblow"],["完美一击","Perfect Strike"],["利刃攻势","Bladed Momentum"],["偏转","Deflector"],
+  ["势头","Momentum"],["凶残之宁","Murderous Tranquility"],["燃烧灵魂","Blazing Spirit"],["不稳定能量","Unstable Power"],
+  ["亚空间斩击","Warp Slice"],["驱魔者","Exorcist"],["优势","Superiority"],["闪电反射","Lightning Reflexes"],
+  ["高压电","High Voltage"],["踉跄","Falter"],["压倒性的武力","Overwhelming Force"],["反击","Counterattack"],
+  ["颅骨落地","Cranial Grounding"],["超载","Overload"],["能量泄漏","Energy Leakage"],["散热器","Heatsink"],
+  ["虹吸","Syphon"],["能量转换","Energy Transfer"],["震慑","Shock & Awe"],["挥拳出击","Take a Swing"],
+  ["超级充能","Supercharge"],["能量循环","Power Cycler"],["破甲","Sunder"],["突然袭击","Sucker Punch"],
+  ["坚定打击","Confident Strike"],["不入虎穴，焉得虎子","No Guts, No Glory"],["猛撞","Bash"],["肉槌","Tenderiser"],
+  ["势不可挡","Unstoppable Force"],["凌迟","Torment"],["缓慢而确实","Slow and Steady"],["能量涌动","Power Surge"],
+  ["最后防线","Last Guard"],["反守为攻","Offensive Defence"]
+].map(([cn,en])=>bilingualLabel(cn,en));
+
+const RANGED_BLESSINGS=[
+  ["扫射","Raking Fire"],["达姆弹","Dumdum"],["游击","Hit & Run"],["持续射击","Sustained Fire"],
+  ["惩罚齐射","Punishing Salvo"],["烈火热焰","Fire Frenzy"],["死亡喷吐","Deathspitter"],["轻装","Stripped Down"],
+  ["快速装弹","Speedload"],["恐怖阻击","Terrifying Barrage"],["咆哮突进","Roaring Advance"],["持续阻击","Ceaseless Barrage"],
+  ["振奋弹幕","Inspiring Barrage"],["幽灵","Ghost"],["精确打击","Surgical"],["克鲁锡安轮盘","Crucian Roulette"],
+  ["致命精准","Deadly Accurate"],["刻不容缓","No Respite"],["开启齐射","Opening Salvo"],["猎头者","Headhunter"],
+  ["正中眉心","Between the Eyes"],["连续发射","Blaze Away"],["火药灼伤","Powderburn"],["接连不断","Cavalcade"],
+  ["钳制射击","Pinning Fire"],["连跑带打","Run 'n' Gun"],["出血穿透","Puncture"],["致命零距离","Lethal Proximity"],
+  ["近身平射","Point Blank"],["处决","Execution"],["荣耀猎手","Gloryhunter"],["涌动","Surge"],
+  ["亚空间乱舞","Warp Flurry"],["亚空间枢纽","Warp Nexus"],["转移反噬","Transfer Peril"],["撕扯震荡","Rending Shockwave"],
+  ["专注引导","Focused Channelling"],["燃烧灵魂","Blazing Spirit"],["穿透火焰","Penetrating Flame"],["叹为观止","Showstopper"],
+  ["炼狱","Infernus"],["效率","Efficiency"],["集中火力","Concentrated Fire"],["亡命之徒","Desperado"],
+  ["慰藉精准","Reassuringly Accurate"],["飞镖弹","Flechette"],["大口径弹药","Man-Stopper"],["散弹","Scattershot"],
+  ["全孔射击","Full Bore"],["双管齐发","Both Barrels"],["狡猾射手","Trickshooter"],["手铳","Hand-Cannon"],
+  ["破碎冲击","Shattering Impact"],["永燃烈焰","Everlasting Flame"],["迅捷火焰","Quickflame"],["煽风点火","Fan the Flames"],
+  ["超压","Overpressure"],["激射","Hot-Shot"],["猛攻","Weight of Fire"],["护甲之祸","Armourbane"],
+  ["聚能爆发","Power Blast"],["燃起来！","Gets Hot!"],["热力震荡","Volatile"],["升温","Rising Heat"],
+  ["优化冷却","Optimised Cooling"],["专注冷却","Focused Cooling"],["交叉动量","Gauntlet Momentum"],["粉碎","Pulverise"],
+  ["颠覆性力量","Disruptive"],["爆炸使我强大","Explosive Offensive"],["精确定位","Pinpointing target"],
+  ["魔力弹药","Charmed Reload"],["压倒性火力","Overwhelming Fire"],["开罐器","Can opener"],["浴血而生","Born in blood"],
+  ["穿透","Pierce"],["惩罚射击","Punishing Fire"],["扩展性","Expansive"],["破片四射","Shrapnel"],
+  ["狂轰猛炸","Blast Zone"],["黏着炸药","Adhesive Charge"],["迅雷反射","Marksman's Reflex"]
+].map(([cn,en])=>bilingualLabel(cn,en));
+
+const WEAPON_PERKS=[
+  ["对防弹护甲敌人伤害","Damage vs Flak"],["对狂热者伤害","Damage vs Maniacs"],["对被感染敌人伤害","Damage vs Infested"],
+  ["对不屈敌人伤害","Damage vs Unyielding"],["对甲壳护甲敌人伤害","Damage vs Carapace"],["对无护甲敌人伤害","Damage vs Unarmoured"],
+  ["暴击率","Crit chance"],["暴击伤害","Crit damage"],["对呻吟者和瘟疫行者伤害","Damage vs Groaners and Poxwalkers"],
+  ["对精英伤害","Damage vs Elites"],["对专家伤害","Damage vs Specialists"],["耐力","Stamina"],["弱点伤害","Weakspot damage"],
+  ["格挡效率","Block Efficiency"],["冲刺体力消耗","Cost for Sprinting"],["装填速度","Reload Speed"]
+].map(([cn,en])=>bilingualLabel(cn,en));
+
+const CURIO_TYPES=[
+  ["蒙福子弹","Blessed Bullet"],["镀金审判庭玫瑰徽章","Gilded Inquisitorial Rosette"],["镀金下颌骨","Gilded Mandible"],
+  ["夜幕守护者","Guardian Nocturnus"],["憎恨守护者","Guardian of the Hateful"],["失落者守护者","Guardian of the Lost"],
+  ["传令官印玺","Herald's Seal"],["正义桂冠","Laurel of the Just"],["正道桂冠","Laurel of the Righteous"],
+  ["辉耀机械教圣像","Mechanicus Icon Illustrious"],["黑曜石鞘子弹","Obsidiax-Sheathed Bullet"],
+  ["救赎者镀金之手","Redeemer's Gilded Hand"],["圣者碎片","Saintly Fragment"],["圣书残页","Scrap of Scripture"],
+  ["坚毅者下颌骨","Stalwart's Mandible"]
+].map(([cn,en])=>bilingualLabel(cn,en));
+
+const CURIO_MAINS=[
+  "+1 伤口 / +1 Wound(s)","+1–3 最大耐力 / +1-3 Max Stamina",
+  "+13–17% 韧性 / +13-17% Toughness","+17–21% 最大生命值 / +17-21% Max Health"
+];
+
 const CURIO_PERKS=[
-  "+1-4% Combat Ability Regeneration","+2-10% Experience","+2-5% Health","+2-5% Toughness",
-  "+4-10% Ordo Dockets (Mission Rewards)","+4-10% Revive Speed (Ally)",
-  "+5-20% chance of Curio as Mission Reward (Instead of Weapon)","+5-20% Corruption Resistance (Grimoires)",
-  "+5-20% Damage Resistance (Bombers)","+5-20% Damage Resistance (Gunners)",
-  "+5-20% Damage Resistance (Mutants)","+5-20% Damage Resistance (Pox Hounds)",
-  "+5-20% Damage Resistance (Snipers)","+5-20% Damage Resistance (Tox Flamers)",
-  "+6-12% Block Efficiency","+6-12% Stamina Regeneration","+6-15% Corruption Resistance",
-  "+7.5-30% Toughness Regeneration Speed","6-15% Sprint Efficiency"
+  "+1–4% 战斗技能恢复 / +1-4% Combat Ability Regeneration",
+  "+2–10% 经验 / +2-10% Experience",
+  "+2–5% 生命值 / +2-5% Health",
+  "+2–5% 韧性 / +2-5% Toughness",
+  "+4–10% 审判庭代币（任务奖励） / +4-10% Ordo Dockets (Mission Rewards)",
+  "+4–10% 盟友救援速度 / +4-10% Revive Speed (Ally)",
+  "+5–20% 任务奖励获得珍品几率（替代武器） / +5-20% chance of Curio as Mission Reward (Instead of Weapon)",
+  "+5–20% 腐化抗性（法术书） / +5-20% Corruption Resistance (Grimoires)",
+  "+5–20% 轰炸者伤害抗性 / +5-20% Damage Resistance (Bombers)",
+  "+5–20% 枪手伤害抗性 / +5-20% Damage Resistance (Gunners)",
+  "+5–20% 变种人伤害抗性 / +5-20% Damage Resistance (Mutants)",
+  "+5–20% 瘟疫猎犬伤害抗性 / +5-20% Damage Resistance (Pox Hounds)",
+  "+5–20% 狙击手伤害抗性 / +5-20% Damage Resistance (Snipers)",
+  "+5–20% 剧毒火焰兵伤害抗性 / +5-20% Damage Resistance (Tox Flamers)",
+  "+6–12% 格挡效率 / +6-12% Block Efficiency",
+  "+6–12% 耐力恢复 / +6-12% Stamina Regeneration",
+  "+6–15% 腐化抗性 / +6-15% Corruption Resistance",
+  "+7.5–30% 韧性恢复速度 / +7.5-30% Toughness Regeneration Speed",
+  "+6–15% 冲刺效率 / 6-15% Sprint Efficiency"
 ];
 function uniqueStrings(arr){
   return [...new Set((arr||[]).filter(Boolean))];
@@ -474,6 +630,7 @@ function currentLoadout(){
   state.loadouts=state.loadouts||{};
   const key=baseClassKey();
   state.loadouts[key]={...blankLoadout(),...(state.loadouts[key]||{})};
+  normalizeLoadoutLabels(state.loadouts[key]);
   return state.loadouts[key];
 }
 function captureLoadout(){
@@ -493,7 +650,7 @@ function applyLoadout(){
 }
 function renderGearSuggestions(){
   const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
-  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 珍品类型仅用于记录外观，不影响主属性或词条。可输入关键词搜索，也可点右侧箭头浏览完整列表。 / Curio type is cosmetic; search by typing or open the full list.";
+  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 武器、祝福、词条和珍品均支持中文/英文搜索。珍品类型仅记录外观，不影响主属性或词条。 / Weapons, blessings, perks and curios are searchable in Chinese or English.";
   refreshOpenPickers();
 }
 function weaponOptions(slot){
@@ -501,7 +658,35 @@ function weaponOptions(slot){
   const guide=GEAR_GUIDE[key]||{melee:[],ranged:[]};
   const all=(EQUIPMENT_DB[key]&&EQUIPMENT_DB[key][slot])||[];
   const recommended=guide[slot]||[];
-  return uniqueStrings([...recommended,...all]).map(label=>({label,recommended:recommended.includes(label)}));
+  return uniqueStrings([...recommended,...all]).map(en=>({
+    label:weaponBilingualLabel(en),
+    recommended:recommended.includes(en)
+  }));
+}
+function localizedOptionValue(value,options){
+  const raw=String(value||"").trim();
+  if(!raw)return "";
+  const exact=options.find(x=>x===raw);
+  if(exact)return exact;
+  const hit=options.find(x=>x.endsWith(" / "+raw));
+  return hit||raw;
+}
+function localizedMultiValue(value,options){
+  return String(value||"").split("|").map(x=>localizedOptionValue(x.trim(),options)).filter(Boolean).join(" | ");
+}
+function normalizeLoadoutLabels(lo){
+  if(!lo)return lo;
+  lo.meleeWeapon=localizedOptionValue(lo.meleeWeapon,weaponOptions("melee").map(x=>x.label));
+  lo.rangedWeapon=localizedOptionValue(lo.rangedWeapon,weaponOptions("ranged").map(x=>x.label));
+  for(const id of ["meleeBlessing1","meleeBlessing2"])lo[id]=localizedOptionValue(lo[id],MELEE_BLESSINGS);
+  for(const id of ["rangedBlessing1","rangedBlessing2"])lo[id]=localizedOptionValue(lo[id],RANGED_BLESSINGS);
+  for(const id of ["meleePerk1","meleePerk2","rangedPerk1","rangedPerk2"])lo[id]=localizedOptionValue(lo[id],WEAPON_PERKS);
+  for(let i=1;i<=3;i++){
+    lo["curio"+i+"Type"]=localizedOptionValue(lo["curio"+i+"Type"],CURIO_TYPES);
+    lo["curio"+i+"Main"]=localizedOptionValue(lo["curio"+i+"Main"],CURIO_MAINS);
+    lo["curio"+i+"Perks"]=localizedMultiValue(lo["curio"+i+"Perks"],CURIO_PERKS);
+  }
+  return lo;
 }
 
 function makeBuildId(){
@@ -758,6 +943,9 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
 function setupEquipmentPickers(){
   setupSearchPicker("meleeWeapon",()=>weaponOptions("melee"));
   setupSearchPicker("rangedWeapon",()=>weaponOptions("ranged"));
+  for(const id of ["meleeBlessing1","meleeBlessing2"])setupSearchPicker(id,()=>MELEE_BLESSINGS);
+  for(const id of ["rangedBlessing1","rangedBlessing2"])setupSearchPicker(id,()=>RANGED_BLESSINGS);
+  for(const id of ["meleePerk1","meleePerk2","rangedPerk1","rangedPerk2"])setupSearchPicker(id,()=>WEAPON_PERKS);
   for(let i=1;i<=3;i++){
     setupSearchPicker("curio"+i+"Type",()=>CURIO_TYPES);
     setupSearchPicker("curio"+i+"Main",()=>CURIO_MAINS);
