@@ -135,6 +135,23 @@ Preview 模式会：
 2. Darktide Mod Framework (DMF)
 3. SoloPlay 或 Realms Server（实际战斗试玩）
 
+### Windows 一键安装本 Mod 文件
+
+仓库内提供 `install.ps1`，它不使用 GitHub Actions。运行后会：
+
+- 自动尝试识别 Steam / Steam Library 中的 Darktide；
+- 从 `depths-preview-mod` 分支下载完整 `DepthsPreview`；
+- 建立正确的 `mods/DepthsPreview` 目录；
+- 自动把 `DepthsPreview` 加入 `mod_load_order.txt`。
+
+如果自动检测不到游戏目录，可以传入：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -DarktidePath "D:\SteamLibrary\steamapps\common\Warhammer 40,000 DARKTIDE"
+```
+
+### 手动安装
+
 把整个：
 
 ```
