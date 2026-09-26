@@ -585,6 +585,96 @@ function uniqueStrings(arr){
   return [...new Set((arr||[]).filter(Boolean))];
 }
 
+const BLESSING_EFFECTS=window.BLESSING_EFFECTS||{};
+const BLESSING_INPUT_IDS=new Set(["meleeBlessing1","meleeBlessing2","rangedBlessing1","rangedBlessing2"]);
+let blessingTooltipHideTimer=null;
+
+function blessingEnglishName(label){
+  const raw=String(label||"").trim();
+  if(!raw)return "";
+  if(BLESSING_EFFECTS[raw])return raw;
+  const parts=raw.split(" / ");
+  const en=(parts[parts.length-1]||"").trim();
+  return BLESSING_EFFECTS[en]?en:raw;
+}
+function blessingEffectForLabel(label){
+  const en=blessingEnglishName(label);
+  const effect=BLESSING_EFFECTS[en];
+  return effect?{...effect,enName:en}:null;
+}
+function blessingDisplayName(label){
+  const raw=String(label||"").trim();
+  if(raw.includes(" / "))return raw;
+  const en=blessingEnglishName(raw);
+  const all=[...MELEE_BLESSINGS,...RANGED_BLESSINGS];
+  return all.find(x=>x.endsWith(" / "+en))||raw;
+}
+function ensureBlessingTooltip(){
+  let tip=document.getElementById("blessingTooltip");
+  if(tip)return tip;
+  tip=document.createElement("div");
+  tip.id="blessingTooltip";
+  tip.className="blessing-tooltip hidden";
+  tip.setAttribute("role","tooltip");
+  tip.innerHTML='<div class="blessing-tooltip-title"></div><div class="blessing-tooltip-cn"></div><div class="blessing-tooltip-en"></div><div class="blessing-tooltip-note"></div>';
+  document.body.appendChild(tip);
+  tip.addEventListener("mouseenter",()=>clearTimeout(blessingTooltipHideTimer));
+  tip.addEventListener("mouseleave",scheduleHideBlessingTooltip);
+  return tip;
+}
+function positionBlessingTooltip(anchor){
+  const tip=ensureBlessingTooltip();
+  const r=anchor.getBoundingClientRect();
+  const pad=10,gap=7;
+  const width=Math.min(390,window.innerWidth-pad*2);
+  tip.style.width=width+"px";
+  tip.style.left=Math.max(pad,Math.min(window.innerWidth-width-pad,r.left))+"px";
+  tip.style.top="0px";
+  tip.style.visibility="hidden";
+  tip.classList.remove("hidden");
+  const h=tip.getBoundingClientRect().height;
+  const below=r.bottom+gap;
+  const above=r.top-gap-h;
+  const top=(below+h<=window.innerHeight-pad||above<pad)?below:above;
+  tip.style.top=Math.max(pad,Math.min(window.innerHeight-h-pad,top))+"px";
+  tip.style.visibility="visible";
+}
+function showBlessingTooltip(label,anchor){
+  clearTimeout(blessingTooltipHideTimer);
+  const effect=blessingEffectForLabel(label);
+  const tip=ensureBlessingTooltip();
+  if(!effect||!anchor){
+    tip.classList.add("hidden");
+    return;
+  }
+  tip.querySelector(".blessing-tooltip-title").textContent=blessingDisplayName(label);
+  tip.querySelector(".blessing-tooltip-cn").textContent=effect.cn||"暂无中文效果说明。";
+  tip.querySelector(".blessing-tooltip-en").textContent=effect.en||"No English effect text available.";
+  const hasVars=/\{[a-zA-Z0-9_]+\}/.test((effect.cn||"")+" "+(effect.en||""));
+  tip.querySelector(".blessing-tooltip-note").textContent=hasVars
+    ?"{} 中的数值会随祝福等级或武器变化；当前 BD 编辑器尚未选择祝福等级。 / Values in {} vary by blessing tier or weapon."
+    :"效果文本来自维护中的 Darktide 祝福数据。 / Effect text from maintained Darktide blessing data.";
+  positionBlessingTooltip(anchor);
+}
+function hideBlessingTooltip(){
+  const tip=document.getElementById("blessingTooltip");
+  if(tip)tip.classList.add("hidden");
+}
+function scheduleHideBlessingTooltip(){
+  clearTimeout(blessingTooltipHideTimer);
+  blessingTooltipHideTimer=setTimeout(hideBlessingTooltip,110);
+}
+function bindBlessingTooltipInput(input){
+  if(!input||input.dataset.blessingTooltipReady==="1")return;
+  input.dataset.blessingTooltipReady="1";
+  const show=()=>showBlessingTooltip(input.value,input);
+  input.addEventListener("mouseenter",show);
+  input.addEventListener("focus",show);
+  input.addEventListener("input",show);
+  input.addEventListener("mouseleave",scheduleHideBlessingTooltip);
+  input.addEventListener("blur",scheduleHideBlessingTooltip);
+}
+
 let state={
   patch:"future",
   classKey:"veteran",
@@ -885,6 +975,12 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
         b.type="button";
         b.className="picker-option"+(item.recommended?" recommended":"");
         b.textContent=item.label;
+        if(BLESSING_INPUT_IDS.has(id)){
+          b.addEventListener("mouseenter",()=>showBlessingTooltip(item.label,b));
+          b.addEventListener("focus",()=>showBlessingTooltip(item.label,b));
+          b.addEventListener("mouseleave",scheduleHideBlessingTooltip);
+          b.addEventListener("blur",scheduleHideBlessingTooltip);
+        }
         b.onclick=()=>{
           if(multi){
             const allLabels=all.map(x=>x.label);
@@ -897,6 +993,7 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
             input.value=item.label;
           }
           input.dispatchEvent(new Event("input",{bubbles:true}));
+          if(BLESSING_INPUT_IDS.has(id))showBlessingTooltip(input.value,input);
           if(multi&&((input.value||"").split("|").map(x=>x.trim()).filter(Boolean).length<max)){
             input.focus();
             renderMenu(true);
@@ -943,8 +1040,14 @@ function setupSearchPicker(id,provider,{multi=false,max=3}={}){
 function setupEquipmentPickers(){
   setupSearchPicker("meleeWeapon",()=>weaponOptions("melee"));
   setupSearchPicker("rangedWeapon",()=>weaponOptions("ranged"));
-  for(const id of ["meleeBlessing1","meleeBlessing2"])setupSearchPicker(id,()=>MELEE_BLESSINGS);
-  for(const id of ["rangedBlessing1","rangedBlessing2"])setupSearchPicker(id,()=>RANGED_BLESSINGS);
+  for(const id of ["meleeBlessing1","meleeBlessing2"]){
+    setupSearchPicker(id,()=>MELEE_BLESSINGS);
+    bindBlessingTooltipInput(document.getElementById(id));
+  }
+  for(const id of ["rangedBlessing1","rangedBlessing2"]){
+    setupSearchPicker(id,()=>RANGED_BLESSINGS);
+    bindBlessingTooltipInput(document.getElementById(id));
+  }
   for(const id of ["meleePerk1","meleePerk2","rangedPerk1","rangedPerk2"])setupSearchPicker(id,()=>WEAPON_PERKS);
   for(let i=1;i<=3;i++){
     setupSearchPicker("curio"+i+"Type",()=>CURIO_TYPES);
@@ -2281,6 +2384,12 @@ function runAutomatedSelfTest(){
     if(!firstBlessing)throw new Error("blessing picker has no choices");
     firstBlessing.click();
     if(!/[\u4e00-\u9fff]/.test(blessing.value)||!blessing.value.includes(" / "))throw new Error("blessing picker is not bilingual");
+    blessing.dispatchEvent(new MouseEvent("mouseenter",{bubbles:true}));
+    const blessingTip=document.getElementById("blessingTooltip");
+    if(!blessingTip||blessingTip.classList.contains("hidden"))throw new Error("blessing effect tooltip did not open");
+    if(!/[\u4e00-\u9fff]/.test(blessingTip.querySelector(".blessing-tooltip-cn")?.textContent||""))throw new Error("blessing tooltip Chinese effect missing");
+    if(!/[A-Za-z]/.test(blessingTip.querySelector(".blessing-tooltip-en")?.textContent||""))throw new Error("blessing tooltip English effect missing");
+    hideBlessingTooltip();
 
     const perk=$("#meleePerk1");
     const perkHost=perk?.closest(".picker-host");
@@ -2383,7 +2492,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl36").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl37").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
