@@ -5,6 +5,19 @@ return {
   description = mod:localize("mod_description"),
   is_togglable = false,
   options = {
-    widgets = {},
+    widgets = {
+      {
+        setting_id = "open_preview",
+        type = "button",
+        button_text = "open",
+        function_name = "open_preview",
+      },
+      {
+        setting_id = "toggle_preview",
+        type = "button",
+        button_text = "toggle",
+        function_name = "toggle_preview",
+      },
+    },
   },
 }
