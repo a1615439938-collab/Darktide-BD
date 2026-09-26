@@ -8,6 +8,7 @@ local BlessingPreview = {}
 local proc_events = BuffSettings.proc_events
 local originals = {}
 local applied = false
+local NIL = {}
 
 local TRAIT_PATHS = {
   "scripts/settings/equipment/weapon_traits/weapon_traits_bespoke_powersword_p2",
@@ -25,10 +26,13 @@ local function capture_table(target, fields)
   local snapshot = {}
   for i = 1, #fields do
     local key = fields[i]
-    if type(target[key]) == "table" then
-      snapshot[key] = table.deep_clone and table.deep_clone(target[key]) or table.clone(target[key])
+    local value = target[key]
+    if value == nil then
+      snapshot[key] = NIL
+    elseif type(value) == "table" then
+      snapshot[key] = table.deep_clone and table.deep_clone(value) or table.clone(value)
     else
-      snapshot[key] = target[key]
+      snapshot[key] = value
     end
   end
   originals[target] = snapshot
@@ -36,7 +40,9 @@ end
 
 local function restore_table(target, snapshot)
   for key, value in pairs(snapshot) do
-    if type(value) == "table" then
+    if value == NIL then
+      target[key] = nil
+    elseif type(value) == "table" then
       target[key] = table.deep_clone and table.deep_clone(value) or table.clone(value)
     else
       target[key] = value
