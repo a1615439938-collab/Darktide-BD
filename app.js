@@ -257,37 +257,37 @@ const GEAR_GUIDE={
   veteran:{
     melee:["Maccabian Mk IV Duelling Sword","Scandar Mk III Power Sword"],
     ranged:["M35 Magnacore Mk II Plasma Gun","Accatran Mk XIV Recon Lasgun"],
-    curios:"参考 / Reference: 3× 韧性 Toughness；词条优先韧性回复、技能冷却、枪手减伤 / Toughness Regen, Ability Regen, Gunner DR."
+    curiosZh:"参考：3× 韧性；词条优先韧性回复、技能冷却、枪手减伤。",curiosEn:"Reference: 3× Toughness; prioritize Toughness Regen, Ability Regen and Gunner DR."
   },
   zealot:{
     melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk X Relic Blade"],
     ranged:["Artemia Mk III Purgation Flamer","Zarona Mk IIa Quickdraw Stub Revolver"],
-    curios:"参考 / Reference: 2–3× 韧性 Toughness；可混 1× 生命 Health。"
+    curiosZh:"参考：2–3× 韧性；也可以混 1× 生命。",curiosEn:"Reference: 2–3× Toughness; optionally mix in 1× Health."
   },
   psyker:{
     melee:["Maccabian Mk IV Duelling Sword","Covenant Mk VI Blaze Force Greatsword"],
     ranged:["Rifthaven Mk II Inferno Force Staff","Equinox Mk IV Voidstrike Force Staff"],
-    curios:"参考 / Reference: 韧性 Toughness + 技能冷却 Ability Regen；按玩法补生命 / Health."
+    curiosZh:"参考：韧性 + 技能冷却；按玩法补生命。",curiosEn:"Reference: Toughness + Ability Regen; add Health to suit the build."
   },
   ogryn:{
     melee:["Karsolas Mk II Delver's Pickaxe","Brute-Brainer Mk XIX Latrine Shovel"],
     ranged:["Lorenz Mk VI Rumbler","Foe-Rend Mk V Ripper Gun"],
-    curios:"参考 / Reference: 生命 Health 与韧性 Toughness 混搭；枪手减伤 / Gunner DR."
+    curiosZh:"参考：生命与韧性混搭；词条可优先枪手减伤。",curiosEn:"Reference: mix Health and Toughness; Gunner DR is a useful perk."
   },
   arbites:{
     melee:["Branx Mk III Arbites Shock Maul","Branx Mk VI Shock Maul & Suppression Shield"],
     ranged:["Exaction Mk VIII Exterminator Shotgun","Godwyn-Branx Mk IV Bolt Pistol"],
-    curios:"参考 / Reference: 2× 韧性 Toughness + 1× 生命 Health；枪手减伤与技能冷却。"
+    curiosZh:"参考：2× 韧性 + 1× 生命；词条优先枪手减伤与技能冷却。",curiosEn:"Reference: 2× Toughness + 1× Health; prioritize Gunner DR and Ability Regen."
   },
   skitarii:{
     melee:["Branx Mk XI Paired Transonic Blades","Branx Mk III Arc Maul"],
     ranged:["Branx Mk CV Galvanic Rifle","Branx Mk XI Phosphor Blast Pistol"],
-    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、枪手减伤。"
+    curiosZh:"参考：以韧性为主；词条优先技能冷却、韧性回复、枪手减伤。",curiosEn:"Reference: favor Toughness; prioritize Ability Regen, Toughness Regen and Gunner DR."
   },
   hivescum:{
     melee:["Improvised Mk I Shivs","Enginseer's Mk VI Crowbar"],
     ranged:["Branx MkVIII Dual Stub Pistols","Branx MkIII Dual Autopistols"],
-    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、耐力 / Stamina."
+    curiosZh:"参考：以韧性为主；词条优先技能冷却、韧性回复、耐力。",curiosEn:"Reference: favor Toughness; prioritize Ability Regen, Toughness Regen and Stamina."
   }
 };
 
@@ -1048,8 +1048,16 @@ function applyLoadout(){
   }
 }
 function renderGearSuggestions(){
-  const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
-  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 点击卡片选择装备；祝福会按当前武器自动筛选。珍品类型仅记录外观。 / Click cards to edit; blessings are filtered by the selected weapon.";
+  const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curiosZh:"",curiosEn:""};
+  const hint=$("#curioHint");
+  if(hint){
+    const guideText=uiText(guide.curiosZh||"",guide.curiosEn||"");
+    const actionText=uiText(
+      "点击卡片编辑；祝福会按当前武器自动筛选。珍品外观为可选项。",
+      "Click cards to edit; blessings are filtered by the selected weapon. Curio cosmetics are optional."
+    );
+    hint.textContent=[guideText,actionText].filter(Boolean).join(" ");
+  }
   refreshOpenPickers();
 }
 function weaponOptions(slot){
@@ -1130,7 +1138,7 @@ function applyBuildSnapshot(build){
 function blankBuild(){
   return {
     id:makeBuildId(),
-    name:"新 BD / New Build",
+    name:uiText("新 BD","New Build"),
     notes:"",
     patch:state.patch==="live"?"live":"future",
     classKey:baseClassKey()||"veteran",
@@ -1150,7 +1158,7 @@ function ensureBuildLibrary(){
   state.builds=Array.isArray(state.builds)?state.builds.filter(Boolean):[];
   if(!state.builds.length){
     const first=snapshotCurrentBuild(makeBuildId());
-    if(!first.name)first.name="我的 BD 1 / My Build 1";
+    if(!first.name)first.name=uiText("我的 BD 1","My Build 1");
     state.builds=[first];
     state.activeBuildId=first.id;
     return;
@@ -1218,7 +1226,7 @@ function createSavedBuild(copyCurrent=false){
   let next;
   if(copyCurrent){
     next=snapshotCurrentBuild(makeBuildId());
-    next.name=((state.name||"未命名 BD / Untitled").trim()+" · 副本 / Copy");
+    next.name=((state.name||uiText("未命名 BD","Untitled")).trim()+" · "+uiText("副本","Copy"));
   }else{
     next=blankBuild();
   }
@@ -3607,7 +3615,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl52").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl53").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
