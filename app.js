@@ -499,7 +499,7 @@ function applyLoadout(){
 }
 function renderGearSuggestions(){
   const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
-  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 可直接输入关键词搜索，也可点右侧箭头浏览完整列表。 / Search by typing or open the full list.";
+  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 珍品类型仅用于记录外观，不影响主属性或词条。可输入关键词搜索，也可点右侧箭头浏览完整列表。 / Curio type is cosmetic; search by typing or open the full list.";
   refreshOpenPickers();
 }
 function weaponOptions(slot){
@@ -2002,6 +2002,19 @@ function runAutomatedSelfTest(){
     melee.dispatchEvent(new Event("input",{bubbles:true}));
     if(currentLoadout().meleeWeapon!=="SELFTEST WEAPON")throw new Error("loadout did not persist");
 
+    const pickerHost=melee.closest(".picker-host");
+    const pickerMenu=pickerHost?.querySelector(".picker-menu");
+    const pickerToggle=pickerHost?.querySelector(".picker-toggle");
+    if(!pickerHost||!pickerMenu||!pickerToggle)throw new Error("weapon searchable picker missing");
+    melee.value="";
+    melee.dispatchEvent(new Event("input",{bubbles:true}));
+    pickerMenu.hidden=true;
+    pickerToggle.click();
+    const firstWeapon=pickerMenu.querySelector(".picker-option");
+    if(pickerMenu.hidden||!firstWeapon)throw new Error("weapon picker did not open with choices");
+    firstWeapon.click();
+    if(!melee.value||currentLoadout().meleeWeapon!==melee.value)throw new Error("weapon picker selection did not persist");
+
     const code=exportData();
     if(!code.startsWith("DTB3."))throw new Error("compact build code not generated");
 
@@ -2075,7 +2088,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl33").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl34").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
