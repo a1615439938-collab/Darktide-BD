@@ -148,6 +148,14 @@ function Equipment.selection()
   return key, key and State.loadout(key) or {}
 end
 
+function Equipment.selftest()
+  local result = {}
+  for id, entry in pairs(CATALOG) do
+    result[id] = MasterItems.get_item(entry.source) ~= nil
+  end
+  return result
+end
+
 function Equipment.install()
   if installed then
     return
