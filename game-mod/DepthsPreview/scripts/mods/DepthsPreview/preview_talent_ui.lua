@@ -459,13 +459,18 @@ function TalentUI.restore_profile_talents()
   end
 end
 
+function TalentUI.restore_runtime()
+  TalentUI._open_talent_when_ready = nil
+  restore_layouts()
+  TalentUI.restore_profile_talents()
+end
+
 function TalentUI.set_enabled(value)
   State.set_enabled(value)
   if State.enabled() then
     install_layouts()
   else
-    restore_layouts()
-    TalentUI.restore_profile_talents()
+    TalentUI.restore_runtime()
   end
 end
 
