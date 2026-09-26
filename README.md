@@ -61,3 +61,18 @@ UI 或数据改动后应继续保持相应检查通过。
 - 游戏内天赋图标：其版权归对应游戏权利人所有，仅用于识别天赋
 - 中文名称：优先采用维护中的 Darktide 中文术语来源，并继续核对官方简中
 - 本项目不会复制 Games Lantern 的专有源代码、Logo 或广告 / 商业页面；仅复现 BD 编辑器所需的公开交互与信息结构
+
+
+## DepthsPreview 本地试玩 Mod（开发中）
+
+仓库的 `depths-preview-mod` 分支新增 `game-mod/DepthsPreview/`，用于在
+SoloPlay / Realms 本地主机中把网站的未来树构筑带入游戏测试。
+
+当前 Alpha：
+- 网站可生成紧凑的 `DTP1` 试玩代码；
+- Mod 只在本地游戏服务器权威环境中应用，不修改官方后端角色存档；
+- 与当前正式服机制完全一致的未来节点可以直接复用；
+- 已改动或全新的节点不会假装已实现，会列入 custom/pending 清单；
+- 后续逐项用 Lua 实现这些 changed/new 节点。
+
+安装与命令见 `game-mod/DepthsPreview/README.md`。
