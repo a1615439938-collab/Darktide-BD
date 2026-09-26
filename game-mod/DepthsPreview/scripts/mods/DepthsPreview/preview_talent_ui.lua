@@ -491,6 +491,32 @@ function TalentUI.status()
   return class_key, count
 end
 
+function TalentUI.selftest()
+  local expected = {
+    veteran = 77,
+    zealot = 83,
+    psyker = 82,
+    ogryn = 87,
+  }
+  local result = {}
+
+  for class_key, count in pairs(expected) do
+    local snapshot = PreviewTrees.classes[class_key]
+    local layout = preview_layouts[class_key]
+    result[class_key] = {
+      snapshot_nodes = snapshot and #snapshot.nodes or 0,
+      layout_nodes = layout and #layout.nodes or 0,
+      expected_nodes = count,
+      ok = snapshot ~= nil
+        and #snapshot.nodes == count
+        and layout ~= nil
+        and #layout.nodes == count,
+    }
+  end
+
+  return result
+end
+
 function TalentUI.install()
   if installed then
     return
