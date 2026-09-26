@@ -2,9 +2,9 @@
 """Generate compact DepthsPreview runtime data from tree-core.js.
 
 A future node is reusable only when:
-1. the same live slug has exactly the same category, description and advanced
-   description; or
-2. another live node in the SAME archetype has exactly the same category and
+1. the same live slug has exactly the same description and advanced description
+   (the UI category may move without changing gameplay); or
+2. another live node in the SAME archetype, SAME category has exactly the same
    effect text (safe effect-equivalent reuse, mainly relocated stat nodes).
 
 Everything else remains "custom" until explicitly implemented in Lua.
@@ -28,7 +28,7 @@ def lua_string(value):
     return f'"{value}"'
 
 def signature(node):
-    return (node.get("cat"), norm(node.get("desc")), norm(node.get("advancedEn")))
+    return (norm(node.get("desc")), norm(node.get("advancedEn")))
 
 def main():
     text = SOURCE.read_text(encoding="utf-8-sig").strip()
@@ -65,7 +65,7 @@ def main():
             ordinal_count[name] = ordinal_count.get(name, 0) + 1
             live_ordinal[node["s"]] = ordinal_count[name]
 
-        reuse = custom = effect_reuse = 0
+        reuse = custom = effect_reuse = category_move = 0
         out.extend([f"    {key} = {{", f"      key = {lua_string(key)},", "      nodes = {"])
 
         for index, node in enumerate(future["nodes"], 1):
@@ -75,9 +75,12 @@ def main():
             match_kind = None
 
             if same_slug and signature(same_slug) == signature(node):
-                match_kind = "slug"
+                match_kind = "slug" if same_slug.get("cat") == node.get("cat") else "category-move"
             else:
-                effect_matches = live_by_effect.get(signature(node), [])
+                effect_matches = [
+                    n for n in live_by_effect.get(signature(node), [])
+                    if n.get("cat") == node.get("cat")
+                ]
                 if effect_matches:
                     live_node = effect_matches[0]
                     match_kind = "effect"
@@ -86,6 +89,7 @@ def main():
             reuse += int(reusable)
             custom += int(not reusable)
             effect_reuse += int(match_kind == "effect")
+            category_move += int(match_kind == "category-move")
 
             parts = [
                 f"index = {index}",
@@ -107,7 +111,7 @@ def main():
 
         out.extend([
             "      },",
-            f"      stats = {{ total = {len(future['nodes'])}, reuse = {reuse}, effect_reuse = {effect_reuse}, custom = {custom} }},",
+            f"      stats = {{ total = {len(future['nodes'])}, reuse = {reuse}, effect_reuse = {effect_reuse}, category_move = {category_move}, custom = {custom} }},",
             "    },",
         ])
 
