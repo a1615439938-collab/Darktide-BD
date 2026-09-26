@@ -58,6 +58,33 @@ FOLDER_CAT = {
     'broker_stimm':'stimm',
 }
 
+
+# Games Lantern's future-tree SVG can expose some stat nodes without tooltip values.
+# These values are cross-checked against the matching current node plus the published
+# Depths of the Damned stat-node removals/rearrangements. Keep them keyed by the full
+# future-tree slug so regeneration cannot silently turn them back into placeholders.
+FUTURE_STAT_VALUE_OVERRIDES = {
+    'depths-of-the-damned/toughness-damage-reduction-e9803f5f': ('+10% Toughness Damage Reduction.', '韧性伤害减免+10%。'),
+    'depths-of-the-damned/toughness-boost-05f0f182': ('+25 Toughness.', '韧性+25。'),
+    'depths-of-the-damned/melee-damage-boost-cffd3f48': ('+15% Melee Damage.', '近战伤害+15%。'),
+    'depths-of-the-damned/melee-damage-boost-0e0cbc5b': ('+10% Melee Damage.', '近战伤害+10%。'),
+    'depths-of-the-damned/toughness-damage-reduction-f19a0ccc': ('+10% Toughness Damage Reduction.', '韧性伤害减免+10%。'),
+    'depths-of-the-damned/melee-damage-boost-cae861f3': ('+10% Melee Damage.', '近战伤害+10%。'),
+    'depths-of-the-damned/toughness-boost-51f63e01': ('+25 Toughness.', '韧性+25。'),
+    'depths-of-the-damned/toughness-boost-e8d6645b': ('+25 Toughness.', '韧性+25。'),
+    'depths-of-the-damned/toughness-damage-reduction-d116b71e': ('+10% Toughness Damage Reduction.', '韧性伤害减免+10%。'),
+    'depths-of-the-damned/toughness-damage-reduction-e0dd7125': ('+10% Toughness Damage Reduction.', '韧性伤害减免+10%。'),
+    'depths-of-the-damned/toughness-damage-reduction-ee9c4ad4': ('+10% Toughness Damage Reduction.', '韧性伤害减免+10%。'),
+    'depths-of-the-damned/ranged-damage-boost-f424381c': ('+10% Ranged Damage.', '远程伤害+10%。'),
+    'depths-of-the-damned/melee-damage-boost-53898f4e': ('+10% Melee Damage.', '近战伤害+10%。'),
+    'depths-of-the-damned/cleave-boost-fa9cb3e8': ('+25% Cleave.', '顺劈+25%。'),
+    'depths-of-the-damned/impact-boost-96c8eedb': ('+25% Impact.', '冲击+25%。'),
+    'depths-of-the-damned/toughness-boost-f3ac2cfc': ('+25 Toughness.', '韧性+25。'),
+    'depths-of-the-damned/critical-chance-boost-42c40f11': ('+5% Critical Hit Chance.', '暴击率+5%。'),
+    'depths-of-the-damned/melee-damage-boost-1bb21487': ('+10% Melee Damage.', '近战伤害+10%。'),
+    'depths-of-the-damned/potent-tox-5bca9c55': ('+10% Toxin Strength.', '毒素强度+10%。'),
+}
+
 def get(url, binary=False, tries=3):
     for i in range(tries):
         try:
@@ -791,6 +818,13 @@ def attach_info(trees):
                 else:
                     n['advancedEn'] = pair_en if advanced_current else ''
                     n['advancedCn'] = pair_cn if advanced_current else ''
+
+                future_stat = FUTURE_STAT_VALUE_OVERRIDES.get(n.get('slug', '')) if cl.get('patch') == 'future' and n.get('cat') == 'stat' else None
+                if future_stat:
+                    n['desc'], n['descCn'] = future_stat
+                    n['descSourceEn'] = 'games-lantern'
+                    n['descSource'] = 'manual-reviewed'
+
                 if name_key(en) == 'just a dream':
                     # Fatshark's official Bound by Duty notes give the user-facing effect.
                     # Decompiled game source confirms the actual threshold (97%) and that
