@@ -43,6 +43,7 @@ local GENERIC_ICONS = {
 local original_layouts = {}
 local preview_layouts = {}
 local localization = {}
+local original_talent_fields = {}
 local installed = false
 local HOST_TYPES = MatchmakingConstants.HOST_TYPES
 
@@ -154,8 +155,7 @@ local function loc_key(kind, class_key, snapshot_node)
   return "loc_depths_preview_" .. kind .. "_" .. class_key .. "_" .. string.gsub(snapshot_node.id, "^dp_", "")
 end
 
-local function register_custom_definition(class_key, snapshot_node, native_match)
-  local archetype = Archetypes[class_key]
+local function register_preview_text(class_key, snapshot_node)
   local key = custom_talent_key(class_key, snapshot_node)
   local name_key = loc_key("name", class_key, snapshot_node)
   local desc_key = loc_key("desc", class_key, snapshot_node)
@@ -168,6 +168,37 @@ local function register_custom_definition(class_key, snapshot_node, native_match
     en = snapshot_node.desc or "",
     zh = snapshot_node.desc_cn ~= "" and snapshot_node.desc_cn or snapshot_node.desc or "",
   }
+
+  return name_key, desc_key
+end
+
+local function override_native_definition(class_key, snapshot_node, native_match)
+  local definition = native_match and native_match.definition
+  if not definition then
+    return nil
+  end
+
+  local name_key, desc_key = register_preview_text(class_key, snapshot_node)
+
+  if not original_talent_fields[definition] then
+    original_talent_fields[definition] = {
+      description = definition.description,
+      display_name = definition.display_name,
+      name = definition.name,
+    }
+  end
+
+  definition.description = desc_key
+  definition.display_name = name_key
+  definition.name = snapshot_node.en or definition.name
+
+  return native_match.talent, native_match.node and native_match.node.icon
+end
+
+local function register_custom_definition(class_key, snapshot_node, native_match)
+  local archetype = Archetypes[class_key]
+  local key = custom_talent_key(class_key, snapshot_node)
+  local name_key, desc_key = register_preview_text(class_key, snapshot_node)
 
   local icon = native_match and native_match.node and native_match.node.icon or GENERIC_ICONS[class_key]
   archetype.talents[key] = archetype.talents[key] or {
@@ -250,7 +281,12 @@ local function build_layout(class_key, original_layout)
     elseif is_reuse then
       talent = native_match.talent
       icon = native_match.node.icon
+    elseif native_match then
+      -- Preview-changed talents reuse the live combat implementation first.
+      -- Numeric/trigger differences are patched by talent_balance_preview.lua.
+      talent, icon = override_native_definition(class_key, source, native_match)
     else
+      -- Truly new preview talents have no live implementation to reuse.
       talent, icon = register_custom_definition(class_key, source, native_match)
     end
 
@@ -339,6 +375,13 @@ local function restore_layouts()
       replace_table(native_layout, deep_copy(original))
     end
   end
+
+  for definition, fields in pairs(original_talent_fields) do
+    definition.description = fields.description
+    definition.display_name = fields.display_name
+    definition.name = fields.name
+  end
+  table.clear(original_talent_fields)
 end
 
 local function class_key_from_player(player)
