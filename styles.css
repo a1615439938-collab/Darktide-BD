@@ -1041,3 +1041,79 @@ html[data-lang="bi"] .only-zh-bi,
 html[data-lang="bi"] .only-en-bi{display:initial}
 html[data-lang="zh"] .equipment-edit .only-zh-bi,
 html[data-lang="en"] .equipment-edit .only-en-bi{display:inline!important}
+
+
+/* ===== Compact mobile command bar v9 ===== */
+.toolbar-secondary{display:contents}
+
+@media(max-width:560px){
+  .app-shell-head{
+    min-height:52px;
+    padding:calc(6px + env(safe-area-inset-top)) 10px 6px;
+  }
+  .app-shell-head .brand h1{font-size:18px;margin:0}
+  .app-shell-head .point-badge{min-width:78px;padding:4px 7px}
+  .app-shell-head .point-badge b{font-size:15px}
+  .app-shell-head .point-badge span{margin-top:2px;font-size:8px}
+
+  .workspace-toolbar{
+    grid-template-columns:1fr;
+    gap:5px;
+    padding:6px;
+    margin:6px 0 8px;
+  }
+  .build-control{
+    grid-column:1;
+    padding:5px;
+  }
+  .build-control select{height:34px;padding:0 8px;font-size:11px}
+  .build-actions-menu summary{width:34px;height:34px}
+
+  .toolbar-secondary{
+    display:grid;
+    grid-column:1;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,.95fr) auto;
+    gap:4px;
+    align-items:stretch;
+  }
+  .toolbar-secondary .toolbar-control{padding:4px}
+  .patch-control,.language-control{grid-column:auto!important}
+  .patch-compact{gap:3px}
+  .patch-compact .patch{min-height:32px;padding:4px 5px}
+  .patch-compact .patch span{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .language-switch{gap:2px}
+  .language-switch button{height:32px;padding:0 4px;font-size:9px}
+  .save-state{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    justify-self:stretch;
+    display:grid;
+    place-items:center;
+    min-width:38px;
+    padding:4px 6px;
+    font-size:0;
+    border-radius:6px;
+  }
+  .save-state::before{content:"✓";font-size:12px}
+  .save-state.saving::before{content:"…"}
+  .save-state.error::before{content:"!"}
+  .patch-note,.toolbar-label{display:none}
+
+  .class-control{
+    grid-column:1;
+    padding:3px 4px 1px;
+    border:0;
+    background:transparent;
+  }
+  .class-control .class-strip{gap:4px;padding:0 0 1px}
+  .class-control .class-strip button{
+    min-width:88px;
+    min-height:34px;
+    padding:5px 8px;
+    font-size:10px;
+  }
+  .class-strip button img{width:19px;height:19px}
+  .class-control .subtree-strip{margin-top:3px;padding-bottom:2px}
+
+  .tree-title,.loadout-title,.meta-title{margin-top:4px}
+}
