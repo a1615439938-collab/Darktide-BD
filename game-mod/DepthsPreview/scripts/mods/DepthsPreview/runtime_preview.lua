@@ -522,7 +522,8 @@ function Runtime.install()
 
     local holy_cause = State.has_node(class, NODE.zealot.holy_cause)
     local ecclesiarch = State.has_node(class, NODE.zealot.ecclesiarchs_call)
-    if not holy_cause and not ecclesiarch then
+    local chorus = State.has_node(class, NODE.zealot.chorus)
+    if not chorus and not holy_cause and not ecclesiarch then
       return
     end
 
@@ -532,7 +533,7 @@ function Runtime.install()
       -- September 29: every pulse grants +15 Max Toughness even when the
       -- ally was not already at full Toughness. The live client only adds
       -- the stack at full Toughness, so top up to exactly one stack/pulse.
-      if State.has_node(class, NODE.zealot.chorus) then
+      if chorus then
         local buff_extension = ScriptUnit.has_extension(unit, "buff_system")
         if buff_extension and self._toughness_bonus_buff then
           local expected = math.min(5, (self._num_ticks or 0) + 1)
