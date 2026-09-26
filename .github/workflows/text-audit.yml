@@ -8,6 +8,7 @@ on:
       - "app.js"
       - "tools/audit_text.py"
       - "tools/source_audit.py"
+      - "tools/translation_quality_audit.py"
       - "tools/scrape_future.py"
       - "tools/enhanced_zh.py"
   workflow_dispatch:
@@ -20,11 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Install translation audit dependency
+        run: pip install opencc-python-reimplemented
+
       - name: Run bilingual text audit
         run: python tools/audit_text.py
 
       - name: Audit source provenance and official preview values
         run: python tools/source_audit.py
+
+      - name: Audit Chinese translation quality and terminology
+        run: python tools/translation_quality_audit.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
