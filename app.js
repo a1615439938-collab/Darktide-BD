@@ -810,7 +810,7 @@ function positionBlessingTooltip(anchor){
   tip.style.top=Math.max(pad,Math.min(window.innerHeight-h-pad,top))+"px";
   tip.style.visibility="visible";
 }
-function showBlessingTooltip(label,anchor,inputId=""){
+function showBlessingTooltip(label,anchor,inputId="",tierOverride=""){
   clearTimeout(blessingTooltipHideTimer);
   const sourceId=inputId||anchor.id||"";
   const effect=blessingEffectForLabel(label,sourceId);
@@ -819,7 +819,7 @@ function showBlessingTooltip(label,anchor,inputId=""){
     tip.classList.add("hidden");
     return;
   }
-  const tierSummary=blessingTierSummary(label,sourceId);
+  const tierSummary=blessingTierSummary(label,sourceId,tierOverride);
   tip.querySelector(".blessing-tooltip-title").textContent=blessingDisplayName(label);
   const tierEl=tip.querySelector(".blessing-tooltip-tier");
   tierEl.textContent=tierSummary;
@@ -1465,7 +1465,7 @@ function renderEquipmentOptions(){
     meta.textContent=item.meta||"";
     b.appendChild(copy);b.appendChild(meta);
     if(equipmentEditor.action==="blessing"){
-      b.addEventListener("mouseenter",()=>showBlessingTooltip(item.label,b,equipmentEditor.field));
+      b.addEventListener("mouseenter",()=>showBlessingTooltip(item.label,b,equipmentEditor.field,equipmentEditor.tier));
       b.addEventListener("mouseleave",scheduleHideBlessingTooltip);
     }
     b.onclick=()=>selectEquipmentOption(item.label);
