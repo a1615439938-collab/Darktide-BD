@@ -749,7 +749,7 @@ html.desktop-input .provenance{font-size:8px}
 .class-control .subtree-strip{margin-top:6px}
 
 .workspace-tabs{
-  position:sticky;top:0;z-index:45;
+  position:sticky;top:calc(64px + env(safe-area-inset-top));z-index:35;
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:4px;margin:0 0 10px;padding:5px;
   background:rgba(7,15,19,.94);backdrop-filter:blur(10px);

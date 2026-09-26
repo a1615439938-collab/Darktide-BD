@@ -1099,7 +1099,12 @@ function ensureBuildLibrary(){
   applyBuildSnapshot(active);
 }
 function writeStorage(){
-  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}
+  try{
+    localStorage.setItem(STORE,JSON.stringify(state));
+    return true;
+  }catch(_){
+    return false;
+  }
 }
 function classLabelForBuild(build){
   const list=build.patch==="live"&&Array.isArray(DATA.liveClasses)?DATA.liveClasses:DATA.classes;
@@ -1744,11 +1749,10 @@ function persist(){
   captureLoadout();
   syncActiveBuild();
   renderSaveState("saving");
-  try{
-    writeStorage();
+  if(writeStorage()){
     clearTimeout(saveStateTimer);
     saveStateTimer=setTimeout(()=>renderSaveState("saved"),180);
-  }catch(_){
+  }else{
     renderSaveState("error");
   }
 }
@@ -2987,7 +2991,8 @@ function runVisualPopoverTest(){
       ||CUR.nodes.find(n=>n.cat!=="root");
     if(!candidate)throw new Error("no visual-test candidate");
     const node=nodeEls[candidate.s];
-    const before=node.getBoundingClientRect().top;
+    const treeViewport=$("#treeViewport");
+    const beforeTree=treeViewport.getBoundingClientRect().top;
     hotSlug=candidate.s;
     redraw();
     showInfo(candidate,false);
@@ -3018,7 +3023,8 @@ function runVisualPopoverTest(){
         document.body.dataset.popoverInsideY=String(insideY);
         document.body.dataset.popoverRelation=String(relation);
         document.body.dataset.popoverSide=side;
-        document.body.dataset.treeShift=String(Math.round(Math.abs(nr.top-before)));
+        const afterTree=treeViewport.getBoundingClientRect().top;
+        document.body.dataset.treeShift=String(Math.round(Math.abs(afterTree-beforeTree)));
         document.body.dataset.visualWidth=String(Math.round(vr-vl));
         document.body.dataset.visualHeight=String(Math.round(vb-vt));
         document.body.dataset.popoverLeft=String(Math.round(pr.left));
@@ -3179,7 +3185,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl46").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl47").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
