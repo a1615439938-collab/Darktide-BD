@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl51">
+  <link rel="stylesheet" href="./styles.css?v=gl52">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -250,14 +250,16 @@
           <span>珍品 1</span>
           <span class="curio-progress" data-curio-progress="1">0 / 4</span>
           <button type="button" data-curio-copy-all="1">复制到全部</button>
-        </div>
-        <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio1Type">
+        
+          <button type="button" class="curio-toggle" data-curio-toggle="1">收起</button></div>
+        <div class="curio-body">
+        <details class="curio-cosmetic"><summary data-cn="外观（可选）" data-en="Cosmetic (optional)">外观（可选）</summary><button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio1Type">
           <span class="equipment-mark">C1</span>
           <span class="equipment-copy">
             <strong data-card-title>外观（可选）</strong>
             <small data-card-subtitle>不影响 BD / Cosmetic only</small>
           </span>
-        </button>
+        </button></details>
         <div class="equipment-section-label">主属性 / Main Stat</div>
         <button class="modifier-card curio-main-card" type="button" data-equip-action="curioMain" data-field="curio1Main">
           <span class="modifier-kicker">主属性 / Main</span>
@@ -280,20 +282,23 @@
             <small data-card-subtitle>Select perk</small>
           </button>
         </div>
+              </div>
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="2">
         <div class="curio-toolbar">
           <span>珍品 2</span>
           <span class="curio-progress" data-curio-progress="2">0 / 4</span>
           <button type="button" data-curio-copy-prev="2">复制珍品 1</button>
-        </div>
-        <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio2Type">
+        
+          <button type="button" class="curio-toggle" data-curio-toggle="2">收起</button></div>
+        <div class="curio-body">
+        <details class="curio-cosmetic"><summary data-cn="外观（可选）" data-en="Cosmetic (optional)">外观（可选）</summary><button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio2Type">
           <span class="equipment-mark">C2</span>
           <span class="equipment-copy">
             <strong data-card-title>外观（可选）</strong>
             <small data-card-subtitle>不影响 BD / Cosmetic only</small>
           </span>
-        </button>
+        </button></details>
         <div class="equipment-section-label">主属性 / Main Stat</div>
         <button class="modifier-card curio-main-card" type="button" data-equip-action="curioMain" data-field="curio2Main">
           <span class="modifier-kicker">主属性 / Main</span>
@@ -316,20 +321,23 @@
             <small data-card-subtitle>Select perk</small>
           </button>
         </div>
+              </div>
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="3">
         <div class="curio-toolbar">
           <span>珍品 3</span>
           <span class="curio-progress" data-curio-progress="3">0 / 4</span>
           <button type="button" data-curio-copy-prev="3">复制珍品 2</button>
-        </div>
-        <button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio3Type">
+        
+          <button type="button" class="curio-toggle" data-curio-toggle="3">收起</button></div>
+        <div class="curio-body">
+        <details class="curio-cosmetic"><summary data-cn="外观（可选）" data-en="Cosmetic (optional)">外观（可选）</summary><button class="curio-type-card" type="button" data-equip-action="curioType" data-field="curio3Type">
           <span class="equipment-mark">C3</span>
           <span class="equipment-copy">
             <strong data-card-title>外观（可选）</strong>
             <small data-card-subtitle>不影响 BD / Cosmetic only</small>
           </span>
-        </button>
+        </button></details>
         <div class="equipment-section-label">主属性 / Main Stat</div>
         <button class="modifier-card curio-main-card" type="button" data-equip-action="curioMain" data-field="curio3Main">
           <span class="modifier-kicker">主属性 / Main</span>
@@ -352,6 +360,7 @@
             <small data-card-subtitle>Select perk</small>
           </button>
         </div>
+              </div>
       </article>
     </div>
     <div class="meta-hint" id="curioHint"></div>
@@ -468,6 +477,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl51"></script>
+<script src="./app.js?v=gl52"></script>
 </body>
 </html>

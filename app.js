@@ -1005,6 +1005,7 @@ function applyLanguageMode(){
   if(buildName)buildName.placeholder=state.language==="en"?"e.g. Voice of Command Veteran":"例如：发号施令老兵";
   const notes=$("#notes");
   if(notes)notes.placeholder=state.language==="en"?"Playstyle, alternatives, breakpoints, difficulty…":"记录打法、替代武器、断点、适用难度等…";
+  document.querySelectorAll("[data-curio-index]").forEach(syncCurioToggle);
   renderSaveState("saved");
 }
 
@@ -1920,6 +1921,33 @@ function clearEquipmentEditorSlot(){
   persist();renderLoadoutCards();
   document.getElementById("equipmentDialog")?.close();
 }
+function syncCurioToggle(card){
+  if(!card)return;
+  const btn=card.querySelector("[data-curio-toggle]");
+  if(!btn)return;
+  const collapsed=card.classList.contains("collapsed");
+  btn.textContent=collapsed?uiText("展开","Expand"):uiText("收起","Collapse");
+  btn.setAttribute("aria-expanded",String(!collapsed));
+}
+function setupCurioCollapsers(){
+  const mobile=matchMedia("(max-width:560px)").matches;
+  document.querySelectorAll("[data-curio-index]").forEach(card=>{
+    const index=Number(card.dataset.curioIndex||0);
+    if(card.dataset.collapseInitialized!=="1"){
+      card.dataset.collapseInitialized="1";
+      if(mobile&&index>1)card.classList.add("collapsed");
+    }
+    const btn=card.querySelector("[data-curio-toggle]");
+    if(btn&&btn.dataset.collapseReady!=="1"){
+      btn.dataset.collapseReady="1";
+      btn.addEventListener("click",()=>{
+        card.classList.toggle("collapsed");
+        syncCurioToggle(card);
+      });
+    }
+    syncCurioToggle(card);
+  });
+}
 function setupEquipmentPickers(){
   document.querySelectorAll("[data-equip-action][data-field]").forEach(card=>{
     if(card.dataset.editorReady==="1")return;
@@ -1968,6 +1996,7 @@ function setupEquipmentPickers(){
     btn.addEventListener("click",()=>copyCurioToAll(Number(btn.dataset.curioCopyAll)));
   });
   document.getElementById("equipmentDialog")?.addEventListener("close",hideBlessingTooltip);
+  setupCurioCollapsers();
   renderLoadoutCards();
 }
 function refreshOpenPickers(){
@@ -3302,6 +3331,7 @@ function selfCheck(){
   if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")) throw new Error("loadout completion UI is missing");
   if(!$("#equipmentFilters")) throw new Error("equipment filter bar is missing");
   if(!document.querySelector("[data-curio-copy-all]")||document.querySelectorAll("[data-curio-copy-prev]").length!==2) throw new Error("curio copy shortcuts are missing");
+  if(document.querySelectorAll("[data-curio-toggle]").length!==3||document.querySelectorAll(".curio-body").length!==3) throw new Error("curio disclosure controls are missing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout state fields are missing");
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
   if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
@@ -3324,6 +3354,8 @@ function runDesktopSelfTest(){
     syncInputMode();
     if(!isDesktopInteraction())throw new Error("desktop interaction mode not active");
     const before=points();
+    const mobileCurio2=document.querySelector('[data-curio-index="2"]');
+    if(MOBILE_TEST&&mobileCurio2&&!mobileCurio2.classList.contains("collapsed"))throw new Error("secondary curios are not collapsed by default on mobile");
     const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
     if(!firstAvail)throw new Error("no selectable desktop node");
     const el=nodeEls[firstAvail.s];
@@ -3575,7 +3607,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl51").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl52").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");

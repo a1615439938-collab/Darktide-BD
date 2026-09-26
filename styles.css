@@ -173,8 +173,8 @@ button{touch-action:manipulation}
   -webkit-overflow-scrolling:touch;
   scrollbar-width:thin;
 }
-.node-popover.hidden{opacity:0;transform:scale(.96) translateY(4px);pointer-events:none}
-.node-popover:not(.hidden){opacity:1;transform:scale(1) translateY(0)}
+.node-popover.hidden{opacity:0;transform:translateY(4px);pointer-events:none}
+.node-popover:not(.hidden){opacity:1;transform:translateY(0)}
 .popover-type{font-size:10px;color:#a7b39e;margin-bottom:4px}
 .popover-head{display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
 .node-popover h2{font-size:18px;margin:0 0 1px;line-height:1.08}
@@ -959,3 +959,23 @@ html[data-lang="en"] .gear-head>b{display:block}
 }
 html[data-lang="zh"] label small{display:none}
 html[data-lang="zh"] .brand-sub{display:none}
+
+
+/* ===== Mobile curio disclosure v5 ===== */
+.curio-body{display:block}
+.curio-card.collapsed .curio-body{display:none}
+.curio-toggle{min-width:46px}
+.curio-cosmetic{margin-top:7px;border-top:1px solid rgba(255,255,255,.05);padding-top:6px}
+.curio-cosmetic summary{
+  cursor:pointer;color:#78878b;font-size:8px;list-style:none;user-select:none
+}
+.curio-cosmetic summary::-webkit-details-marker{display:none}
+.curio-cosmetic summary:before{content:"＋ ";color:#9e8a51}
+.curio-cosmetic[open] summary:before{content:"− "}
+.curio-cosmetic .curio-type-card{margin-top:6px}
+.curio-card.collapsed .curio-toolbar{margin-bottom:0;padding-bottom:0;border-bottom:0}
+@media(max-width:560px){
+  .curio-toolbar{gap:5px}
+  .curio-toolbar button{padding:5px 6px}
+  .curio-card.collapsed{padding-bottom:8px}
+}
