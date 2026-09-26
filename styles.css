@@ -282,6 +282,11 @@ input:focus,textarea:focus{border-color:#a8893d}
   font-size:12px;font-weight:800;color:#f0d47b;
   line-height:1.35;margin-bottom:7px
 }
+.blessing-tooltip-tier{
+  margin-bottom:8px;padding:7px 8px;border-radius:7px;
+  background:rgba(230,201,112,.08);border:1px solid rgba(230,201,112,.18);
+  color:#eadcaa;font-size:9.5px;line-height:1.45;white-space:pre-line
+}
 .blessing-tooltip-cn{
   font-size:11px;line-height:1.58;color:#eef3ea;
   white-space:pre-line
@@ -308,6 +313,15 @@ input:focus,textarea:focus{border-color:#a8893d}
 .gear-head span{font-size:11px;color:#8e999f}
 .gear-head b{font-family:Georgia,"Times New Roman",serif;font-size:16px;color:#e6eaec}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.blessing-slot{
+  min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:5px;align-items:start
+}
+.blessing-slot .picker-host{min-width:0}
+.blessing-tier-select{
+  width:64px;height:38px;border:1px solid #34414b;background:#101b22;color:#dfe6e9;
+  border-radius:8px;padding:0 5px;outline:none;font-size:9px
+}
+.blessing-tier-select:focus{border-color:#a8893d}
 .curio-section{margin-top:9px}
 .curio-grid{display:grid;grid-template-columns:1fr;gap:7px}
 .curio-card{border:1px solid #26323a;background:#081116;border-radius:8px;padding:9px}
