@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="暗潮 BD">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./tree-core.js?v=gl34" as="script">
-  <link rel="stylesheet" href="./styles.css?v=gl57">
+  <link rel="stylesheet" href="./styles.css?v=gl58">
   <title>暗潮中英双语 BD 编辑器</title>
 </head>
 <body>
@@ -248,9 +248,9 @@
     <div class="curio-grid redesigned-curios">
       <article class="curio-card redesigned-curio" data-curio-index="1">
         <div class="curio-toolbar">
-          <span>珍品 1</span>
+          <span data-cn="珍品 1" data-en="Curio 1">珍品 1</span>
           <span class="curio-progress" data-curio-progress="1">0 / 4</span>
-          <button type="button" data-curio-copy-all="1">复制到全部</button>
+          <button type="button" data-curio-copy-all="1" data-cn="复制到全部" data-en="Copy to all">复制到全部</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="1">收起</button></div>
         <div class="curio-body">
@@ -287,9 +287,9 @@
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="2">
         <div class="curio-toolbar">
-          <span>珍品 2</span>
+          <span data-cn="珍品 2" data-en="Curio 2">珍品 2</span>
           <span class="curio-progress" data-curio-progress="2">0 / 4</span>
-          <button type="button" data-curio-copy-prev="2">复制珍品 1</button>
+          <button type="button" data-curio-copy-prev="2" data-cn="复制珍品 1" data-en="Copy Curio 1">复制珍品 1</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="2">收起</button></div>
         <div class="curio-body">
@@ -326,9 +326,9 @@
       </article>
       <article class="curio-card redesigned-curio" data-curio-index="3">
         <div class="curio-toolbar">
-          <span>珍品 3</span>
+          <span data-cn="珍品 3" data-en="Curio 3">珍品 3</span>
           <span class="curio-progress" data-curio-progress="3">0 / 4</span>
-          <button type="button" data-curio-copy-prev="3">复制珍品 2</button>
+          <button type="button" data-curio-copy-prev="3" data-cn="复制珍品 2" data-en="Copy Curio 2">复制珍品 2</button>
         
           <button type="button" class="curio-toggle" data-curio-toggle="3">收起</button></div>
         <div class="curio-body">
@@ -397,7 +397,7 @@
 
   <section class="workspace-view" data-workspace-panel="meta">
     <section class="section-title meta-title">
-      <span data-cn="BD 信息" data-en="Build Details">BD 信息</span><b>Build Details</b>
+      <span class="only-zh-bi">BD 信息</span><b class="only-en-bi">Build Details</b>
     </section>
   <section class="build-panel open-panel">
     <div class="panel-body">
@@ -423,10 +423,10 @@
         </div>
       </section>
 
-      <label>BD 名称 <small>/ Build name</small></label>
+      <label><span class="only-zh-bi">BD 名称</span><span class="only-en-bi">Build name</span></label>
       <input id="buildName" placeholder="例如：新版发号施令老兵 / New VoC Veteran">
 
-      <label>打法与备注 <small>/ Playstyle & notes</small></label>
+      <label><span class="only-zh-bi">打法与备注</span><span class="only-en-bi">Playstyle & notes</span></label>
       <textarea id="notes" placeholder="记录打法、替代武器、断点、适用难度等… / Playstyle, alternatives, breakpoints, difficulty…"></textarea>
 
       <div class="share-row">
@@ -502,6 +502,6 @@
 <script src="./blessing-effects.js?v=gl41"></script>
 <script src="./blessing-tier-values.js?v=gl41"></script>
 <script src="./weapon-blessing-overrides.js?v=gl41"></script>
-<script src="./app.js?v=gl57"></script>
+<script src="./app.js?v=gl58"></script>
 </body>
 </html>
