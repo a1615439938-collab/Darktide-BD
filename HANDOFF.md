@@ -137,10 +137,10 @@ Games Lantern 可作为信息结构与交互参考，但不要复制其专有代
 - 改动/新增节点统一标为 `custom`，必须后续显式实现，不允许静默套用旧机制。
 
 当前未来树节点分类：
-- Veteran：72 reuse（其中 3 个 effect-reuse）/ 5 custom（77）
-- Zealot：63 reuse（其中 3 个 effect-reuse）/ 20 custom（83）
-- Psyker：75 reuse（其中 3 个 effect-reuse）/ 7 custom（82）
-- Ogryn：79 reuse（其中 1 个 effect-reuse）/ 8 custom（87）
+- Veteran：73 reuse（3 effect-reuse + 1 category-move）/ 4 custom（77）
+- Zealot：66 reuse（3 effect-reuse + 3 category-move）/ 17 custom（83）
+- Psyker：75 reuse（3 effect-reuse）/ 7 custom（82）
+- Ogryn：79 reuse（1 effect-reuse）/ 8 custom（87）
 
 注意：这里的 custom 数量包含“改动的旧节点 + 新节点”，不是只统计全新名称。
 远程 Realms 客户端的独立构筑同步尚未完成；当前第一目标是本地主机实际试玩。
