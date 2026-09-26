@@ -312,6 +312,120 @@ input:focus,textarea:focus{border-color:#a8893d}
 .gear-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
 .gear-head span{font-size:11px;color:#8e999f}
 .gear-head b{font-family:Georgia,"Times New Roman",serif;font-size:16px;color:#e6eaec}
+
+.loadout-card-grid{align-items:start}
+.weapon-build-card{overflow:visible}
+.equipment-card,.modifier-card,.curio-type-card{
+  width:100%;border:1px solid #34434d;background:linear-gradient(180deg,#111d24,#0a141a);
+  color:#edf1f3;border-radius:10px;text-align:left;cursor:pointer;
+  transition:border-color .14s ease,background .14s ease,transform .14s ease
+}
+.equipment-card:hover,.modifier-card:hover,.curio-type-card:hover{
+  border-color:#75663b;background:linear-gradient(180deg,#17252c,#0d171d)
+}
+.equipment-card:active,.modifier-card:active,.curio-type-card:active{transform:scale(.995)}
+.equipment-card,.curio-type-card{
+  display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px
+}
+.equipment-mark{
+  display:grid;place-items:center;width:44px;height:44px;border-radius:9px;
+  border:1px solid #4b5962;background:#0a1116;color:#d9bb64;
+  font-size:12px;font-weight:800;letter-spacing:.06em
+}
+.equipment-copy{min-width:0}
+.equipment-copy strong,.modifier-card strong{
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#edf1f3;font-size:11.5px;line-height:1.35
+}
+.equipment-copy small,.modifier-card small{
+  display:block;margin-top:3px;color:#89959c;font-size:8.8px;line-height:1.35
+}
+.equipment-edit{font-size:8.5px;color:#c9ad5c;white-space:nowrap}
+.equipment-section-label{
+  margin:10px 1px 5px;color:#7f8b92;font-size:8.5px;font-weight:700;letter-spacing:.04em
+}
+.modifier-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.modifier-card{
+  position:relative;min-height:74px;padding:9px 10px
+}
+.modifier-kicker{display:block;margin-bottom:5px;color:#829097;font-size:8px;font-weight:700}
+.blessing-card strong,.blessing-card small{padding-right:34px}
+.tier-badge{
+  position:absolute;right:9px;top:9px;display:grid;place-items:center;
+  min-width:25px;height:22px;padding:0 5px;border-radius:7px;
+  border:1px solid rgba(220,190,94,.42);background:rgba(115,88,24,.18);
+  color:#edcf72;font-size:9px;font-weight:800
+}
+.blessing-card.invalid{
+  border-color:#7a4343;background:linear-gradient(180deg,#251718,#140e10)
+}
+.blessing-card.invalid .tier-badge{border-color:#7b4c4c;color:#e9a9a9;background:#301718}
+.redesigned-curio{padding:9px}
+.curio-type-card{grid-template-columns:40px minmax(0,1fr);padding:8px}
+.curio-type-card .equipment-mark{width:40px;height:40px}
+.curio-main-card{min-height:66px}
+.curio-perk-stack{display:grid;gap:6px}
+.curio-perk-card{min-height:60px}
+.equipment-card.is-empty,.modifier-card.is-empty,.curio-type-card.is-empty{border-style:dashed}
+.equipment-card.is-empty strong,.modifier-card.is-empty strong,.curio-type-card.is-empty strong{color:#9ba5aa}
+
+.equipment-dialog{width:min(94vw,760px);max-height:88vh;border:0;padding:0;background:transparent}
+.equipment-dialog::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(2px)}
+.equipment-dialog-card{
+  max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid #3c4b55;border-radius:14px;background:#0c151b;color:#eef2f4;
+  box-shadow:0 22px 60px rgba(0,0,0,.55)
+}
+.equipment-dialog-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px 10px;
+  border-bottom:1px solid #29353d
+}
+.equipment-dialog-head span{display:block;color:#87949b;font-size:8px}
+.equipment-dialog-head h2{margin:2px 0 0;font-size:17px}
+.dialog-close{
+  width:34px;height:34px;border:1px solid #3a4851;border-radius:9px;background:#121e25;color:#dfe6e9;font-size:20px
+}
+.equipment-search{
+  width:calc(100% - 24px);margin:10px 12px 0;border:1px solid #3a4852;background:#071016;color:#f0f2f3;
+  border-radius:9px;padding:10px 11px;outline:none
+}
+.equipment-search:focus{border-color:#9b8040}
+.equipment-tier-picker{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 12px 0;padding:8px 9px;
+  border:1px solid #2f3e47;border-radius:9px;background:#101a20
+}
+.equipment-tier-picker>span{font-size:9px;color:#aab4b8}
+.tier-segments{display:flex;gap:4px}
+.tier-segments button{
+  min-width:34px;height:28px;border:1px solid #3b4b54;border-radius:7px;background:#0b1419;color:#b9c2c6;font-size:9px
+}
+.tier-segments button.active{
+  border-color:#a18643;background:#2a2416;color:#ebcf7a;font-weight:800
+}
+.equipment-dialog-hint{min-height:18px;margin:8px 12px 0;color:#8c989f;font-size:8.5px;line-height:1.4}
+.equipment-options{overflow:auto;padding:0 10px 10px}
+.equipment-option{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;width:100%;margin-top:6px;padding:10px;
+  border:1px solid #2e3c45;border-radius:10px;background:#0f191f;color:#e7ecee;text-align:left
+}
+.equipment-option:hover{border-color:#6f6138;background:#142129}
+.equipment-option strong{display:block;font-size:11px;line-height:1.4}
+.equipment-option small{display:block;margin-top:4px;color:#8d999f;font-size:8.7px;line-height:1.45;white-space:normal}
+.equipment-option-meta{align-self:start;color:#d8b95e;font-size:8px;white-space:nowrap}
+.equipment-option.selected{border-color:#a18440;background:#1c1c12}
+.equipment-option.unavailable{opacity:.45;cursor:not-allowed}
+.equipment-empty{padding:24px 12px;color:#87939a;text-align:center;font-size:10px}
+.equipment-dialog-actions{padding:9px 12px 12px;border-top:1px solid #29353d}
+.equipment-dialog-actions button{
+  width:100%;border:1px solid #4a3c3c;border-radius:8px;background:#1b1112;color:#d8aaaa;padding:9px 10px
+}
+@media(max-width:560px){
+  .modifier-grid{grid-template-columns:1fr}
+  .equipment-card,.curio-type-card{grid-template-columns:40px minmax(0,1fr)}
+  .equipment-edit{display:none}
+  .equipment-dialog{width:96vw;max-height:92vh}
+  .equipment-dialog-card{max-height:92vh}
+}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
 .blessing-slot{
   min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:5px;align-items:start
