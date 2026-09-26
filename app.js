@@ -257,37 +257,37 @@ const GEAR_GUIDE={
   veteran:{
     melee:["Maccabian Mk IV Duelling Sword","Scandar Mk III Power Sword"],
     ranged:["M35 Magnacore Mk II Plasma Gun","Accatran Mk XIV Recon Lasgun"],
-    curios:"参考 / Reference: 3× 韧性 Toughness；词条优先韧性回复、技能冷却、枪手减伤 / Toughness Regen, Ability Regen, Gunner DR."
+    curiosZh:"参考：3× 韧性；词条优先韧性回复、技能冷却、枪手减伤。",curiosEn:"Reference: 3× Toughness; prioritize Toughness Regen, Ability Regen and Gunner DR."
   },
   zealot:{
     melee:["Maccabian Mk IV Duelling Sword","Munitorum Mk X Relic Blade"],
     ranged:["Artemia Mk III Purgation Flamer","Zarona Mk IIa Quickdraw Stub Revolver"],
-    curios:"参考 / Reference: 2–3× 韧性 Toughness；可混 1× 生命 Health。"
+    curiosZh:"参考：2–3× 韧性；也可以混 1× 生命。",curiosEn:"Reference: 2–3× Toughness; optionally mix in 1× Health."
   },
   psyker:{
     melee:["Maccabian Mk IV Duelling Sword","Covenant Mk VI Blaze Force Greatsword"],
     ranged:["Rifthaven Mk II Inferno Force Staff","Equinox Mk IV Voidstrike Force Staff"],
-    curios:"参考 / Reference: 韧性 Toughness + 技能冷却 Ability Regen；按玩法补生命 / Health."
+    curiosZh:"参考：韧性 + 技能冷却；按玩法补生命。",curiosEn:"Reference: Toughness + Ability Regen; add Health to suit the build."
   },
   ogryn:{
     melee:["Karsolas Mk II Delver's Pickaxe","Brute-Brainer Mk XIX Latrine Shovel"],
     ranged:["Lorenz Mk VI Rumbler","Foe-Rend Mk V Ripper Gun"],
-    curios:"参考 / Reference: 生命 Health 与韧性 Toughness 混搭；枪手减伤 / Gunner DR."
+    curiosZh:"参考：生命与韧性混搭；词条可优先枪手减伤。",curiosEn:"Reference: mix Health and Toughness; Gunner DR is a useful perk."
   },
   arbites:{
     melee:["Branx Mk III Arbites Shock Maul","Branx Mk VI Shock Maul & Suppression Shield"],
     ranged:["Exaction Mk VIII Exterminator Shotgun","Godwyn-Branx Mk IV Bolt Pistol"],
-    curios:"参考 / Reference: 2× 韧性 Toughness + 1× 生命 Health；枪手减伤与技能冷却。"
+    curiosZh:"参考：2× 韧性 + 1× 生命；词条优先枪手减伤与技能冷却。",curiosEn:"Reference: 2× Toughness + 1× Health; prioritize Gunner DR and Ability Regen."
   },
   skitarii:{
     melee:["Branx Mk XI Paired Transonic Blades","Branx Mk III Arc Maul"],
     ranged:["Branx Mk CV Galvanic Rifle","Branx Mk XI Phosphor Blast Pistol"],
-    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、枪手减伤。"
+    curiosZh:"参考：以韧性为主；词条优先技能冷却、韧性回复、枪手减伤。",curiosEn:"Reference: favor Toughness; prioritize Ability Regen, Toughness Regen and Gunner DR."
   },
   hivescum:{
     melee:["Improvised Mk I Shivs","Enginseer's Mk VI Crowbar"],
     ranged:["Branx MkVIII Dual Stub Pistols","Branx MkIII Dual Autopistols"],
-    curios:"参考 / Reference: 韧性 Toughness 为主；技能冷却、韧性回复、耐力 / Stamina."
+    curiosZh:"参考：以韧性为主；词条优先技能冷却、韧性回复、耐力。",curiosEn:"Reference: favor Toughness; prioritize Ability Regen, Toughness Regen and Stamina."
   }
 };
 
@@ -999,12 +999,14 @@ function applyLanguageMode(){
     el.textContent=uiText(el.dataset.cn,el.dataset.en);
   });
   document.querySelectorAll("[data-lang-mode]").forEach(b=>b.classList.toggle("active",b.dataset.langMode===state.language));
+  renderBuildLibrary();
   const search=$("#equipmentSearch");
   if(search)search.placeholder=state.language==="en"?"Search equipment, blessings or perks":state.language==="bi"?"搜索中文或英文 / Search Chinese or English":"搜索装备、祝福或词条";
   const buildName=$("#buildName");
   if(buildName)buildName.placeholder=state.language==="en"?"e.g. Voice of Command Veteran":"例如：发号施令老兵";
   const notes=$("#notes");
   if(notes)notes.placeholder=state.language==="en"?"Playstyle, alternatives, breakpoints, difficulty…":"记录打法、替代武器、断点、适用难度等…";
+  document.querySelectorAll("[data-curio-index]").forEach(syncCurioToggle);
   renderSaveState("saved");
 }
 
@@ -1047,8 +1049,16 @@ function applyLoadout(){
   }
 }
 function renderGearSuggestions(){
-  const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curios:""};
-  if($("#curioHint"))$("#curioHint").textContent=(guide.curios||"")+" 点击卡片选择装备；祝福会按当前武器自动筛选。珍品类型仅记录外观。 / Click cards to edit; blessings are filtered by the selected weapon.";
+  const guide=GEAR_GUIDE[baseClassKey()]||{melee:[],ranged:[],curiosZh:"",curiosEn:""};
+  const hint=$("#curioHint");
+  if(hint){
+    const guideText=uiText(guide.curiosZh||"",guide.curiosEn||"");
+    const actionText=uiText(
+      "点击卡片编辑；祝福会按当前武器自动筛选。珍品外观为可选项。",
+      "Click cards to edit; blessings are filtered by the selected weapon. Curio cosmetics are optional."
+    );
+    hint.textContent=[guideText,actionText].filter(Boolean).join(" ");
+  }
   refreshOpenPickers();
 }
 function weaponOptions(slot){
@@ -1129,7 +1139,7 @@ function applyBuildSnapshot(build){
 function blankBuild(){
   return {
     id:makeBuildId(),
-    name:"新 BD / New Build",
+    name:uiText("新 BD","New Build"),
     notes:"",
     patch:state.patch==="live"?"live":"future",
     classKey:baseClassKey()||"veteran",
@@ -1149,7 +1159,7 @@ function ensureBuildLibrary(){
   state.builds=Array.isArray(state.builds)?state.builds.filter(Boolean):[];
   if(!state.builds.length){
     const first=snapshotCurrentBuild(makeBuildId());
-    if(!first.name)first.name="我的 BD 1 / My Build 1";
+    if(!first.name)first.name=uiText("我的 BD 1","My Build 1");
     state.builds=[first];
     state.activeBuildId=first.id;
     return;
@@ -1174,6 +1184,18 @@ function classLabelForBuild(build){
   const c=(list||[]).find(x=>x.key===build.classKey)||(list||[]).find(x=>!x.parent);
   return c?uiText(c.cn,c.name):build.classKey;
 }
+function displayBuildName(name){
+  const raw=String(name||"").trim();
+  if(raw==="我的 BD 1 / My Build 1")return uiText("我的 BD 1","My Build 1");
+  if(raw==="新 BD / New Build")return uiText("新 BD","New Build");
+  if(raw==="未命名 BD / Untitled")return uiText("未命名 BD","Untitled");
+  if(uiLanguage()==="zh"&&raw.endsWith(" · 副本 / Copy"))return raw.slice(0,-" · 副本 / Copy".length)+" · 副本";
+  if(uiLanguage()==="en"&&raw.endsWith(" · 副本 / Copy"))return raw.slice(0,-" · 副本 / Copy".length)+" · Copy";
+  return raw;
+}
+function buildPatchDisplay(build){
+  return build.patch==="live"?uiText("正式服","LIVE"):uiText("预览","FUTURE");
+}
 function renderBuildLibrary(){
   const select=$("#buildSelect");
   if(!select)return;
@@ -1182,8 +1204,8 @@ function renderBuildLibrary(){
   for(const b of state.builds||[]){
     const opt=document.createElement("option");
     opt.value=b.id;
-    const title=(b.name||"未命名 BD / Untitled").trim();
-    opt.textContent=title+"  ·  "+classLabelForBuild(b)+"  ·  "+(b.patch==="live"?"LIVE":"FUTURE");
+    const title=displayBuildName(b.name||uiText("未命名 BD","Untitled"));
+    opt.textContent=title+"  ·  "+classLabelForBuild(b)+"  ·  "+buildPatchDisplay(b);
     select.appendChild(opt);
   }
   select.value=current||"";
@@ -1217,7 +1239,7 @@ function createSavedBuild(copyCurrent=false){
   let next;
   if(copyCurrent){
     next=snapshotCurrentBuild(makeBuildId());
-    next.name=((state.name||"未命名 BD / Untitled").trim()+" · 副本 / Copy");
+    next.name=((state.name||uiText("未命名 BD","Untitled")).trim()+" · "+uiText("副本","Copy"));
   }else{
     next=blankBuild();
   }
@@ -1864,17 +1886,18 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
     equipmentEditor.tier=saved||"4";
   }
   const titles={
-    weapon:"选择武器 / Select Weapon",
-    blessing:"选择祝福 / Select Blessing",
-    perk:"选择武器词条 / Select Weapon Perk",
-    curioType:"选择珍品 / Select Curio",
-    curioMain:"选择主属性 / Select Main Stat",
-    curioPerk:"选择珍品词条 / Select Curio Perk"
+    weapon:["选择武器","Select Weapon"],
+    blessing:["选择祝福","Select Blessing"],
+    perk:["选择武器词条","Select Weapon Perk"],
+    curioType:["选择珍品外观","Select Curio Cosmetic"],
+    curioMain:["选择主属性","Select Main Stat"],
+    curioPerk:["选择珍品词条","Select Curio Perk"]
   };
   const kicker=document.getElementById("equipmentDialogKicker");
   const title=document.getElementById("equipmentDialogTitle");
-  if(kicker)kicker.textContent=action==="blessing"?"当前武器可用项 / Compatible only":"配装编辑 / Loadout Editor";
-  if(title)title.textContent=titles[action]||"选择 / Select";
+  if(kicker)kicker.textContent=action==="blessing"?uiText("当前武器可用项","Compatible only"):uiText("配装编辑","Loadout Editor");
+  const titlePair=titles[action]||["选择","Select"];
+  if(title)title.textContent=uiText(titlePair[0],titlePair[1]);
   const search=document.getElementById("equipmentSearch");
   if(search)search.value="";
   const tier=document.getElementById("equipmentTierPicker");
@@ -1884,11 +1907,18 @@ function openEquipmentDialog(action,field,index=-1,flowState=null){
   if(hint){
     if(action==="blessing"){
       const weapon=loadoutFieldValue(blessingWeaponField(field));
-      hint.textContent="仅显示“"+splitBilingualLabel(weapon).cn+"”可用的祝福；默认 IV 级。 / Only blessings valid for the selected weapon are shown.";
+      const bi=splitBilingualLabel(weapon);
+      hint.textContent=uiText(
+        "仅显示“"+bi.cn+"”可用的祝福；默认 IV 级。",
+        "Only blessings valid for “"+bi.en+"” are shown; IV is the default tier."
+      );
     }else if(action==="weapon"){
-      hint.textContent="仅显示当前职业可用武器。更换武器会自动移除不兼容祝福。 / Class-filtered weapons; incompatible blessings are removed on change.";
+      hint.textContent=uiText(
+        "仅显示当前职业可用武器；更换武器会自动移除不兼容祝福。",
+        "Only weapons available to this class are shown; incompatible blessings are removed when the weapon changes."
+      );
     }else{
-      hint.textContent="点击一个选项即可写入当前 BD。 / Choose an option to save it to this build.";
+      hint.textContent=uiText("点击一个选项即可写入当前 BD。","Choose an option to save it to this build.");
     }
   }
   renderEquipmentFlow();
@@ -1919,6 +1949,33 @@ function clearEquipmentEditorSlot(){
   }
   persist();renderLoadoutCards();
   document.getElementById("equipmentDialog")?.close();
+}
+function syncCurioToggle(card){
+  if(!card)return;
+  const btn=card.querySelector("[data-curio-toggle]");
+  if(!btn)return;
+  const collapsed=card.classList.contains("collapsed");
+  btn.textContent=collapsed?uiText("展开","Expand"):uiText("收起","Collapse");
+  btn.setAttribute("aria-expanded",String(!collapsed));
+}
+function setupCurioCollapsers(){
+  const mobile=matchMedia("(max-width:560px)").matches;
+  document.querySelectorAll("[data-curio-index]").forEach(card=>{
+    const index=Number(card.dataset.curioIndex||0);
+    if(card.dataset.collapseInitialized!=="1"){
+      card.dataset.collapseInitialized="1";
+      if(mobile&&index>1)card.classList.add("collapsed");
+    }
+    const btn=card.querySelector("[data-curio-toggle]");
+    if(btn&&btn.dataset.collapseReady!=="1"){
+      btn.dataset.collapseReady="1";
+      btn.addEventListener("click",()=>{
+        card.classList.toggle("collapsed");
+        syncCurioToggle(card);
+      });
+    }
+    syncCurioToggle(card);
+  });
 }
 function setupEquipmentPickers(){
   document.querySelectorAll("[data-equip-action][data-field]").forEach(card=>{
@@ -1968,6 +2025,7 @@ function setupEquipmentPickers(){
     btn.addEventListener("click",()=>copyCurioToAll(Number(btn.dataset.curioCopyAll)));
   });
   document.getElementById("equipmentDialog")?.addEventListener("close",hideBlessingTooltip);
+  setupCurioCollapsers();
   renderLoadoutCards();
 }
 function refreshOpenPickers(){
@@ -3008,27 +3066,6 @@ function base64urlDecode(text){
 function exportData(){
   return "DTB3."+base64urlEncode(JSON.stringify(buildPayload()));
 }
-
-const DEPTHS_PREVIEW_SCHEMA="20260929a";
-const DEPTHS_PREVIEW_CLASSES=new Set(["veteran","zealot","psyker","ogryn"]);
-function exportPreviewModData(){
-  saveSelection();
-  persist();
-  if(state.patch!=="future"){
-    throw new Error("请先切换到 Depths of the Damned 未来树 / Switch to the future tree first");
-  }
-  if(!DEPTHS_PREVIEW_CLASSES.has(state.classKey)){
-    throw new Error("当前试玩 Mod Alpha 只支持老兵、狂信徒、灵能者和欧格林 / Alpha supports Veteran, Zealot, Psyker and Ogryn");
-  }
-  const futureClass=(DATA.classes||[]).find(c=>c.key===state.classKey);
-  if(!futureClass)throw new Error("找不到当前职业的未来树 / Future tree not found");
-  const selected=new Set(state.selected["future:"+state.classKey]||[]);
-  const indexes=[];
-  futureClass.nodes.forEach((node,index)=>{
-    if(node.cat!=="root"&&selected.has(node.s))indexes.push(index+1);
-  });
-  return `DTP1:${DEPTHS_PREVIEW_SCHEMA}:${state.classKey}:${indexes.join(",")}`;
-}
 function shareURL(){
   const u=new URL(location.href);
   u.search="";
@@ -3151,24 +3188,6 @@ function bind(){
     $("#codeBox").value=exportData();
     $("#dialogMsg").textContent="";
     $("#codeDialog").showModal();
-  };
-  $("#previewModBtn").onclick=async()=>{
-    try{
-      const text=exportPreviewModData();
-      $("#codeBox").value=text;
-      $("#codeDialog").showModal();
-      try{
-        await navigator.clipboard.writeText(text);
-        $("#dialogMsg").textContent="试玩代码已复制；游戏内使用 /depths_import 粘贴此代码 / Preview code copied";
-      }catch(_){
-        $("#codeBox").select();
-        $("#dialogMsg").textContent="请复制此代码，并在游戏内输入 /depths_import 后粘贴 / Copy this code into /depths_import";
-      }
-    }catch(e){
-      $("#codeBox").value="";
-      $("#dialogMsg").textContent=e.message;
-      $("#codeDialog").showModal();
-    }
   };
   $("#importBtn").onclick=()=>{
     $("#codeBox").value="";
@@ -3341,6 +3360,7 @@ function selfCheck(){
   if(!$("#loadoutCompletion")||!$("#loadoutProgressBar")) throw new Error("loadout completion UI is missing");
   if(!$("#equipmentFilters")) throw new Error("equipment filter bar is missing");
   if(!document.querySelector("[data-curio-copy-all]")||document.querySelectorAll("[data-curio-copy-prev]").length!==2) throw new Error("curio copy shortcuts are missing");
+  if(document.querySelectorAll("[data-curio-toggle]").length!==3||document.querySelectorAll(".curio-body").length!==3) throw new Error("curio disclosure controls are missing");
   if(!$("#meleeWeapon")||!$("#rangedWeapon")||!$("#curio1Type")||!$("#curio1Main")) throw new Error("loadout state fields are missing");
   if(!document.querySelector('[data-equip-action="weapon"][data-field="meleeWeapon"]')||!$("#equipmentDialog")) throw new Error("redesigned equipment card editor is missing");
   if(!WEAPON_BLESSING_OVERRIDES["Arc Rifle"]?.includes("Enhanced Voltaic Arcs")) throw new Error("new weapon blessing compatibility data missing");
@@ -3363,6 +3383,8 @@ function runDesktopSelfTest(){
     syncInputMode();
     if(!isDesktopInteraction())throw new Error("desktop interaction mode not active");
     const before=points();
+    const mobileCurio2=document.querySelector('[data-curio-index="2"]');
+    if(MOBILE_TEST&&mobileCurio2&&!mobileCurio2.classList.contains("collapsed"))throw new Error("secondary curios are not collapsed by default on mobile");
     const firstAvail=CUR.nodes.find(n=>isAvail(n.s));
     if(!firstAvail)throw new Error("no selectable desktop node");
     const el=nodeEls[firstAvail.s];
@@ -3614,7 +3636,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl51").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl54").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
