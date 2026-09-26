@@ -1052,21 +1052,64 @@ function initials(n){
 function iconFor(n){
   return ICONS[n.s]||null;
 }
-function loadTalentIconsForClass(base=baseClassKey()){
-  if(!base)return;
-  if(loadedIconPacks.has(base))return;
+let backgroundIconPreloadStarted=false;
+let backgroundIconPreloadQueue=[];
+let backgroundIconPreloadActive=false;
+
+function allIconPackKeys(){
+  const keys=[];
+  for(const bucket of [DATA?.classes,DATA?.liveClasses]){
+    for(const c of bucket||[]){
+      const key=c.parent||c.key;
+      if(key&&!keys.includes(key))keys.push(key);
+    }
+  }
+  return keys;
+}
+function canBackgroundPreloadIcons(){
+  if(MOBILE_TEST||DESKTOP_TEST)return false;
+  const connection=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(connection?.saveData)return false;
+  if(/(^|-)2g$/.test(String(connection?.effectiveType||"")))return false;
+  return true;
+}
+function runWhenIdle(fn,timeout=1400){
+  if("requestIdleCallback" in window){
+    requestIdleCallback(()=>fn(),{timeout});
+  }else{
+    setTimeout(fn,180);
+  }
+}
+function loadTalentIconsForClass(base=baseClassKey(),done){
+  if(!base){
+    if(done)done(false);
+    return;
+  }
+  if(loadedIconPacks.has(base)){
+    if(done)queueMicrotask(()=>done(true));
+    return;
+  }
   const attr=CSS.escape(base);
-  if(document.querySelector('script[data-tree-icon-pack="'+attr+'"]'))return;
-  const s=document.createElement("script");
-  s.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl31";
-  s.async=true;
-  s.dataset.treeIconPack=base;
-  s.onload=()=>{
+  const existing=document.querySelector('script[data-tree-icon-pack="'+attr+'"]');
+  if(existing){
+    if(done){
+      existing.addEventListener("load",()=>done(true),{once:true});
+      existing.addEventListener("error",()=>done(false),{once:true});
+    }
+    return;
+  }
+  const script=document.createElement("script");
+  script.src="./tree-icons-"+encodeURIComponent(base)+".js?v=gl31";
+  script.async=true;
+  script.fetchPriority=base===baseClassKey()?"high":"low";
+  script.dataset.treeIconPack=base;
+  script.onload=()=>{
     ICONS=window.TREE_ICONS||ICONS||{};
     loadedIconPacks.add(base);
     iconsLoaded=Object.keys(ICONS).length>0;
     document.body.dataset.iconsLoaded=String(iconsLoaded);
     document.body.dataset.iconPack=base;
+    document.body.dataset.iconPacksLoaded=String(loadedIconPacks.size);
     renderClassbar();
     if(CUR&&baseClassKey()===base){
       const vp=$("#treeViewport");
@@ -1077,20 +1120,45 @@ function loadTalentIconsForClass(base=baseClassKey()){
         if(current)current.scrollLeft=keepLeft;
       });
     }
+    if(done)done(true);
   };
-  s.onerror=()=>{
+  script.onerror=()=>{
     document.body.dataset.iconsLoaded="false";
     document.body.dataset.iconPackError=base;
+    if(done)done(false);
   };
-  document.head.appendChild(s);
+  document.head.appendChild(script);
 }
 
+function preloadNextIconPack(){
+  if(backgroundIconPreloadActive||!backgroundIconPreloadQueue.length)return;
+  if(document.visibilityState==="hidden"){
+    setTimeout(preloadNextIconPack,800);
+    return;
+  }
+  const base=backgroundIconPreloadQueue.shift();
+  if(!base||loadedIconPacks.has(base)){
+    runWhenIdle(preloadNextIconPack,800);
+    return;
+  }
+  backgroundIconPreloadActive=true;
+  loadTalentIconsForClass(base,()=>{
+    backgroundIconPreloadActive=false;
+    runWhenIdle(preloadNextIconPack,1600);
+  });
+}
+function scheduleRemainingIconPacks(currentBase=baseClassKey()){
+  if(backgroundIconPreloadStarted||!canBackgroundPreloadIcons())return;
+  backgroundIconPreloadStarted=true;
+  backgroundIconPreloadQueue=allIconPackKeys().filter(k=>k!==currentBase&&!loadedIconPacks.has(k));
+  document.body.dataset.iconPreloadQueued=String(backgroundIconPreloadQueue.length);
+  runWhenIdle(preloadNextIconPack,1800);
+}
 function queueCurrentIconPack(){
   const base=baseClassKey();
-  if(!base||loadedIconPacks.has(base))return;
-  const go=()=>loadTalentIconsForClass(base);
-  if("requestIdleCallback" in window)requestIdleCallback(go,{timeout:500});
-  else setTimeout(go,80);
+  if(!base)return;
+  // Current class is user-visible, so fetch it immediately at high priority.
+  loadTalentIconsForClass(base,()=>scheduleRemainingIconPacks(base));
 }
 
 function buildExclusiveGroups(){
@@ -2197,6 +2265,8 @@ function runAutomatedSelfTest(){
     firstWeapon.click();
     if(!melee.value||currentLoadout().meleeWeapon!==melee.value)throw new Error("weapon picker selection did not persist");
     if(!/[\u4e00-\u9fff]/.test(melee.value)||!melee.value.includes(" / "))throw new Error("weapon picker is not bilingual");
+    if(typeof allIconPackKeys!=="function"||allIconPackKeys().length<7)throw new Error("icon preload class list incomplete");
+    if(typeof scheduleRemainingIconPacks!=="function")throw new Error("background icon preloader missing");
 
     const blessing=$("#meleeBlessing1");
     const blessingHost=blessing?.closest(".picker-host");
@@ -2313,7 +2383,7 @@ try{
   // Render from the light core payload immediately; fetch only the selected class's art (~1 MB).
   queueCurrentIconPack();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl35").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=gl36").catch(()=>{}));
   }
 }catch(e){
   setStatus("天赋树启动失败 / Talent tree failed to start: "+e.message,"err");
