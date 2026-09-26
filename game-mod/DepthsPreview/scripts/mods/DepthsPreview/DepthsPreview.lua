@@ -29,11 +29,12 @@ local function restore_preview_rules()
   Blessings.restore()
   TalentBalance.restore()
   Balance.restore()
+  RuntimePreview.clear()
 end
 
 local function apply_mode()
   TalentUI.install()
-RuntimePreview.install()
+  RuntimePreview.install()
   Equipment.install()
 
   if State.enabled() then
@@ -133,6 +134,62 @@ local function print_status()
   ))
 end
 
+local function run_selftest()
+  local passed = 0
+  local failed = 0
+
+  local function report(ok, name, detail)
+    if ok then
+      passed = passed + 1
+      mod:echo(string.format("[PASS] %s%s", name, detail and (" | " .. detail) or ""))
+    else
+      failed = failed + 1
+      mod:echo(string.format("[FAIL] %s%s", name, detail and (" | " .. detail) or ""))
+    end
+  end
+
+  local trees = TalentUI.selftest()
+  for _, class_key in ipairs({ "veteran", "zealot", "psyker", "ogryn" }) do
+    local item = trees[class_key]
+    report(
+      item and item.ok,
+      "Talent tree " .. class_key,
+      item and string.format("%d/%d nodes", item.layout_nodes, item.expected_nodes) or "missing"
+    )
+  end
+
+  local weapons = Equipment.selftest()
+  for _, id in ipairs({
+    "cruncher",
+    "huntsman",
+    "thugshot",
+    "crusher_mk7",
+    "double_barrel_mk4",
+    "gromm_shield",
+  }) do
+    report(weapons[id] == true, "Preview weapon " .. id)
+  end
+
+  local blessing = Blessings.status()
+  report(
+    (blessing.counterattack_runtime or 0) > 0,
+    "Counterattack templates",
+    tostring(blessing.counterattack_runtime or 0)
+  )
+  report(
+    (blessing.energy_transfer_runtime or 0) > 0,
+    "Energy Transfer templates",
+    tostring(blessing.energy_transfer_runtime or 0)
+  )
+  report(
+    blessing.lightning_reflexes == "split-trigger-active",
+    "Lightning Reflexes split trigger",
+    tostring(blessing.lightning_reflexes)
+  )
+
+  mod:echo(string.format("Depths Preview self-test: %d PASS / %d FAIL", passed, failed))
+end
+
 mod.on_all_mods_loaded = function()
   apply_mode()
 end
@@ -162,8 +219,10 @@ mod:command("depths", "Standalone Depths of the Damned local preview environment
     select_preview_weapon(arg)
   elseif action == "status" then
     print_status()
+  elseif action == "selftest" then
+    run_selftest()
   else
-    mod:echo("用法：/depths open | on | off | reset | status | weapon <list|clear|id>")
+    mod:echo("用法：/depths open | on | off | reset | status | selftest | weapon <list|clear|id>")
   end
 end)
 
