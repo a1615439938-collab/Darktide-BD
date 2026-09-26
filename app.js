@@ -980,9 +980,12 @@ function renderClassbar(){
       saveSelection();
       persist();
       state.classKey=c.key;
+      syncActiveBuild();
+      writeStorage();
       hotSlug=null;
       clearHistory();
       renderAll(true);
+      renderBuildLibrary();
       queueCurrentIconPack();
     };
     bar.appendChild(b);
@@ -1035,9 +1038,12 @@ function renderSubtreeBar(){
       saveSelection();
       persist();
       state.classKey=c.key;
+      syncActiveBuild();
+      writeStorage();
       hotSlug=null;
       clearHistory();
       renderAll(true);
+      renderBuildLibrary();
       queueCurrentIconPack();
     };
     host.appendChild(b);
@@ -1612,8 +1618,10 @@ function importData(txt){
   state.name=x.name||"";
   state.notes=x.notes||"";
   state.loadouts=x.loadouts||state.loadouts||{};
-  persist();
+  syncActiveBuild();
+  writeStorage();
   renderAll(true);
+  persist();
   renderBuildLibrary();
 }
 function bind(){
@@ -1840,6 +1848,12 @@ function bind(){
     if(raw){
       try{importData(raw);}catch(_){}
     }
+  });
+  addEventListener("pagehide",()=>{
+    try{
+      saveSelection();
+      persist();
+    }catch(_){}
   });
 }
 function selfCheck(){
