@@ -23,6 +23,12 @@ try:
 except Exception:
     MANUAL_CURRENT_CN = {}
 
+MAINTAINED_TEXT_FALLBACK_PATH = Path(__file__).with_name('maintained_text_fallback.json')
+try:
+    MAINTAINED_TEXT_FALLBACK = json.loads(MAINTAINED_TEXT_FALLBACK_PATH.read_text(encoding='utf-8'))
+except Exception:
+    MAINTAINED_TEXT_FALLBACK = {}
+
 def exact_reviewed_cn(en, desc):
     item = MANUAL_CURRENT_CN.get(en or '')
     if not isinstance(item, dict):
@@ -818,6 +824,18 @@ def attach_info(trees):
                 else:
                     n['advancedEn'] = pair_en if advanced_current else ''
                     n['advancedCn'] = pair_cn if advanced_current else ''
+
+                fallback_key = f"{cl.get('patch','')}|{cl.get('key','')}|{n.get('s','')}"
+                fallback_text = MAINTAINED_TEXT_FALLBACK.get(fallback_key, {})
+                if fallback_text and fallback_text.get('desc','') == n.get('desc',''):
+                    # Never carry maintained text across a changed English tooltip.
+                    # This fallback exists only to survive transient upstream/source-fetch loss.
+                    if not n.get('descCn') and fallback_text.get('descCn'):
+                        n['descCn'] = fallback_text['descCn']
+                        n['descSource'] = fallback_text.get('descSource') or n.get('descSource','base-aligned')
+                    if not (n.get('advancedEn') and n.get('advancedCn')) and fallback_text.get('advancedEn') and fallback_text.get('advancedCn'):
+                        n['advancedEn'] = fallback_text['advancedEn']
+                        n['advancedCn'] = fallback_text['advancedCn']
 
                 future_stat = FUTURE_STAT_VALUE_OVERRIDES.get(n.get('slug', '')) if cl.get('patch') == 'future' and n.get('cat') == 'stat' else None
                 if future_stat:
