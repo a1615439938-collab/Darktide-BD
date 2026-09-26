@@ -48,7 +48,7 @@ CLASSES = [
     {'key':'zealot','name':'Zealot','cn':'狂信徒','ig':'zealot','page':'zealot-preacher'},
     {'key':'psyker','name':'Psyker','cn':'灵能者','ig':'psyker','page':'psyker-psykinetic'},
     {'key':'ogryn','name':'Ogryn','cn':'欧格林','ig':'ogryn','page':'ogryn-skullbreaker'},
-    {'key':'arbites','name':'Arbites','cn':'仲裁官','ig':'adamant','page':'arbites'},
+    {'key':'arbites','name':'Arbites','cn':'法务官','ig':'adamant','page':'arbites'},
     {'key':'skitarii','name':'Skitarii','cn':'护教军','ig':'cryptic','page':'skitarii'},
     {'key':'hivescum','name':'Hive Scum','cn':'巢都渣滓','ig':'broker','page':'hive-scum'},
 ]
