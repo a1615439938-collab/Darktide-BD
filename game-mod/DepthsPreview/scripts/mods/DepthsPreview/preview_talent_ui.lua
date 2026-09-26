@@ -40,6 +40,16 @@ local GENERIC_ICONS = {
   ogryn = "content/ui/textures/icons/talents/ogryn/ogryn_default_general_talent",
 }
 
+-- Same-name live talents whose September 29 behavior is structurally different.
+-- They must not carry their current passive/special-rule implementation into Preview.
+local FORCE_CUSTOM = {
+  zealot = {
+    ["Holy Cause"] = true,
+    ["Ecclesiarch's Call"] = true,
+    ["Holy Revenant"] = true,
+  },
+}
+
 local original_layouts = {}
 local preview_layouts = {}
 local localization = {}
@@ -277,7 +287,8 @@ local function build_layout(class_key, original_layout)
     local compatibility_node = compatibility[source.slug]
     local native_match = resolve_native(candidates, compatibility_node, source)
     local is_root = source.cat == "root"
-    local is_reuse = compatibility_node and compatibility_node.mode == "reuse" and native_match ~= nil
+    local force_custom = FORCE_CUSTOM[class_key] and FORCE_CUSTOM[class_key][source.en] == true
+    local is_reuse = not force_custom and compatibility_node and compatibility_node.mode == "reuse" and native_match ~= nil
 
     local talent
     local icon
@@ -288,7 +299,7 @@ local function build_layout(class_key, original_layout)
     elseif is_reuse then
       talent = native_match.talent
       icon = native_match.node.icon
-    elseif native_match then
+    elseif native_match and not force_custom then
       -- Preview-changed talents reuse the live combat implementation first.
       -- Numeric/trigger differences are patched by talent_balance_preview.lua.
       talent, icon = override_native_definition(class_key, source, native_match)
